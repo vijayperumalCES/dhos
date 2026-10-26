@@ -1,4 +1,4 @@
-# DHOS — Design System and Navigation
+# Stride — Design System and Navigation
 
 ## Foundations
 

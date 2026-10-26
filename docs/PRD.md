@@ -1,4 +1,4 @@
-# DHOS — Product Requirements Document
+# Stride — Product Requirements Document
 
 _Living document. Last updated: 2026-10-26 (Phase 1)._
 
@@ -11,7 +11,7 @@ that should go into acting on it.
 
 ## 2. Product vision
 
-The **Delivery Head Operating System (DHOS)** is an organization-wide operating platform that gives
+**Stride** (formerly DHOS, the Delivery Head Operating System) is an organization-wide operating platform that gives
 the Delivery Head and their managers one governed, evidence-based view of portfolio delivery —
 projects, people, commitments, quality, finances and client governance — and progressively automates
 the recurring work around it with workflows and permission-bounded AI sub-agents, while keeping

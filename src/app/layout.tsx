@@ -9,8 +9,8 @@ const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
 const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: { default: "DHOS", template: "%s · DHOS" },
-  description: "Delivery Head Operating System — portfolio delivery governance.",
+  title: { default: "Stride", template: "%s · Stride" },
+  description: "Stride — the delivery command center for portfolio governance.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

@@ -1,4 +1,4 @@
-# DHOS — AI Sub-Agent Architecture (design)
+# Stride — AI Sub-Agent Architecture (design)
 
 > **Status: design only. No AI agent, model gateway or agent execution exists in the codebase.**
 > Implementation is Phase 6. The AI brief card on the Command Center is labelled "Not available".
@@ -19,7 +19,7 @@ User / schedule / event ──▶ Orchestrator ──▶ Agent registry (version
                          Model gateway (provider-agnostic) ──▶ configured LLM providers
                                 │
                                 ▼
-                         Tool layer ──▶ DHOS data via user-scoped Supabase client (RLS)
+                         Tool layer ──▶ Stride data via user-scoped Supabase client (RLS)
                                 │
                                 ▼
                          Approval service ──▶ human decision ──▶ action executor

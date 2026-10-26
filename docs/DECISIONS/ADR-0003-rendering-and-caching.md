@@ -3,7 +3,7 @@
 **Status:** Accepted · 2026-10-26
 
 ## Context
-`create-next-app` 16.4 enables `cacheComponents` and `partialPrefetching`. Every DHOS page depends
+`create-next-app` 16.4 enables `cacheComponents` and `partialPrefetching`. Every Stride page depends
 on the signed-in user, their organization and their permissions. A mis-keyed `use cache` entry
 could serve one tenant's data to another, and the Suspense-everywhere requirement adds friction
 with little benefit for an authenticated internal app.

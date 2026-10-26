@@ -5,11 +5,11 @@ export default function AuthLayout({ children }: LayoutProps<"/">) {
         <div className="mx-auto w-full max-w-sm">
           <div className="mb-8 flex items-center gap-2">
             <div className="flex size-9 items-center justify-center rounded-lg bg-primary font-semibold text-primary-foreground">
-              D
+              S
             </div>
             <div className="leading-tight">
-              <p className="font-semibold">DHOS</p>
-              <p className="text-xs text-muted-foreground">Delivery Head Operating System</p>
+              <p className="font-semibold">Stride</p>
+              <p className="text-xs text-muted-foreground">Delivery command center</p>
             </div>
           </div>
           {children}

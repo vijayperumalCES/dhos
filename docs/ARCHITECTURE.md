@@ -1,4 +1,4 @@
-# DHOS — System Architecture
+# Stride — System Architecture
 
 _Last updated: 2026-10-26 (Phase 1)._
 

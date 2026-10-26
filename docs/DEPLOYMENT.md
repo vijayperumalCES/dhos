@@ -1,4 +1,4 @@
-# DHOS — Deployment
+# Stride — Deployment
 
 ## 1. Local development
 
@@ -45,12 +45,18 @@ Environment variables:
 |---|---|---|
 | `NEXT_PUBLIC_SUPABASE_URL` | `https://<ref>.supabase.co` | public |
 | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | project publishable (anon) key | public |
-| `NEXT_PUBLIC_SITE_URL` | `https://<your-domain>` | public |
+| `NEXT_PUBLIC_SITE_URL` | `https://stride.vercel.app` | public |
 
 The service-role / secret key is **not** needed by the app and must not be configured on the web
 host. Build: `pnpm build`; start: `pnpm start` (port 3100, or set `PORT`/adjust the script).
 
-Vercel: import the repo, framework preset Next.js, set the variables above, deploy.
+Vercel: import the repo, **name the project `stride`** (this gives `https://stride.vercel.app`; if the
+name is taken Vercel adds a suffix — use whatever URL it assigns everywhere below), framework preset
+Next.js, set the variables above, deploy.
+
+Then in Supabase → Authentication → URL Configuration set **Site URL** to `https://stride.vercel.app`
+and add `https://stride.vercel.app/auth/confirm` to **Redirect URLs**. Confirmation emails link to
+whichever host the user signed up on, but Supabase only honours hosts on that allow-list.
 
 ## 4. Replacing demo data
 

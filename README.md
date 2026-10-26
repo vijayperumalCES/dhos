@@ -1,4 +1,8 @@
-# DHOS — Delivery Head Operating System
+# Stride
+
+**The delivery command center for Delivery Heads.** Production URL: <https://stride.vercel.app>
+(served once the Vercel project is named `stride`).
+_Formerly DHOS (Delivery Head Operating System)._
 
 An organization-wide operating platform for a Delivery Head: one governed, evidence-based view of
 projects, teams, clients and commitments, built to grow into workforce, governance, financial, AI

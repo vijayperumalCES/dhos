@@ -1,4 +1,4 @@
-# DHOS — Roadmap
+# Stride — Roadmap
 
 _Last updated: 2026-10-26._ Status: ✅ done · 🟡 partial · ⬜ not started
 

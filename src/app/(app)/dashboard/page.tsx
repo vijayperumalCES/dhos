@@ -55,7 +55,7 @@ export default async function DashboardPage({ searchParams }: PageProps<"/dashbo
     <div className="mx-auto max-w-7xl">
       <PageHeader
         title="Delivery Command Center"
-        description={`Live view of ${scope}. Every figure is computed from records in DHOS — open the ⓘ next to a metric for its definition.`}
+        description={`Live view of ${scope}. Every figure is computed from records in Stride — open the ⓘ next to a metric for its definition.`}
         meta={
           <span className="text-xs text-muted-foreground">
             Generated {formatDateTime(data.generatedAt)} · health considered stale after {ctx.settings.healthStaleAfterDays} days

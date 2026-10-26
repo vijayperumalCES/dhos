@@ -1,5 +1,5 @@
 -- =============================================================================
--- DHOS LOCAL DEMO SEED — DEMONSTRATION DATA ONLY
+-- STRIDE LOCAL DEMO SEED — DEMONSTRATION DATA ONLY
 -- =============================================================================
 -- Runs on `supabase db reset`. Every organization created here has is_demo = true, which
 -- makes the app show a "Demo data" banner on every page. None of these figures describe a

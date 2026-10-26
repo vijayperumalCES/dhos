@@ -1,4 +1,4 @@
-# DHOS — Testing Strategy
+# Stride — Testing Strategy
 
 | Layer | Tool | Location | What it proves |
 |---|---|---|---|

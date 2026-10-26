@@ -1,4 +1,4 @@
-# DHOS — Implementation Status
+# Stride — Implementation Status
 
 _Last updated: 2026-10-26._ A feature is "Done" only when it meets the Definition of Done in the
 master brief: UI end-to-end, persisted, authorized, tenant-tested, validated, audited, tested,

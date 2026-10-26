@@ -71,7 +71,7 @@ export function InviteMemberCard({ roles }: { roles: RoleOption[] }) {
         </CardTitle>
         <CardDescription>
           The invitation is recorded now and accepted automatically when that person signs in (or signs up) with this
-          verified email. DHOS does not send invitation emails yet — share the sign-up link yourself.
+          verified email. Stride does not send invitation emails yet — share the sign-up link yourself.
         </CardDescription>
       </CardHeader>
       <CardContent>

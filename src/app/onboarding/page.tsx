@@ -22,7 +22,7 @@ export default async function OnboardingPage({ searchParams }: PageProps<"/onboa
   return (
     <div className="mx-auto flex min-h-svh max-w-2xl flex-col justify-center gap-6 px-4 py-12">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">{ctx ? "Create another organization" : "Welcome to DHOS"}</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">{ctx ? "Create another organization" : "Welcome to Stride"}</h1>
         <p className="text-sm text-muted-foreground">
           Signed in as {user.email}.{" "}
           {ctx ? (

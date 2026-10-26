@@ -1,4 +1,4 @@
-# DHOS — Authorization
+# Stride — Authorization
 
 _Last updated: 2026-10-26 (Phase 1). Authoritative source: `supabase/migrations/20261026000200_authorization.sql`
 and `…000400_rls_and_grants.sql`. `tests/unit/authorization-matrix.test.ts` fails if the TypeScript

@@ -1,4 +1,4 @@
-# DHOS — Database
+# Stride — Database
 
 _Last updated: 2026-10-26 (Phase 1). Source of truth: `supabase/migrations/`._
 

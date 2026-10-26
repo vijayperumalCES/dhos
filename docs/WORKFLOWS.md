@@ -1,4 +1,4 @@
-# DHOS — Workflows, Hooks and Event Processing
+# Stride — Workflows, Hooks and Event Processing
 
 > **Status:** Phase 1 implements deterministic pre-hooks and post-hooks as **database triggers**
 > (described below and operational). The workflow engine, webhooks, outbox, scheduler and

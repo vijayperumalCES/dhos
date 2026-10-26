@@ -44,7 +44,7 @@ export function fromPostgrestError(error: PostgrestError, context?: { duplicate?
     case "P0001":
       return fail(humanizeRpcMessage(error.message));
     default:
-      console.error("[dhos] unexpected database error", { code: error.code, message: error.message });
+      console.error("[stride] unexpected database error", { code: error.code, message: error.message });
       return fail("Something went wrong while saving. Please try again.");
   }
 }

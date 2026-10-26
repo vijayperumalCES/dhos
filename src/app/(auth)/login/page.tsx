@@ -1,13 +1,17 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { env } from "@/lib/env";
+
 import { LoginForm } from "./login-form";
 
 export const metadata: Metadata = { title: "Sign in" };
 
 export default async function LoginPage({ searchParams }: PageProps<"/login">) {
   const { next, error } = await searchParams;
-  const isLocal = process.env.NODE_ENV !== "production";
+  // Demo accounts exist only in the seeded local Supabase stack, never in a hosted project.
+  const isLocal =
+    process.env.NODE_ENV !== "production" && /^https?:\/\/(127\.0\.0\.1|localhost)(:\d+)?/.test(env.NEXT_PUBLIC_SUPABASE_URL);
 
   return (
     <div className="space-y-6">
@@ -22,7 +26,7 @@ export default async function LoginPage({ searchParams }: PageProps<"/login">) {
       )}
       <LoginForm next={typeof next === "string" ? next : undefined} />
       <p className="text-sm text-muted-foreground">
-        New to DHOS?{" "}
+        New to Stride?{" "}
         <Link href="/signup" className="font-medium text-primary underline-offset-4 hover:underline">
           Create an account
         </Link>
@@ -50,7 +54,7 @@ export default async function LoginPage({ searchParams }: PageProps<"/login">) {
               <code>claire@contoso.example</code> — Client stakeholder
             </li>
           </ul>
-          <p className="mt-2">This panel is hidden in production builds.</p>
+          <p className="mt-2">Shown only when the app is connected to the local Supabase stack.</p>
         </div>
       )}
     </div>

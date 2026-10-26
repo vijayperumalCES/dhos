@@ -59,7 +59,7 @@ export const KPI_CATALOGUE = {
     owner: "Delivery Head",
     freshness: "Each rating carries its own timestamp; see Stale health ratings.",
     limitations:
-      "Health is a manager's judgement recorded in DHOS. It is not yet derived from milestones, work items or financials (Phases 2–5).",
+      "Health is a manager's judgement recorded in Stride. It is not yet derived from milestones, work items or financials (Phases 2–5).",
   },
   projects_at_risk: {
     id: "projects_at_risk",
