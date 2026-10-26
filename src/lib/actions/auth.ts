@@ -1,9 +1,10 @@
 "use server";
 
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 
 import { ACTIVE_ORG_COOKIE } from "@/lib/auth/org-context";
+import { resolveSiteOrigin } from "@/lib/auth/site-origin";
 import { env } from "@/lib/env";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { safeNextPath, signInSchema, signUpSchema } from "@/lib/validation/auth";
@@ -29,12 +30,13 @@ export async function signUp(input: unknown): Promise<ActionResult<{ needsConfir
   if (!parsed.success) return fromZodError(parsed.error);
 
   const supabase = await createSupabaseServerClient();
+  const origin = resolveSiteOrigin(await headers(), env.NEXT_PUBLIC_SITE_URL);
   const { data, error } = await supabase.auth.signUp({
     email: parsed.data.email,
     password: parsed.data.password,
     options: {
       data: { display_name: parsed.data.displayName },
-      emailRedirectTo: `${env.NEXT_PUBLIC_SITE_URL}/auth/confirm?next=/onboarding`,
+      emailRedirectTo: `${origin}/auth/confirm?next=/onboarding`,
     },
   });
   if (error) {
