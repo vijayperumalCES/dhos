@@ -1,0 +1,243 @@
+-- =============================================================================
+-- DHOS LOCAL DEMO SEED — DEMONSTRATION DATA ONLY
+-- =============================================================================
+-- Runs on `supabase db reset`. Every organization created here has is_demo = true, which
+-- makes the app show a "Demo data" banner on every page. None of these figures describe a
+-- real company or real delivery performance.
+--
+-- All demo users share the password: DemoPass123   (local development only)
+-- To start with real data instead, see docs/DEPLOYMENT.md#replacing-demo-data.
+-- =============================================================================
+
+-- ---------------------------------------------------------------------------
+-- Demo auth users (local stack only; never run this file against production)
+-- ---------------------------------------------------------------------------
+do $$
+declare
+  u record;
+begin
+  for u in
+    select * from (values
+      ('00000000-0000-4000-a000-000000000001'::uuid, 'priya@northwind.example', 'Priya Raman'),
+      ('00000000-0000-4000-a000-000000000002'::uuid, 'omar@northwind.example',  'Omar Haddad'),
+      ('00000000-0000-4000-a000-000000000003'::uuid, 'arjun@northwind.example', 'Arjun Mehta'),
+      ('00000000-0000-4000-a000-000000000004'::uuid, 'mei@northwind.example',   'Mei Chen'),
+      ('00000000-0000-4000-a000-000000000005'::uuid, 'dev@northwind.example',   'Dev Kumar'),
+      ('00000000-0000-4000-a000-000000000006'::uuid, 'lena@northwind.example',  'Lena Fischer'),
+      ('00000000-0000-4000-a000-000000000007'::uuid, 'rahul@northwind.example', 'Rahul Nair'),
+      ('00000000-0000-4000-a000-000000000008'::uuid, 'sofia@northwind.example', 'Sofia Rossi'),
+      ('00000000-0000-4000-a000-000000000009'::uuid, 'tom@northwind.example',   'Tom Becker'),
+      ('00000000-0000-4000-a000-000000000010'::uuid, 'claire@contoso.example',  'Claire Dubois'),
+      ('00000000-0000-4000-a000-000000000011'::uuid, 'alex@globex.example',     'Alex Morgan')
+    ) as t(id, email, display_name)
+  loop
+    insert into auth.users (
+      instance_id, id, aud, role, email, encrypted_password, email_confirmed_at,
+      raw_app_meta_data, raw_user_meta_data, created_at, updated_at,
+      confirmation_token, email_change, email_change_token_new, recovery_token
+    ) values (
+      '00000000-0000-0000-0000-000000000000', u.id, 'authenticated', 'authenticated', u.email,
+      extensions.crypt('DemoPass123', extensions.gen_salt('bf')), now(),
+      '{"provider":"email","providers":["email"]}'::jsonb,
+      jsonb_build_object('display_name', u.display_name), now(), now(), '', '', '', ''
+    );
+    insert into auth.identities (id, user_id, provider_id, identity_data, provider, last_sign_in_at, created_at, updated_at)
+    values (gen_random_uuid(), u.id, u.id::text,
+            jsonb_build_object('sub', u.id::text, 'email', u.email, 'email_verified', true),
+            'email', now(), now(), now());
+  end loop;
+end;
+$$;
+
+-- ---------------------------------------------------------------------------
+-- Organizations, members and roles
+-- ---------------------------------------------------------------------------
+do $$
+declare
+  v_nw uuid;
+  v_gx uuid;
+  m record;
+  v_membership uuid;
+begin
+  v_nw := private.bootstrap_organization('Northwind Delivery (Demo)', 'northwind-demo', '00000000-0000-4000-a000-000000000001', true);
+  v_gx := private.bootstrap_organization('Globex Labs (Demo)', 'globex-demo', '00000000-0000-4000-a000-000000000011', true);
+
+  update public.organization_settings set timezone = 'Asia/Kolkata', currency_code = 'INR' where organization_id = v_nw;
+  update public.organization_memberships set job_title = 'Delivery Head' where organization_id = v_nw and user_id = '00000000-0000-4000-a000-000000000001';
+  update public.organization_memberships set job_title = 'Head of Engineering' where organization_id = v_gx;
+
+  for m in
+    select * from (values
+      ('00000000-0000-4000-a000-000000000002'::uuid, 'IT Administrator',        array['org_admin']),
+      ('00000000-0000-4000-a000-000000000003'::uuid, 'Senior Delivery Manager', array['project_manager']),
+      ('00000000-0000-4000-a000-000000000004'::uuid, 'Program Manager',         array['program_manager']),
+      ('00000000-0000-4000-a000-000000000005'::uuid, 'Software Engineer',       array['developer']),
+      ('00000000-0000-4000-a000-000000000006'::uuid, 'Engineering Manager',     array['engineering_manager']),
+      ('00000000-0000-4000-a000-000000000007'::uuid, 'Mobile Tech Lead',        array['developer','scrum_master']),
+      ('00000000-0000-4000-a000-000000000008'::uuid, 'Data Engineer',           array['developer']),
+      ('00000000-0000-4000-a000-000000000009'::uuid, 'QA Lead',                 array['qa_engineer']),
+      ('00000000-0000-4000-a000-000000000010'::uuid, 'Client Product Owner (Contoso)', array['client_stakeholder'])
+    ) as t(user_id, job_title, roles)
+  loop
+    insert into public.organization_memberships (organization_id, user_id, job_title)
+    values (v_nw, m.user_id, m.job_title) returning id into v_membership;
+    insert into public.membership_roles (organization_id, membership_id, role_id, granted_by)
+    select v_nw, v_membership, r.id, '00000000-0000-4000-a000-000000000001'
+    from public.role_definitions r where r.organization_id = v_nw and r.key = any (m.roles);
+  end loop;
+
+  -- A pending invitation, to show the invitation workflow.
+  insert into public.organization_invitations (organization_id, email, role_keys, invited_by)
+  values (v_nw, 'new.hire@northwind.example', array['developer'], '00000000-0000-4000-a000-000000000002');
+end;
+$$;
+
+-- The seed runner prepares every top-level statement before running any of them, so
+-- everything that depends on rows or helper tables created above runs inside one DO block.
+do $seed$
+begin
+
+-- Convenience lookups for the rest of the seed.
+create table private.seed_m as
+  select m.id, m.organization_id, p.email
+  from public.organization_memberships m join public.user_profiles p on p.id = m.user_id;
+
+-- ---------------------------------------------------------------------------
+-- Clients
+-- ---------------------------------------------------------------------------
+insert into public.clients (organization_id, name, code, industry, website, account_owner_membership_id, confidentiality, notes, created_by)
+select o.id, c.name, c.code, c.industry, c.website,
+       (select id from private.seed_m where email = 'priya@northwind.example'), c.conf::public.client_confidentiality, c.notes,
+       '00000000-0000-4000-a000-000000000001'
+from public.organizations o,
+  (values
+    ('Contoso Bank',       'CONTOSO',  'Banking',    'https://contoso.example',   'confidential', 'Strategic account. Demo record.'),
+    ('Fabrikam Retail',    'FABRIKAM', 'Retail',     'https://fabrikam.example',  'standard',     'Demo record.'),
+    ('Tailspin Logistics', 'TAILSPIN', 'Logistics',  'https://tailspin.example',  'standard',     'Demo record.')
+  ) as c(name, code, industry, website, conf, notes)
+where o.slug = 'northwind-demo';
+
+-- ---------------------------------------------------------------------------
+-- Teams
+-- ---------------------------------------------------------------------------
+insert into public.teams (organization_id, name, description, lead_membership_id, created_by)
+select o.id, t.name, t.description, (select id from private.seed_m where email = t.lead), '00000000-0000-4000-a000-000000000001'
+from public.organizations o,
+  (values
+    ('Platform Engineering', 'Core services, payments and integration platform.', 'lena@northwind.example'),
+    ('Mobile Squad',         'iOS and Android banking apps.',                       'rahul@northwind.example'),
+    ('Data & Analytics',     'Warehouse, pipelines and reporting.',                 'sofia@northwind.example'),
+    ('PMO',                  'Delivery and program management office.',             'priya@northwind.example')
+  ) as t(name, description, lead)
+where o.slug = 'northwind-demo';
+
+insert into public.teams (organization_id, name, description, lead_membership_id, created_by)
+select o.id, 'Globex Core', 'Globex internal engineering team.', (select id from private.seed_m where email = 'alex@globex.example'), '00000000-0000-4000-a000-000000000011'
+from public.organizations o where o.slug = 'globex-demo';
+
+insert into public.team_members (organization_id, team_id, membership_id, team_role)
+select t.organization_id, t.id, sm.id, x.team_role
+from (values
+    ('Platform Engineering', 'lena@northwind.example',  'Engineering Manager'),
+    ('Platform Engineering', 'dev@northwind.example',   'Backend Engineer'),
+    ('Platform Engineering', 'sofia@northwind.example', 'Data Engineer'),
+    ('Mobile Squad',         'rahul@northwind.example', 'Tech Lead'),
+    ('Mobile Squad',         'dev@northwind.example',   'Engineer'),
+    ('Mobile Squad',         'tom@northwind.example',   'QA'),
+    ('Data & Analytics',     'sofia@northwind.example', 'Lead'),
+    ('Data & Analytics',     'tom@northwind.example',   'QA'),
+    ('PMO',                  'priya@northwind.example', 'Delivery Head'),
+    ('PMO',                  'arjun@northwind.example', 'Delivery Manager'),
+    ('PMO',                  'mei@northwind.example',   'Program Manager'),
+    ('Globex Core',          'alex@globex.example',     'Lead')
+  ) as x(team, email, team_role)
+join public.teams t on t.name = x.team
+join private.seed_m sm on sm.email = x.email and sm.organization_id = t.organization_id;
+
+-- ---------------------------------------------------------------------------
+-- Projects (dates are relative to the day the seed runs)
+-- ---------------------------------------------------------------------------
+insert into public.projects (
+  organization_id, code, name, description, client_id, sponsor_name, project_manager_id, delivery_owner_id,
+  primary_team_id, methodology, status, health, health_reason, health_updated_at, status_changed_at,
+  planned_start_date, target_end_date, actual_end_date, objectives, created_by, created_at
+)
+select o.id, p.code, p.name, p.description,
+       (select id from public.clients c where c.organization_id = o.id and c.code = p.client_code),
+       p.sponsor,
+       (select id from private.seed_m where email = p.pm and organization_id = o.id),
+       (select id from private.seed_m where email = 'priya@northwind.example'),
+       (select id from public.teams t where t.organization_id = o.id and t.name = p.team),
+       p.methodology::public.project_methodology, p.status::public.project_status, p.health::public.project_health,
+       p.health_reason,
+       case when p.health = 'not_assessed' then null else now() - make_interval(days => p.health_age) end,
+       now() - make_interval(days => p.status_age),
+       current_date + p.start_offset, current_date + p.end_offset,
+       case when p.status = 'completed' then current_date - 15 else null end,
+       p.objectives, '00000000-0000-4000-a000-000000000001',
+       now() - make_interval(days => greatest(p.status_age, -p.start_offset) + 14)
+from public.organizations o,
+  (values
+    ('NW-PAY',  'Payments Platform Modernization', 'Replace the legacy payment switch with a cloud-native ledger.', 'CONTOSO',  'CFO, Contoso Bank', 'arjun@northwind.example', 'Platform Engineering', 'scrum',     'active',    'red',          'Ledger migration slipped three weeks; vendor API dependency is blocking settlement testing.', 2,  60, -120,   30, 'Cut settlement time from T+2 to T+0.'),
+    ('NW-MOB',  'Mobile Banking App v3',           'Next generation retail banking app.',                            'CONTOSO',  'Head of Digital',  'arjun@northwind.example', 'Mobile Squad',         'scrum',     'active',    'amber',        'UAT environment instability is delaying test sign-off.',                                     5,  45,  -90,   60, 'Ship v3 to 100% of retail customers.'),
+    ('NW-DWH',  'Data Warehouse Migration',        'Move on-premise warehouse to a managed cloud platform.',         'FABRIKAM', 'CIO, Fabrikam',    'mei@northwind.example',   'Data & Analytics',     'hybrid',    'active',    'green',        null,                                                                                          20, 50,  -60,  120, 'Decommission on-premise warehouse.'),
+    ('NW-CRM',  'CRM Consolidation',               'Consolidate three regional CRMs.',                               'FABRIKAM', 'COO, Fabrikam',    'mei@northwind.example',   'Platform Engineering', 'waterfall', 'planning',  'not_assessed', null,                                                                                          0,  12,   10,  200, 'Single customer view across regions.'),
+    ('NW-SEC',  'SOC 2 Compliance Uplift',         'Internal programme to reach SOC 2 Type II.',                     null,       'CTO, Northwind',   'arjun@northwind.example', 'Platform Engineering', 'kanban',    'active',    'amber',        'Evidence collection behind plan; target date passed.',                                      3,  30,  -30,   -5, 'Pass SOC 2 Type II audit.'),
+    ('NW-POR',  'Partner Portal',                  'Self-service portal for logistics partners.',                    'TAILSPIN', 'VP Partnerships',  'arjun@northwind.example', 'Mobile Squad',         'scrum',     'on_hold',   'amber',        'On hold pending client budget re-approval.',                                                9,  9,   -45,   75, 'Onboard 200 partners.'),
+    ('NW-ANL',  'Analytics Self-Service',          'Self-service dashboards for operations.',                        'TAILSPIN', 'Head of Ops',      'mei@northwind.example',   'Data & Analytics',     'kanban',    'proposed',  'not_assessed', null,                                                                                          0,  4,    30,  150, 'Reduce ad-hoc report requests by half.'),
+    ('NW-ERP',  'ERP Upgrade Phase 1',             'Upgrade finance modules.',                                       'FABRIKAM', 'CFO, Fabrikam',    'mei@northwind.example',   'Platform Engineering', 'waterfall', 'completed', 'green',        null,                                                                                          16, 15, -200,  -20, 'Upgrade GL and AP modules.'),
+    ('NW-BOT',  'Support Chatbot Pilot',           'Pilot conversational support assistant.',                        'CONTOSO',  'Head of Service',  'arjun@northwind.example', 'Mobile Squad',         'scrum',     'cancelled', 'not_assessed', null,                                                                                          0,  40,  -80,   10, 'Deflect 20% of tier-1 tickets.'),
+    ('NW-OBA',  'Open Banking APIs',               'Expose account and payment APIs to third parties.',              'CONTOSO',  'CTO, Contoso Bank','mei@northwind.example',   'Platform Engineering', 'scrum',     'approved',  'not_assessed', null,                                                                                          0,  6,    20,  180, 'Regulatory compliance for open banking.')
+  ) as p(code, name, description, client_code, sponsor, pm, team, methodology, status, health, health_reason, health_age, status_age, start_offset, end_offset, objectives)
+where o.slug = 'northwind-demo';
+
+insert into public.projects (organization_id, code, name, description, project_manager_id, delivery_owner_id, primary_team_id,
+                             status, health, health_updated_at, planned_start_date, target_end_date, created_by)
+select o.id, 'GX-TOOLS', 'Globex Internal Tooling', 'Belongs to a different tenant; Northwind users must never see it.',
+       (select id from private.seed_m where email = 'alex@globex.example'), (select id from private.seed_m where email = 'alex@globex.example'),
+       (select id from public.teams t where t.organization_id = o.id), 'active', 'green', now() - interval '1 day',
+       current_date - 30, current_date + 90, '00000000-0000-4000-a000-000000000011'
+from public.organizations o where o.slug = 'globex-demo';
+
+-- Project memberships
+insert into public.project_memberships (organization_id, project_id, membership_id, project_role, allocation_percent)
+select p.organization_id, p.id, sm.id, x.role, x.alloc
+from (values
+    ('NW-PAY', 'dev@northwind.example',    'Backend Engineer',   60),
+    ('NW-PAY', 'lena@northwind.example',   'Engineering Manager', 50),
+    ('NW-PAY', 'sofia@northwind.example',  'Data Engineer',      30),
+    ('NW-MOB', 'dev@northwind.example',    'Engineer',           40),
+    ('NW-MOB', 'rahul@northwind.example',  'Tech Lead',          100),
+    ('NW-MOB', 'tom@northwind.example',    'QA Lead',            60),
+    ('NW-MOB', 'claire@contoso.example',   'Client Product Owner', null),
+    ('NW-DWH', 'sofia@northwind.example',  'Lead Data Engineer', 70),
+    ('NW-DWH', 'tom@northwind.example',    'QA',                 40),
+    ('NW-SEC', 'lena@northwind.example',   'Control Owner',      30)
+  ) as x(code, email, role, alloc)
+join public.projects p on p.code = x.code
+join private.seed_m sm on sm.email = x.email and sm.organization_id = p.organization_id;
+
+-- Backdate the auto-created "created" history rows and add a plausible health trail.
+update public.project_status_history h
+   set changed_at = p.created_at,
+       to_health = case when p.code in ('NW-PAY', 'NW-MOB', 'NW-SEC') then 'not_assessed' else h.to_health end
+from public.projects p where p.id = h.project_id and h.change_type = 'created';
+
+insert into public.project_status_history (organization_id, project_id, change_type, from_health, to_health, reason, changed_by, changed_at)
+select p.organization_id, p.id, 'health', x.from_h::public.project_health, x.to_h::public.project_health, x.reason,
+       '00000000-0000-4000-a000-000000000003', now() - make_interval(days => x.age)
+from (values
+    ('NW-PAY', 'not_assessed', 'green', 'Baseline agreed.',                                40),
+    ('NW-PAY', 'green',        'amber', 'Vendor API sandbox unavailable.',                  21),
+    ('NW-PAY', 'amber',        'red',   'Ledger migration slipped three weeks.',             2),
+    ('NW-MOB', 'not_assessed', 'green', 'Baseline agreed.',                                 60),
+    ('NW-MOB', 'green',        'amber', 'UAT environment instability.',                      5),
+    ('NW-SEC', 'not_assessed', 'amber', 'Evidence collection behind plan.',                  3)
+  ) as x(code, from_h, to_h, reason, age)
+join public.projects p on p.code = x.code;
+
+drop table private.seed_m;
+
+end;
+$seed$;
+
