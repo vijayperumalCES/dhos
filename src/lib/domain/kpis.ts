@@ -145,6 +145,63 @@ export const KPI_CATALOGUE = {
     freshness: "Live",
     limitations: "Archived projects are excluded.",
   },
+  milestones_overdue: {
+    id: "milestones_overdue",
+    name: "Overdue milestones",
+    definition: "Milestones of non-archived projects that are past their due date and not achieved.",
+    formula: "count(project_milestones where completed_on is null and due_date < today)",
+    sources: ["project_milestones"],
+    period: "Point in time (today in the organization's time zone)",
+    owner: "Delivery Head",
+    threshold: "Target: 0",
+    freshness: "Live",
+    limitations: "Only as good as milestone upkeep: an achieved milestone not marked achieved counts as overdue.",
+  },
+  milestones_due_14_days: {
+    id: "milestones_due_14_days",
+    name: "Milestones due in 14 days",
+    definition: "Open milestones due between today and 14 days from today.",
+    formula: "count(project_milestones where completed_on is null and today <= due_date <= today + 14)",
+    sources: ["project_milestones"],
+    period: "Next 14 days",
+    owner: "Delivery Head",
+    freshness: "Live",
+    limitations: "Project-level milestones only.",
+  },
+  milestones_slipped: {
+    id: "milestones_slipped",
+    name: "Milestones slipped vs baseline",
+    definition: "Open milestones whose current due date is later than their baselined due date.",
+    formula: "count(open milestones where due_date > baseline_due_date)",
+    sources: ["project_milestones.baseline_due_date"],
+    period: "Point in time",
+    owner: "Delivery Head",
+    freshness: "Live",
+    limitations: "Milestones added after the last baseline have no baseline and are not counted.",
+  },
+  blocked_work_items: {
+    id: "blocked_work_items",
+    name: "Blocked work items",
+    definition: "Open work items flagged as blocked.",
+    formula: "count(work_items where blocked and archived_at is null and state category <> 'done')",
+    sources: ["work_items.blocked"],
+    period: "Point in time",
+    owner: "Delivery Head",
+    threshold: "Each should have a blocker reason and an owner chasing it.",
+    freshness: "Live",
+    limitations: "Counts the manual flag only; items waiting on an unfinished dependency are shown on the item itself.",
+  },
+  sprint_completion: {
+    id: "sprint_completion",
+    name: "Active sprint completion",
+    definition: "Done points as a share of current scope across all active sprints, against the committed scope at start.",
+    formula: "sum(done points) / sum(scope points) over items in active sprints",
+    sources: ["sprints", "work_items.story_points", "workflow_states.category"],
+    period: "Current sprints",
+    owner: "Delivery Head",
+    freshness: "Live",
+    limitations: "Unestimated items count as zero points. Read alongside days remaining in each sprint.",
+  },
 } satisfies Record<string, KpiDefinition>;
 
 export type KpiId = keyof typeof KPI_CATALOGUE;
@@ -228,7 +285,7 @@ export function computePortfolioKpis(input: PortfolioKpiInput) {
     status_changes: inPeriod.length,
     health_deteriorations: deteriorations.length,
     lifecycle_distribution: lifecycleDistribution,
-  } satisfies Record<KpiId, unknown>;
+  } satisfies Partial<Record<KpiId, unknown>>;
 }
 
 export type PortfolioKpis = ReturnType<typeof computePortfolioKpis>;
@@ -240,3 +297,38 @@ export function parseReportingPeriod(value: string | undefined): ReportingPeriod
   const n = Number(value);
   return (REPORTING_PERIODS as readonly number[]).includes(n) ? (n as ReportingPeriod) : 30;
 }
+
+export type MilestoneSnapshot = { due_date: string; baseline_due_date: string | null; completed_on: string | null };
+export type SprintItemSnapshot = { story_points: number | null; done: boolean };
+
+/** Phase 2 delivery metrics: milestones, blocked work and sprint progress. */
+export function computeDeliveryKpis(input: {
+  milestones: MilestoneSnapshot[];
+  sprintItems: SprintItemSnapshot[];
+  committedPoints: number;
+  activeSprints: number;
+  blockedItems: number | null;
+  now: Date;
+  timeZone: string;
+}) {
+  const today = todayInTimeZone(input.now, input.timeZone);
+  const in14 = addDaysToDate(today, 14);
+  const open = input.milestones.filter((m) => !m.completed_on);
+  const scope = input.sprintItems.reduce((s, i) => s + (i.story_points ?? 0), 0);
+  const done = input.sprintItems.filter((i) => i.done).reduce((s, i) => s + (i.story_points ?? 0), 0);
+  return {
+    milestones_overdue: open.filter((m) => m.due_date < today).length,
+    milestones_due_14_days: open.filter((m) => m.due_date >= today && m.due_date <= in14).length,
+    milestones_slipped: open.filter((m) => m.baseline_due_date !== null && m.due_date > m.baseline_due_date).length,
+    blocked_work_items: input.blockedItems,
+    sprint_completion: {
+      activeSprints: input.activeSprints,
+      scopePoints: scope,
+      donePoints: done,
+      committedPoints: input.committedPoints,
+      percent: scope > 0 ? Math.round((done / scope) * 100) : null,
+    },
+  } satisfies Partial<Record<KpiId, unknown>>;
+}
+
+export type DeliveryKpis = ReturnType<typeof computeDeliveryKpis>;

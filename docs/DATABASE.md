@@ -68,6 +68,23 @@ erDiagram
 | `project_status_history` | Lifecycle and health changes | Written only by trigger |
 | `departments` | Flat departments with an optional head | Added 2026-10-27; audited |
 
+### Phase 2 additions
+
+| Table | Purpose |
+|---|---|
+| `programs` | Groups of projects (`projects.program_id`) |
+| `project_milestones`, `project_baselines` | Milestones with `baseline_due_date`; immutable baseline snapshots |
+| `workflow_states`, `workflow_transitions` | Per-org states (category todo / in_progress / done, WIP limit, default) and optional rules |
+| `work_items`, `work_item_counters` | Unified hierarchy with keys `<CODE>-<n>`; counters hidden from the API |
+| `work_item_dependencies`, `work_item_comments`, `work_item_links`, `work_item_activity` | Relationships, discussion, external links, trigger-written history |
+| `sprints`, `sprint_daily_stats` | Sprint lifecycle and trigger-maintained burndown data |
+| `project_status_reports` | Immutable reports with a metrics snapshot (counts only for internal work) |
+
+Key functions: `allowed_parent_types`, `take_project_baseline`, `start_sprint`, `complete_sprint`,
+`set_work_item_archived`, `can_read_work`; triggers `work_items_before_write` (keys, parent / sprint /
+transition rules, completion stamp), `work_items_record_activity`, `work_items_refresh_sprints`,
+`prevent_blocking_cycle`, `workflow_states_guard`. `work_items` is in the `supabase_realtime` publication.
+
 `organization_memberships` also carries `department_id` and `manager_membership_id` (reporting line;
 a trigger rejects cycles, a check rejects self-management, composite FKs keep both in-tenant).
 `organization_invitations` tracks `email_sent_count` / `email_last_sent_at`.

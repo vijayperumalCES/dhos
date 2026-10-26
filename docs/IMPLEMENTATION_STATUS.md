@@ -47,6 +47,32 @@ empty/loading/error states, documented.
 
 New migration `20261027000100_phase1_gaps.sql` — **must be pushed to the hosted project** (`supabase db push`).
 
+## Phase 2 — Work management (2026-10-28)
+
+| Feature | Status | Evidence |
+|---|---|---|
+| Programs (create, edit, close; project assignment; health and milestone roll-up) | Done | e2e, pgTAP |
+| Milestones with owners, completion, baselines (immutable snapshots) and schedule variance | Done | e2e, unit |
+| Organization workflow: states with categories, order, default, WIP limits, optional transition rules | Done | pgTAP (rules enforced by trigger) |
+| Work items: epic → feature → story → task/sub-task, bugs, incidents, change requests; parent rules; per-project keys | Done | pgTAP, unit drift test |
+| Item detail: description, acceptance criteria, children, dependencies (cycle-proof), links, comments, activity feed | Done | e2e, pgTAP |
+| Backlog grouped by sprint with quick add, move-to-sprint and reordering | Done | e2e |
+| Kanban board: drag and drop (mouse + keyboard), WIP limits, live updates (TanStack Query + Supabase Realtime) | Done | e2e (keyboard), manual |
+| Sprints: plan, start (commitment recorded), complete (unfinished work moves), burndown, velocity, reliability | Done | e2e, pgTAP, unit |
+| Project status reports: narrative + evidence snapshot, immutable, copy as Markdown | Done | e2e, unit |
+| Command Center: overdue / due-soon / slipped milestones, active sprint completion, blocked work | Done | unit, manual |
+| My Work across projects | Done | e2e |
+| CSV project import accepts a `program` column | Done | — |
+
+New migration `20261028000100_work_management.sql` — **must be pushed to the hosted project** (`supabase db push`).
+
+### Phase 2 limitations
+- Burndown history starts when a sprint starts and is recorded on change (no nightly snapshot until Phase 7 scheduling).
+- Sprint capacity uses average velocity only; people-based capacity arrives with Phase 3.
+- Live board updates require the `work_items` table in the Supabase Realtime publication (done by the migration).
+- No cross-project critical-path view yet; dependencies are shown per item.
+- Work items can't be bulk-imported yet (projects can).
+
 ## Known gaps and limitations (Phase 1)
 
 - **Email delivery limits:** hosted Supabase's built-in mailer sends only a few emails per hour. Configure
@@ -68,7 +94,7 @@ New migration `20261027000100_phase1_gaps.sql` — **must be pushed to the hoste
 
 | Suite | Command | Count | Last result |
 |---|---|---|---|
-| Unit (Vitest) | `pnpm test` | 51 | ✅ pass |
-| Database (pgTAP) | `pnpm test:db` | 70 (45 + 25) | ✅ pass |
-| End-to-end (Playwright) | `pnpm test:e2e` | 15 | ✅ pass |
+| Unit (Vitest) | `pnpm test` | 64 | ✅ pass |
+| Database (pgTAP) | `pnpm test:db` | 104 (45 + 25 + 34) | ✅ pass |
+| End-to-end (Playwright) | `pnpm test:e2e` | 21 | ✅ pass |
 | Typecheck / lint / build | `pnpm typecheck`, `pnpm lint`, `pnpm build` | — | ✅ pass |

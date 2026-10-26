@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
-import { PageHeader } from "@/components/common/page-header";
 import { AccessDenied } from "@/components/common/states";
 import { ProjectForm } from "@/components/projects/project-form";
 import { requireOrgContext } from "@/lib/auth/org-context";
@@ -20,14 +19,7 @@ export default async function EditProjectPage({ params }: PageProps<"/projects/[
 
   return (
     <div className="mx-auto max-w-4xl">
-      <PageHeader
-        title={`Edit ${project.code}`}
-        breadcrumbs={[
-          { label: "Projects", href: "/projects" },
-          { label: project.code, href: `/projects/${project.id}` },
-          { label: "Edit" },
-        ]}
-      />
+      <h2 className="mb-4 text-lg font-semibold">Edit project details</h2>
       <ProjectForm
         projectId={project.id}
         {...options}
@@ -47,6 +39,7 @@ export default async function EditProjectPage({ params }: PageProps<"/projects/[
           scopeSummary: project.scope_summary ?? "",
           assumptions: project.assumptions ?? "",
           projectConstraints: project.project_constraints ?? "",
+          programId: project.program_id ?? NONE,
         }}
       />
     </div>

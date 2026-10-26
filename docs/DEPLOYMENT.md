@@ -98,7 +98,7 @@ http://127.0.0.1:55324.
 
 ## 8. Applying new migrations to the hosted project
 
-Each release may add migrations (e.g. `20261027000100_phase1_gaps.sql`). Apply them before or with the
+Each release may add migrations (e.g. `20261027000100_phase1_gaps.sql`, `20261028000100_work_management.sql`). Apply them before or with the
 app deploy:
 
 ```bash

@@ -113,6 +113,20 @@ the org chart shows reporting lines; cycles are rejected.
 **US-1.19 Import / export.** Projects and members export to CSV; projects import from CSV after a
 validated preview (all-or-nothing); invitations can be created in bulk from CSV.
 
+### 5.3 Phase 2 user stories (work management)
+
+- **US-2.1 Programs.** Group related projects; see their health and milestones together.
+- **US-2.2 Milestones and baselines.** Track milestones, take a baseline, see slippage in days.
+- **US-2.3 Workflow.** Configure states, categories, WIP limits and optional transition rules.
+- **US-2.4 Work items.** Epics, features, stories, tasks, sub-tasks, bugs, incidents and change requests
+  with parent rules, acceptance criteria, estimates, dependencies, links, comments and activity.
+- **US-2.5 Backlog and board.** Prioritised backlog by sprint; Kanban board with drag and drop
+  (keyboard accessible) and live updates.
+- **US-2.6 Sprints.** Plan, start (commitment recorded), complete (unfinished work moves), burndown,
+  velocity and commitment reliability.
+- **US-2.7 Status reports.** Publish immutable reports combining narrative with evidence.
+- **US-2.8 Command Center.** Overdue, due-soon and slipped milestones; sprint completion; blocked work.
+
 ### 5.2 Out of scope for Phase 1
 
 Work items, sprints, milestones, attendance, leave, timesheets, financials, RAID, releases,

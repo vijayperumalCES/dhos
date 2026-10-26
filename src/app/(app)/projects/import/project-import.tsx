@@ -17,6 +17,7 @@ const EXAMPLE = [
   "Payments Phase 2",
   "Second phase of the payments programme",
   "CONTOSO",
+  "CONTOSO-DX",
   "CFO, Contoso Bank",
   "arjun@northwind.example",
   "",
@@ -60,7 +61,7 @@ export function ProjectImport({ columns }: { columns: readonly string[] }) {
           <CardDescription>
             Required columns: <code>code</code>, <code>name</code>. Optional: {columns.slice(2).map((c) => <code key={c} className="mr-1">{c}</code>)}.
             <br />
-            <code>client</code> accepts a client code or name; people are matched by email; <code>primary_team</code> by team
+            <code>client</code> and <code>program</code> accept a code or name; people are matched by email; <code>primary_team</code> by team
             name. Dates use YYYY-MM-DD. Imported projects start as <strong>Proposed</strong> with health{" "}
             <strong>Not assessed</strong>; move them through the lifecycle afterwards so every change is recorded.
           </CardDescription>

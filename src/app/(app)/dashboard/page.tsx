@@ -23,9 +23,6 @@ import { uuid } from "@/lib/validation/common";
 export const metadata: Metadata = { title: "Command Center" };
 
 const NOT_YET_MEASURED = [
-  { name: "Milestones due / overdue", phase: 2 },
-  { name: "Sprint commitment vs completion", phase: 2 },
-  { name: "Blocked or overdue work items", phase: 2 },
   { name: "Attendance and available capacity", phase: 3 },
   { name: "Resource allocation and utilisation", phase: 3 },
   { name: "Open critical risks and escalations", phase: 4 },
@@ -98,12 +95,39 @@ export default async function DashboardPage({ searchParams }: PageProps<"/dashbo
             <KpiTile kpi={KPI_CATALOGUE.stale_health} value={kpis.stale_health} tone="warning" />
           </section>
 
+          <section aria-label="Delivery metrics" className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <KpiTile
+              kpi={KPI_CATALOGUE.milestones_overdue}
+              value={data.delivery.milestones_overdue}
+              hint={`${data.delivery.milestones_slipped} slipped vs baseline`}
+              tone="critical"
+            />
+            <KpiTile kpi={KPI_CATALOGUE.milestones_due_14_days} value={data.delivery.milestones_due_14_days} />
+            <KpiTile
+              kpi={KPI_CATALOGUE.sprint_completion}
+              value={data.delivery.sprint_completion.percent === null ? "—" : `${data.delivery.sprint_completion.percent}%`}
+              hint={
+                data.delivery.sprint_completion.activeSprints
+                  ? `${data.delivery.sprint_completion.donePoints} of ${data.delivery.sprint_completion.scopePoints} pts · ${data.delivery.sprint_completion.activeSprints} active sprint${data.delivery.sprint_completion.activeSprints === 1 ? "" : "s"}`
+                  : "No active sprints"
+              }
+            />
+            <KpiTile
+              kpi={KPI_CATALOGUE.blocked_work_items}
+              value={data.delivery.blocked_work_items ?? "—"}
+              hint={data.delivery.blocked_work_items === null ? "Requires access to work items" : "Open items flagged as blocked"}
+              tone="warning"
+            />
+          </section>
+
           <div className="grid gap-6 lg:grid-cols-3">
             <Card className="lg:col-span-2">
               <CardHeader className="flex flex-row items-start justify-between gap-2">
                 <div className="space-y-1.5">
                   <CardTitle>Needs attention</CardTitle>
-                  <CardDescription>In-flight projects that are Red, Amber, past their target end, or carry a stale rating.</CardDescription>
+                  <CardDescription>
+                    In-flight projects that are Red or Amber, past their target end, have overdue milestones, or carry a stale rating.
+                  </CardDescription>
                 </div>
               </CardHeader>
               <CardContent>
@@ -128,6 +152,18 @@ export default async function DashboardPage({ searchParams }: PageProps<"/dashbo
                           {p.flags.overdue && (
                             <Badge variant="outline" className="gap-1">
                               <OctagonAlert className="size-3 text-health-red" aria-hidden /> Past target {formatDate(p.target_end_date)}
+                            </Badge>
+                          )}
+                          {p.flags.overdueMilestones > 0 && (
+                            <Badge variant="outline" className="gap-1">
+                              <CalendarClock className="size-3 text-health-red" aria-hidden />
+                              {p.flags.overdueMilestones} overdue milestone{p.flags.overdueMilestones === 1 ? "" : "s"}
+                            </Badge>
+                          )}
+                          {p.flags.blockedItems > 0 && (
+                            <Badge variant="outline" className="gap-1">
+                              <TriangleAlert className="size-3 text-health-amber" aria-hidden />
+                              {p.flags.blockedItems} blocked
                             </Badge>
                           )}
                           {p.flags.stale && (

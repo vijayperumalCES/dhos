@@ -20,6 +20,7 @@ type Props = {
   clients: Option[];
   members: Option[];
   teams: Option[];
+  programs: Option[];
 };
 
 const EMPTY: ProjectFormInput = {
@@ -27,6 +28,7 @@ const EMPTY: ProjectFormInput = {
   name: "",
   description: "",
   clientId: NONE,
+  programId: NONE,
   sponsorName: "",
   projectManagerId: NONE,
   deliveryOwnerId: NONE,
@@ -40,7 +42,7 @@ const EMPTY: ProjectFormInput = {
   projectConstraints: "",
 };
 
-export function ProjectForm({ projectId, defaultValues, clients, members, teams }: Props) {
+export function ProjectForm({ projectId, defaultValues, clients, members, teams, programs }: Props) {
   const router = useRouter();
   const form = useForm<ProjectFormInput>({
     resolver: zodResolver(projectFormSchema) as never,
@@ -93,6 +95,7 @@ export function ProjectForm({ projectId, defaultValues, clients, members, teams 
             <SelectField name="projectManagerId" label="Project manager" options={[none("Unassigned"), ...members]} />
             <SelectField name="deliveryOwnerId" label="Delivery owner" options={[none("Unassigned"), ...members]} />
             <SelectField name="primaryTeamId" label="Primary team" options={[none("No team"), ...teams]} />
+            <SelectField name="programId" label="Program" options={[none("Not in a program"), ...programs]} />
             <SelectField
               name="methodology"
               label="Methodology"

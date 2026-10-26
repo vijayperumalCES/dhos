@@ -43,6 +43,11 @@ added and removed.
 | `project.members.manage` | Manage members of visible projects |
 | `team.read` / `team.manage` | View / manage teams |
 | `dashboard.portfolio.view` | Command Center (scoped to visible projects) |
+| `program.manage` | Create and edit programs |
+| `milestone.manage` | Manage milestones and baselines on visible projects |
+| `work.read` / `work.create` / `work.update` / `work.archive` | Work items on visible projects (read; create; edit, move, comment; archive) |
+| `sprint.manage` | Plan, start and complete sprints on visible projects |
+| `workflow.manage` | Configure workflow states and transition rules |
 
 ## 3. Role matrix
 
@@ -68,6 +73,13 @@ added and removed.
 | team.read | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | | | |
 | team.manage | ✓ | ✓ | | | | | | | | ✓ | | | | |
 | dashboard.portfolio.view | | ✓ | ✓ | A | A | | | | | | | ✓ | | |
+| program.manage | | ✓ | ✓ | | | | | | | | | | | |
+| milestone.manage | | ✓ | ✓ | A | | | | | | | | | | |
+| work.read | | ✓ | ✓ | A | A | A | A | A | A | ✓ | | | | |
+| work.create / work.update | | ✓ | ✓ | A | A | A | A | A | A | | | | | |
+| work.archive | | ✓ | ✓ | A | A | A | | | | | | | | |
+| sprint.manage | | ✓ | ✓ | A | A | | A | | | | | | | |
+| workflow.manage | ✓ | ✓ | | | | | | | | | | | | |
 
 ### Notable design choices
 
@@ -79,6 +91,8 @@ added and removed.
   membership row, no internal directory and no teams.
 - **Finance** reads all projects now so that Phase 5 financial views have context; financial data
   itself will live in separate tables with their own policies.
+- **Client stakeholders** see milestones and status reports of shared projects, never work items,
+  boards or sprints (no `work.read`). Status-report snapshots therefore store counts, not item titles.
 - **HR Admin** and **AI Agent Operator** have directory access only until their modules exist.
 
 ## 4. Enforcement map

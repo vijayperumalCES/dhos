@@ -12,6 +12,7 @@ const validProject = {
   name: "Payments",
   description: "",
   clientId: NONE,
+  programId: NONE,
   sponsorName: "",
   projectManagerId: NONE,
   deliveryOwnerId: NONE,

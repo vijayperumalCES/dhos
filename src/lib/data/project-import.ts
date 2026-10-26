@@ -16,6 +16,7 @@ export const PROJECT_IMPORT_COLUMNS = [
   "name",
   "description",
   "client",
+  "program",
   "sponsor",
   "project_manager_email",
   "delivery_owner_email",
@@ -62,12 +63,18 @@ export async function analyseProjectImport(ctx: OrgContext, csvText: string): Pr
   if (records.length > PROJECT_IMPORT_MAX_ROWS) return { fatal: `At most ${PROJECT_IMPORT_MAX_ROWS} rows per import.`, rows: [] };
 
   const supabase = await createSupabaseServerClient();
-  const [members, clients, teams, existing] = await Promise.all([
+  const [members, clients, teams, existing, programs] = await Promise.all([
     listMembers(ctx),
     supabase.from("clients").select("id, name, code").eq("organization_id", ctx.organization.id).is("archived_at", null),
     supabase.from("teams").select("id, name").eq("organization_id", ctx.organization.id).is("archived_at", null),
     supabase.from("projects").select("code").eq("organization_id", ctx.organization.id),
+    supabase.from("programs").select("id, code, name").eq("organization_id", ctx.organization.id).is("archived_at", null),
   ]);
+  const programByKey = new Map<string, string>();
+  for (const g of programs.data ?? []) {
+    programByKey.set(g.code.toLowerCase(), g.id);
+    programByKey.set(g.name.toLowerCase(), g.id);
+  }
   const memberByEmail = new Map(members.map((m) => [m.email.toLowerCase(), m.id]));
   const clientByKey = new Map<string, string>();
   for (const c of clients.data ?? []) {
@@ -93,6 +100,7 @@ export async function analyseProjectImport(ctx: OrgContext, csvText: string): Pr
       name: r.name ?? "",
       description: r.description ?? "",
       clientId: ref(r.client ?? "", clientByKey, "Client"),
+      programId: ref(r.program ?? "", programByKey, "Program"),
       sponsorName: r.sponsor ?? "",
       projectManagerId: ref(r.project_manager_email ?? "", memberByEmail, "Project manager"),
       deliveryOwnerId: ref(r.delivery_owner_email ?? "", memberByEmail, "Delivery owner"),

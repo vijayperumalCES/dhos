@@ -61,9 +61,22 @@ const RPC_MESSAGES: Record<string, string> = {
   reserved_role_key: "That key is used by a system role. Choose another.",
   permissions_required: "A role needs at least one permission.",
   reporting_cycle: "That change would make someone report to themselves.",
+  invalid_parent: "That parent isn't allowed for this item type.",
+  invalid_sprint: "That sprint can't take this item.",
+  dependency_cycle: "Those items would block each other.",
+  sprint_state: "That sprint action isn't possible in the sprint's current state.",
+  default_state: "Choose another default state first.",
+  state_in_use: "Move its work items to another state first.",
+  category_required: "Keep at least one active state in each category.",
 };
 
+/** RPC keys whose detail text is written for users and is more specific than the generic message. */
+const DETAILED_KEYS = new Set(["invalid_parent", "invalid_sprint", "sprint_state"]);
+
 export function humanizeRpcMessage(message: string): string {
-  const key = message.split(":")[0].trim();
+  const [rawKey, ...rest] = message.split(":");
+  const key = rawKey.trim();
+  const detail = rest.join(":").trim();
+  if (detail && DETAILED_KEYS.has(key)) return detail.charAt(0).toUpperCase() + detail.slice(1) + (detail.endsWith(".") ? "" : ".");
   return RPC_MESSAGES[key] ?? message;
 }

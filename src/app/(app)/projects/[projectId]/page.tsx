@@ -4,9 +4,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { AuditTrail } from "@/components/common/audit-trail";
-import { ArchivedBadge, HealthBadge, StatusBadge } from "@/components/common/badges";
 import { AddMemberDialog, RemoveMemberButton } from "@/components/common/member-management";
-import { PageHeader } from "@/components/common/page-header";
 import { EmptyState } from "@/components/common/states";
 import { ProjectGovernanceActions } from "@/components/projects/project-governance-actions";
 import { Button } from "@/components/ui/button";
@@ -17,9 +15,8 @@ import { requireOrgContext } from "@/lib/auth/org-context";
 import { listAuditLogs } from "@/lib/data/audit";
 import { listMemberOptions } from "@/lib/data/members";
 import { getProject, getProjectHistory, getProjectMembers, resolveUserNames } from "@/lib/data/projects";
-import { isHealthStale, isPastTargetEnd } from "@/lib/domain/kpis";
 import { HEALTH_LABELS, METHODOLOGY_LABELS, STATUS_LABELS } from "@/lib/domain/project-lifecycle";
-import { clientLabel, formatDate, formatDateTime, formatRelative, personName } from "@/lib/format";
+import { clientLabel, formatDate, formatDateTime, personName } from "@/lib/format";
 
 export async function generateMetadata({ params }: PageProps<"/projects/[projectId]">): Promise<Metadata> {
   const ctx = await requireOrgContext();
@@ -42,9 +39,6 @@ export default async function ProjectPage({ params }: PageProps<"/projects/[proj
   ]);
   const historyNames = await resolveUserNames(history.map((h) => h.changed_by));
   const archived = project.archived_at !== null;
-  const now = new Date();
-  const stale = isHealthStale(project, now, ctx.settings.healthStaleAfterDays);
-  const overdue = !["completed", "cancelled"].includes(project.status) && isPastTargetEnd(project, now, ctx.settings.timezone);
   const onProject = new Set(members.map((m) => m.membership_id));
   const candidates = memberOptions
     .filter((m) => !onProject.has(m.id))
@@ -52,49 +46,27 @@ export default async function ProjectPage({ params }: PageProps<"/projects/[proj
   const canManageMembers = p.has("project.members.manage") && !archived;
 
   return (
-    <div className="mx-auto max-w-6xl">
-      <PageHeader
-        breadcrumbs={[{ label: "Projects", href: "/projects" }, { label: project.code }]}
-        title={
-          <>
-            <span className="mr-2 font-mono text-base text-muted-foreground">{project.code}</span>
-            {project.name}
-          </>
-        }
-        description={project.description}
-        meta={
-          <>
-            <StatusBadge status={project.status} />
-            <HealthBadge health={project.health} />
-            {archived && <ArchivedBadge />}
-            {overdue && <span className="text-xs font-medium text-health-red">Past target end date</span>}
-            {stale && !archived && (
-              <span className="text-xs text-muted-foreground">
-                Health {project.health === "not_assessed" ? "never assessed" : `last confirmed ${formatRelative(project.health_updated_at)}`}
-              </span>
-            )}
-          </>
-        }
-        actions={
-          <>
-            {p.has("project.update") && !archived && (
-              <Button variant="outline" size="sm" asChild>
-                <Link href={`/projects/${project.id}/edit`}>
-                  <Pencil className="size-4" /> Edit
-                </Link>
-              </Button>
-            )}
-            <ProjectGovernanceActions
-              projectId={project.id}
-              status={project.status}
-              health={project.health}
-              archived={archived}
-              canChangeStatus={p.has("project.change_status")}
-              canArchive={p.has("project.archive")}
-            />
-          </>
-        }
-      />
+    <div>
+      <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <p className="max-w-3xl text-sm text-muted-foreground">{project.description ?? "No description."}</p>
+        <div className="flex shrink-0 flex-wrap items-center gap-2">
+          {p.has("project.update") && !archived && (
+            <Button variant="outline" size="sm" asChild>
+              <Link href={`/projects/${project.id}/edit`}>
+                <Pencil className="size-4" /> Edit
+              </Link>
+            </Button>
+          )}
+          <ProjectGovernanceActions
+            projectId={project.id}
+            status={project.status}
+            health={project.health}
+            archived={archived}
+            canChangeStatus={p.has("project.change_status")}
+            canArchive={p.has("project.archive")}
+          />
+        </div>
+      </div>
 
       {project.health_reason && (project.health === "amber" || project.health === "red") && (
         <Card className="mb-6 border-l-4 border-l-health-amber data-[health=red]:border-l-health-red" data-health={project.health}>
@@ -107,7 +79,7 @@ export default async function ProjectPage({ params }: PageProps<"/projects/[proj
 
       <Tabs defaultValue="overview">
         <TabsList>
-          <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="overview">Details</TabsTrigger>
           <TabsTrigger value="team">Team ({members.length})</TabsTrigger>
           <TabsTrigger value="history">Status history</TabsTrigger>
           {p.has("audit.read") && <TabsTrigger value="audit">Audit</TabsTrigger>}

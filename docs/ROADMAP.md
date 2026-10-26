@@ -5,7 +5,7 @@ _Last updated: 2026-10-26._ Status: ✅ done · 🟡 partial · ⬜ not started
 | Phase | Theme | Status |
 |---|---|---|
 | 1 | Foundation and Delivery Command Center | ✅ (see `IMPLEMENTATION_STATUS.md` for known gaps) |
-| 2 | Work management | ⬜ |
+| 2 | Work management | ✅ (see `IMPLEMENTATION_STATUS.md`) |
 | 3 | Workforce management | ⬜ |
 | 4 | Delivery governance | ⬜ |
 | 5 | Financial and portfolio intelligence | ⬜ |
@@ -13,7 +13,7 @@ _Last updated: 2026-10-26._ Status: ✅ done · 🟡 partial · ⬜ not started
 | 7 | Automation and integrations | ⬜ |
 | 8 | Production readiness | ⬜ (some groundwork in Phase 1) |
 
-## Phase 2 — Work management (next)
+## Phase 2 — Work management (done 2026-10-28)
 
 1. Programs (group projects) and milestones with baselines; milestone slippage feeds the Command Center.
 2. Configurable workflow states per organization (`workflow_states`, `workflow_transitions`).
@@ -23,7 +23,7 @@ _Last updated: 2026-10-26._ Status: ✅ done · 🟡 partial · ⬜ not started
 5. Command Center: milestones due/overdue, sprint commitment vs completion, blocked work.
 6. Introduce TanStack Query + Supabase Realtime for the board (first genuinely client-heavy surface).
 
-## Phase 3 — Workforce
+## Phase 3 — Workforce (next)
 
 Work calendars and holidays, attendance with corrections + approvals, leave types/balances/requests,
 timesheets with approvals, dated allocations replacing indicative `allocation_percent`, capacity and

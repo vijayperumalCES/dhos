@@ -265,6 +265,147 @@ from (values
 join public.user_profiles p on p.email = x.email
 where m.user_id = p.id and m.organization_id = (select id from public.organizations where slug = 'northwind-demo');
 
+-- ---------------------------------------------------------------------------
+-- Phase 2: programs, milestones, baselines, work items and sprints (demo)
+-- ---------------------------------------------------------------------------
+insert into public.programs (organization_id, code, name, description, owner_membership_id, created_by)
+select o.id, x.code, x.name, x.description, (select id from private.seed_m where email = x.owner), '00000000-0000-4000-a000-000000000001'
+from public.organizations o,
+  (values
+    ('CONTOSO-DX', 'Contoso Digital Transformation', 'Payments, mobile and open banking for Contoso Bank.', 'mei@northwind.example'),
+    ('FAB-MOD',    'Fabrikam Modernisation',         'Data platform, CRM and ERP modernisation for Fabrikam.', 'mei@northwind.example')
+  ) as x(code, name, description, owner)
+where o.slug = 'northwind-demo';
+
+update public.projects p set program_id = g.id
+from public.programs g
+where g.organization_id = p.organization_id
+  and ((g.code = 'CONTOSO-DX' and p.code in ('NW-PAY', 'NW-MOB', 'NW-OBA')) or (g.code = 'FAB-MOD' and p.code in ('NW-DWH', 'NW-CRM', 'NW-ERP')));
+
+-- Milestones: offsets in days from today; baseline taken 45 days ago at the original dates.
+insert into public.project_milestones (organization_id, project_id, name, due_date, baseline_due_date, completed_on, owner_membership_id, created_by)
+select p.organization_id, p.id, m.name, current_date + m.due, current_date + m.baseline,
+       case when m.done is null then null else current_date + m.done end,
+       p.project_manager_id, '00000000-0000-4000-a000-000000000001'
+from (values
+    ('NW-PAY', 'Ledger design sign-off',        -70, -70, -71),
+    ('NW-PAY', 'Vendor API integration',        -10, -31, null),
+    ('NW-PAY', 'Settlement testing complete',    12,  -9, null),
+    ('NW-PAY', 'Production cutover',             30,  10, null),
+    ('NW-MOB', 'Design system v3',              -40, -40, -42),
+    ('NW-MOB', 'Beta to 5% of customers',        -3,  -3, null),
+    ('NW-MOB', 'General availability',           60,  60, null),
+    ('NW-DWH', 'Historical data migrated',       20,  20, null),
+    ('NW-DWH', 'On-premise decommissioned',     118, 118, null),
+    ('NW-SEC', 'Evidence collection complete',   -8, -20, null),
+    ('NW-SEC', 'Type II audit',                  25,  10, null)
+  ) as m(code, name, due, baseline, done)
+join public.projects p on p.code = m.code;
+
+insert into public.project_baselines (organization_id, project_id, name, snapshot, created_by, created_at)
+select p.organization_id, p.id, 'Initial plan',
+       jsonb_build_object('planned_start_date', p.planned_start_date, 'target_end_date', p.target_end_date,
+         'milestones', (select jsonb_agg(jsonb_build_object('id', m.id, 'name', m.name, 'due_date', m.baseline_due_date) order by m.baseline_due_date)
+                        from public.project_milestones m where m.project_id = p.id)),
+       '00000000-0000-4000-a000-000000000001', now() - interval '45 days'
+from public.projects p where p.code in ('NW-PAY', 'NW-MOB', 'NW-DWH', 'NW-SEC');
+
+-- Sprints (two-week cadence)
+insert into public.sprints (organization_id, project_id, name, goal, start_date, end_date, state, started_at, completed_at,
+                            committed_points, committed_count, completed_points, completed_count, created_by)
+select p.organization_id, p.id, s.name, s.goal, current_date + s.start_off, current_date + s.start_off + 13, s.state::public.sprint_state,
+       case when s.state <> 'planned' then (current_date + s.start_off)::timestamptz end,
+       case when s.state = 'completed' then (current_date + s.start_off + 13)::timestamptz end,
+       s.committed, s.committed_n, s.completed, s.completed_n, '00000000-0000-4000-a000-000000000001'
+from (values
+    ('NW-PAY', 'PAY Sprint 7',  'Ledger posting engine',              -34, 'completed', 34, 9, 29, 8),
+    ('NW-PAY', 'PAY Sprint 8',  'Reconciliation and reporting',       -20, 'completed', 31, 8, 24, 6),
+    ('NW-PAY', 'PAY Sprint 9',  'Vendor API settlement flow',          -6, 'active',    null, null, null, null),
+    ('NW-PAY', 'PAY Sprint 10', 'Cutover rehearsal',                    8, 'planned',   null, null, null, null),
+    ('NW-MOB', 'MOB Sprint 4',  'Beta feedback fixes',                 -20, 'completed', 21, 7, 21, 7),
+    ('NW-MOB', 'MOB Sprint 5',  'Accessibility and performance',        -8, 'active',    null, null, null, null)
+  ) as s(code, name, goal, start_off, state, committed, committed_n, completed, completed_n)
+join public.projects p on p.code = s.code;
+
+-- Work items. Parents are resolved by title within the project; states by name.
+create table private.seed_items (
+  code text, title text, type text, parent text, state text, points numeric, priority text,
+  assignee text, sprint text, blocked boolean, severity text, ord int
+);
+insert into private.seed_items values
+  ('NW-PAY', 'Real-time ledger',                    'epic',    null,                        'In Progress', null, 'high',     'lena@northwind.example',  null,           false, null, 1),
+  ('NW-PAY', 'Settlement with card vendor',         'feature', 'Real-time ledger',          'In Progress', null, 'critical', 'dev@northwind.example',   null,           false, null, 2),
+  ('NW-PAY', 'Post settlement files to ledger',     'story',   'Settlement with card vendor','Done',       5,    'high',     'dev@northwind.example',   'PAY Sprint 9', false, null, 3),
+  ('NW-PAY', 'Handle vendor API timeouts',          'story',   'Settlement with card vendor','In Review',  3,    'high',     'dev@northwind.example',   'PAY Sprint 9', false, null, 4),
+  ('NW-PAY', 'Vendor sandbox credentials',          'task',    'Handle vendor API timeouts','In Progress', 1,    'critical', 'lena@northwind.example',  'PAY Sprint 9', true,  null, 5),
+  ('NW-PAY', 'Idempotent settlement retries',       'story',   'Settlement with card vendor','In Progress', 8,   'high',     'sofia@northwind.example', 'PAY Sprint 9', false, null, 6),
+  ('NW-PAY', 'Settlement reconciliation report',    'story',   'Settlement with card vendor','Ready',       5,   'medium',   'sofia@northwind.example', 'PAY Sprint 9', false, null, 7),
+  ('NW-PAY', 'Duplicate settlement on retry',       'bug',     'Settlement with card vendor','Testing',     2,   'critical', 'dev@northwind.example',   'PAY Sprint 9', false, 's1', 8),
+  ('NW-PAY', 'Ledger audit trail export',           'story',   'Real-time ledger',          'Backlog',     5,    'medium',   null,                      null,           false, null, 9),
+  ('NW-PAY', 'Cutover runbook',                     'story',   'Real-time ledger',          'Backlog',     3,    'high',     'lena@northwind.example',  'PAY Sprint 10',false, null, 10),
+  ('NW-PAY', 'Dry-run cutover in staging',          'task',    'Cutover runbook',           'Backlog',     2,    'high',     null,                      'PAY Sprint 10',false, null, 11),
+  ('NW-PAY', 'Change request: add SEPA instant',    'change_request', null,                 'Backlog',     null, 'medium',   null,                      null,           false, null, 12),
+  ('NW-MOB', 'Mobile app v3',                       'epic',    null,                        'In Progress', null, 'high',     'rahul@northwind.example', null,           false, null, 1),
+  ('NW-MOB', 'Accessibility AA compliance',         'feature', 'Mobile app v3',             'In Progress', null, 'high',     'rahul@northwind.example', null,           false, null, 2),
+  ('NW-MOB', 'Screen reader labels on payments',    'story',   'Accessibility AA compliance','Done',       3,    'high',     'dev@northwind.example',   'MOB Sprint 5', false, null, 3),
+  ('NW-MOB', 'Dynamic type support',                'story',   'Accessibility AA compliance','In Progress', 5,   'medium',   'rahul@northwind.example', 'MOB Sprint 5', false, null, 4),
+  ('NW-MOB', 'Cold start under 2 seconds',          'story',   'Mobile app v3',             'In Review',   8,    'high',     'dev@northwind.example',   'MOB Sprint 5', false, null, 5),
+  ('NW-MOB', 'UAT environment crashes on login',    'bug',     'Mobile app v3',             'In Progress', 3,    'critical', 'tom@northwind.example',   'MOB Sprint 5', true,  's2', 6),
+  ('NW-MOB', 'Biometric login fallback',            'story',   'Mobile app v3',             'Backlog',     5,    'medium',   null,                      null,           false, null, 7);
+
+insert into public.work_items (organization_id, project_id, type, title, state_id, story_points, priority, assignee_membership_id,
+                               sprint_id, blocked, blocked_reason, severity, rank, created_by, created_at)
+select p.organization_id, p.id, i.type::public.work_item_type, i.title,
+       (select id from public.workflow_states s where s.organization_id = p.organization_id and s.name = 'Backlog'),
+       i.points, i.priority::public.work_item_priority,
+       (select id from private.seed_m where email = i.assignee and organization_id = p.organization_id),
+       null, i.blocked,
+       case when i.blocked then 'Waiting on the vendor to issue sandbox credentials.' end,
+       i.severity::public.work_item_severity, i.ord * 1024,
+       '00000000-0000-4000-a000-000000000003', now() - make_interval(days => 40 - i.ord)
+from private.seed_items i join public.projects p on p.code = i.code
+order by i.code, i.ord;
+
+-- Parents (seeded parents always precede children), then sprints and final states.
+update public.work_items w set parent_id = parent.id
+from private.seed_items i
+join public.projects p on p.code = i.code
+join public.work_items parent on parent.project_id = p.id and parent.title = i.parent
+where w.project_id = p.id and w.title = i.title and i.parent is not null;
+
+update public.work_items w
+   set sprint_id = (select id from public.sprints s where s.project_id = w.project_id and s.name = i.sprint),
+       state_id  = (select id from public.workflow_states st where st.organization_id = w.organization_id and st.name = i.state)
+from private.seed_items i
+join public.projects p on p.code = i.code
+where w.project_id = p.id and w.title = i.title;
+
+insert into public.work_item_dependencies (organization_id, predecessor_id, successor_id, kind)
+select a.organization_id, a.id, b.id, 'blocks'
+from public.work_items a, public.work_items b
+where a.title = 'Vendor sandbox credentials' and b.title = 'Handle vendor API timeouts';
+
+insert into public.work_item_comments (organization_id, work_item_id, author_id, body, created_at)
+select w.organization_id, w.id, '00000000-0000-4000-a000-000000000006', 'Escalated to the vendor account manager; promised by Thursday.', now() - interval '2 days'
+from public.work_items w where w.title = 'Vendor sandbox credentials';
+
+-- Active-sprint commitment and a believable burndown history (demo values).
+update public.sprints s
+   set committed_points = t.points, committed_count = t.items
+  from (select sprint_id, sum(story_points) as points, count(*) as items from public.work_items where sprint_id is not null group by sprint_id) t
+ where s.id = t.sprint_id and s.state = 'active';
+
+delete from public.sprint_daily_stats;
+insert into public.sprint_daily_stats (sprint_id, organization_id, day, scope_points, done_points, scope_count, done_count)
+select s.id, s.organization_id, s.start_date + d.n, s.committed_points + case when d.n >= 3 then 2 else 0 end,
+       least(d.done, s.committed_points), s.committed_count, d.done_n
+from public.sprints s
+cross join lateral (values (0, 0, 0), (1, 0, 0), (2, 3, 0), (3, 3, 0), (4, 5, 1), (5, 5, 1)) as d(n, done, done_n)
+where s.state = 'active' and s.start_date + d.n < current_date;
+perform private.refresh_sprint_stats(id) from public.sprints where state = 'active';
+
+drop table private.seed_items;
+
 drop table private.seed_m;
 
 end;

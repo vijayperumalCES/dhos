@@ -46,8 +46,8 @@ export const NAVIGATION: NavGroup[] = [
       { title: "Projects", icon: "folder", href: "/projects", anyOf: ["project.read_all", "project.read_assigned"] },
       { title: "Clients", icon: "building", href: "/clients", anyOf: ["client.read"] },
       { title: "Portfolio", icon: "briefcase", plannedPhase: 5, slug: "portfolio" },
-      { title: "Programs", icon: "layers", plannedPhase: 2, slug: "programs" },
-      { title: "Backlog & Sprints", icon: "kanban", plannedPhase: 2, slug: "backlog" },
+      { title: "Programs", icon: "layers", href: "/programs", anyOf: ["project.read_all", "project.read_assigned"] },
+      { title: "My Work", icon: "kanban", href: "/work", anyOf: ["work.read"] },
       { title: "Releases & Quality", icon: "rocket", plannedPhase: 4, slug: "releases" },
     ],
   },
@@ -88,7 +88,7 @@ export const NAVIGATION: NavGroup[] = [
         icon: "settings",
         href: "/admin",
         // The directory alone (org.members.read) is reached from People & Teams, not here.
-        anyOf: ["org.settings.manage", "org.members.manage", "audit.read"],
+        anyOf: ["org.settings.manage", "org.members.manage", "audit.read", "workflow.manage"],
       },
     ],
   },
@@ -100,18 +100,6 @@ export const PLANNED_MODULES: Record<string, { title: string; phase: number; sum
     phase: 5,
     summary: "Portfolio analytics, forecasting and variance across all projects.",
     scope: ["Portfolio health trends", "Forecast vs actual", "Variance analysis", "Business-unit roll-ups"],
-  },
-  programs: {
-    title: "Programs",
-    phase: 2,
-    summary: "Group related projects, coordinate cross-project milestones and dependencies.",
-    scope: ["Program records", "Program milestones", "Cross-project dependencies", "Consolidated status"],
-  },
-  backlog: {
-    title: "Backlog & Sprints",
-    phase: 2,
-    summary: "Epics, features, stories, tasks and defects with configurable workflows.",
-    scope: ["Work item hierarchy", "Kanban boards", "Sprint planning", "Burndown and velocity"],
   },
   releases: {
     title: "Releases & Quality",

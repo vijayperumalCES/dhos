@@ -1,5 +1,7 @@
 import "server-only";
 
+import { cache } from "react";
+
 import type { OrgContext } from "@/lib/auth/org-context";
 import { IN_FLIGHT_STATUSES, type ProjectStatus } from "@/lib/domain/project-lifecycle";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -51,12 +53,14 @@ export async function listProjects(ctx: OrgContext, filters: ProjectListFilters)
 
 export type ProjectListRow = Awaited<ReturnType<typeof listProjects>>["rows"][number];
 
-export async function getProject(ctx: OrgContext, projectId: string) {
+/** Memoised per request: the project layout and its pages share one query. */
+export const getProject = cache(async (ctx: OrgContext, projectId: string) => {
   const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase
     .from("projects")
     .select(
       `*,
+       program:programs!projects_program_fkey(id, code, name),
        client:clients!projects_client_id_organization_id_fkey(id, name),
        manager:organization_memberships!projects_project_manager_id_organization_id_fkey(${PERSON}),
        owner:organization_memberships!projects_delivery_owner_id_organization_id_fkey(${PERSON}),
@@ -67,7 +71,7 @@ export async function getProject(ctx: OrgContext, projectId: string) {
     .maybeSingle();
   if (error) throw new Error(`Failed to load project: ${error.message}`);
   return data;
-}
+});
 
 export type ProjectDetail = NonNullable<Awaited<ReturnType<typeof getProject>>>;
 

@@ -44,4 +44,12 @@ export const AUDITED_ENTITY_TYPES = [
   "organization_invitations",
   "role_definitions",
   "departments",
+  "programs",
+  "project_milestones",
+  "project_baselines",
+  "workflow_states",
+  "sprints",
+  "work_items",
+  "work_item_dependencies",
+  "project_status_reports",
 ] as const;

@@ -30,6 +30,7 @@ Browser ──HTTPS──▶ Next.js 16 (App Router, Node runtime)
 | Audit and history written by database triggers, append-only | [ADR-0004](DECISIONS/ADR-0004-audit-by-trigger.md) |
 | Multi-tenancy by `organization_id` with composite foreign keys | [ADR-0005](DECISIONS/ADR-0005-tenancy-model.md) |
 | Radix-based shadcn/ui, React Hook Form + Zod, Recharts | [ADR-0006](DECISIONS/ADR-0006-ui-stack.md) |
+| Unified work items, per-org workflow, trigger-maintained burndown | [ADR-0007](DECISIONS/ADR-0007-work-management-model.md) |
 
 ## 3. Code layout
 
@@ -78,7 +79,17 @@ Action. The action re-reads the session, re-validates with the same schema, perf
 pre-check for a friendly message, and writes. Postgres enforces RLS, column privileges and triggers;
 errors are mapped to safe messages (`lib/actions/result.ts`). Governed fields go through RPCs.
 
-## 5. Event model (Phase 1 foundation → Phase 7)
+## 5. Client-side data (Phase 2)
+
+The Kanban board is the first client-heavy surface. It reads cards with TanStack Query through the
+browser Supabase client (the user's session, so RLS applies), subscribes to Supabase Realtime changes
+on `work_items` for its project, and writes through the same validated server actions as every other
+screen, with optimistic updates rolled back on error. Everything else stays server-rendered.
+
+Projects have a nested layout (`/projects/[id]/…`) with tabs for Overview, Backlog, Board, Sprints,
+Milestones and Status reports; the project is loaded once per request (`React.cache`).
+
+## 6. Event model (Phase 1 foundation → Phase 7)
 
 Phase 1 implements the **pre-hook / post-hook** concept with database triggers:
 
@@ -92,7 +103,7 @@ Phase 1 implements the **pre-hook / post-hook** concept with database triggers:
 The versioned event envelope, outbox, webhooks, retries and dead-letter handling are designed in
 `docs/WORKFLOWS.md` and built in Phase 7. **No event bus, webhook or scheduler is operational yet.**
 
-## 6. Environments
+## 7. Environments
 
 | Env | App | Database |
 |---|---|---|
@@ -101,7 +112,7 @@ The versioned event envelope, outbox, webhooks, retries and dead-letter handling
 
 See `docs/DEPLOYMENT.md`.
 
-## 7. Observability
+## 8. Observability
 
 Phase 1: unexpected database errors are logged server-side with code and message (never shown to
 users). Phase 8 adds OpenTelemetry via `instrumentation.ts`, error tracking and alerting.

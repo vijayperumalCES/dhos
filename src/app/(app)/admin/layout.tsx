@@ -13,6 +13,7 @@ export default async function AdminLayout({ children }: LayoutProps<"/admin">) {
     p.has("org.members.read") && { href: "/admin/departments", label: "Departments" },
     p.has("org.members.read") && { href: "/admin/org-chart", label: "Org chart" },
     p.has("org.members.read") && { href: "/admin/roles", label: "Roles & permissions" },
+    p.has("workflow.manage") && { href: "/admin/workflow", label: "Workflow" },
     p.has("audit.read") && { href: "/admin/audit", label: "Audit log" },
   ].filter((x): x is { href: string; label: string } => Boolean(x));
 
