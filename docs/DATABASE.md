@@ -66,6 +66,11 @@ erDiagram
 | `projects` | Project record + lifecycle + health | Budget fields deliberately absent (Phase 5, separate access policy) |
 | `project_memberships` | Project team, role, indicative allocation | Grants project read access |
 | `project_status_history` | Lifecycle and health changes | Written only by trigger |
+| `departments` | Flat departments with an optional head | Added 2026-10-27; audited |
+
+`organization_memberships` also carries `department_id` and `manager_membership_id` (reporting line;
+a trigger rejects cycles, a check rejects self-management, composite FKs keep both in-tenant).
+`organization_invitations` tracks `email_sent_count` / `email_last_sent_at`.
 
 ## 3. Functions
 
@@ -78,6 +83,11 @@ erDiagram
 | `invite_member` / `revoke_invitation` / `accept_pending_invitations` | RPC | Invitation workflow |
 | `set_member_roles` / `set_membership_status` | RPC | Role + status admin with last-admin guard |
 | `transition_project_status` / `set_project_health` / `set_project_archived` | RPC | Governed project changes with reasons |
+| `create_role` / `update_role` / `delete_role` | RPC | Custom roles; system roles immutable; audited permission diffs |
+| `record_invitation_email_sent` | RPC | Records an invitation email send |
+| `private.is_assigned_to_client_project()` | definer | Confidential-client visibility |
+| `private.prevent_reporting_cycle()` | trigger | Keeps reporting lines a tree |
+| `private.validate_organization_settings()` | trigger | Rejects unknown IANA time zones |
 | `private.audit_row_change()` | trigger | Generic diff audit |
 | `private.projects_before_write()` | trigger | Lifecycle validation, timestamps |
 | `private.projects_record_history()` | trigger | Status/health history |

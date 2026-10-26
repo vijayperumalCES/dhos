@@ -6,7 +6,7 @@ import { useState, useTransition } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { toast } from "sonner";
 
-import { applyServerErrors, FormError, TextField } from "@/components/forms/fields";
+import { applyServerErrors, FormError, SelectField, TextField } from "@/components/forms/fields";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { updateOrganizationSettings } from "@/lib/actions/organization";
@@ -14,7 +14,7 @@ import { organizationSettingsSchema } from "@/lib/validation/organization";
 
 type Values = { name: string; timezone: string; currencyCode: string; healthStaleAfterDays: string };
 
-export function SettingsForm({ defaultValues }: { defaultValues: Values }) {
+export function SettingsForm({ defaultValues, timeZones }: { defaultValues: Values; timeZones: string[] }) {
   const router = useRouter();
   const form = useForm<Values>({ resolver: zodResolver(organizationSettingsSchema) as never, defaultValues });
   const [error, setError] = useState<string | null>(null);
@@ -43,7 +43,13 @@ export function SettingsForm({ defaultValues }: { defaultValues: Values }) {
           </CardHeader>
           <CardContent className="grid gap-4 sm:grid-cols-2">
             <TextField name="name" label="Organization name" required className="sm:col-span-2" />
-            <TextField name="timezone" label="Time zone" description="IANA name, e.g. Asia/Kolkata. Used by reporting from Phase 3." required />
+            <SelectField
+              name="timezone"
+              label="Time zone"
+              description="Decides which calendar day is “today” for overdue checks, and how times are shown."
+              options={timeZones.map((z) => ({ value: z, label: z.replace(/_/g, " ") }))}
+              required
+            />
             <TextField name="currencyCode" label="Currency" description="ISO 4217 code. Used by Financials (Phase 5)." required />
           </CardContent>
         </Card>

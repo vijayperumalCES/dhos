@@ -20,13 +20,20 @@ mirror (`src/lib/domain/permissions.ts`) drifts from the SQL._
 
 ## 2. Permission catalogue (Phase 1)
 
+Organizations can also define **custom roles** from this catalogue (Administration → Roles & permissions).
+System roles cannot be edited; custom-role permission changes are written to the audit log with what was
+added and removed.
+
+
 | Key | Grants |
 |---|---|
 | `org.settings.manage` | Edit organization name, time zone, currency, thresholds |
 | `org.members.read` | View internal member directory (name, email, job title, roles) |
-| `org.members.manage` | Invite, suspend/reactivate, assign roles |
+| `org.members.manage` | Invite, suspend/reactivate, assign roles; manage departments and reporting lines |
+| `org.roles.manage` | Create, edit and delete custom roles |
 | `audit.read` | View audit log |
 | `client.read` / `client.manage` | View / create-edit-archive clients |
+| `client.confidential.read` | View confidential clients (otherwise only the account owner and people assigned to its projects) |
 | `project.read_all` | View every project |
 | `project.read_assigned` | View assigned projects only |
 | `project.create` | Create projects |
@@ -46,8 +53,10 @@ mirror (`src/lib/domain/permissions.ts`) drifts from the SQL._
 | org.settings.manage | ✓ | | | | | | | | | | | | | |
 | org.members.read | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | | ✓ |
 | org.members.manage | ✓ | | | | | | | | | | | | | |
+| org.roles.manage | ✓ | | | | | | | | | | | | | |
 | audit.read | ✓ | ✓ | | | | | | | | | | | | |
 | client.read | | ✓ | ✓ | ✓ | ✓ | ✓ | | | | | | ✓ | | |
+| client.confidential.read | | ✓ | | | | | | | | | | ✓ | | |
 | client.manage | | ✓ | | | | | | | | | | | | |
 | project.read_all | | ✓ | ✓ | | | | | | | ✓ | | ✓ | | |
 | project.read_assigned | | | | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | | | | ✓ | |

@@ -37,7 +37,7 @@ export default async function AuditPage({ searchParams }: PageProps<"/admin/audi
             },
           ]}
         />
-        <AuditTrail rows={audit.rows} names={audit.names} showEntity />
+        <AuditTrail rows={audit.rows} names={audit.names} timeZone={ctx.settings.timezone} showEntity />
         <Pagination
           page={audit.page}
           pageSize={audit.pageSize}

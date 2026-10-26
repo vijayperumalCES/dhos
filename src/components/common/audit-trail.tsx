@@ -25,7 +25,17 @@ function renderValue(v: unknown): string {
   return String(v);
 }
 
-export function AuditTrail({ rows, names, showEntity = false }: { rows: AuditRow[]; names: Map<string, string>; showEntity?: boolean }) {
+export function AuditTrail({
+  rows,
+  names,
+  timeZone,
+  showEntity = false,
+}: {
+  rows: AuditRow[];
+  names: Map<string, string>;
+  timeZone: string;
+  showEntity?: boolean;
+}) {
   if (rows.length === 0) return <p className="text-sm text-muted-foreground">No audit events recorded.</p>;
 
   return (
@@ -44,7 +54,7 @@ export function AuditTrail({ rows, names, showEntity = false }: { rows: AuditRow
                 <span className="text-muted-foreground"> by {r.actor_id ? (names.get(r.actor_id) ?? "a user") : "system"}</span>
               </p>
               <time className="text-xs text-muted-foreground" dateTime={r.occurred_at}>
-                {formatDateTime(r.occurred_at)}
+                {formatDateTime(r.occurred_at, timeZone)}
               </time>
             </div>
             {typeof reason === "string" && <p className="mt-1 text-muted-foreground">Reason: {reason}</p>}

@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 
 import { describe, expect, it } from "vitest";
@@ -6,22 +6,36 @@ import { describe, expect, it } from "vitest";
 import { PermissionSet, PERMISSIONS, ROLE_KEYS, ROLE_TEMPLATES } from "@/lib/domain/permissions";
 import { buildNavigation } from "@/lib/navigation";
 
-const migration = readFileSync(join(__dirname, "../../supabase/migrations/20261026000200_authorization.sql"), "utf8");
+const migrationsDir = join(__dirname, "../../supabase/migrations");
+/** All migrations in apply order, concatenated — later statements override earlier ones. */
+const migrations = readdirSync(migrationsDir)
+  .filter((f) => f.endsWith(".sql"))
+  .sort()
+  .map((f) => readFileSync(join(migrationsDir, f), "utf8"))
+  .join("\n");
 
-/** Extracts role -> permissions from the role_templates insert in the migration. */
+/** Keys inserted into public.permissions across all migrations. */
+function sqlPermissionKeys(): string[] {
+  const keys: string[] = [];
+  for (const block of migrations.split("insert into public.permissions").slice(1)) {
+    const values = block.slice(0, block.search(/\);\s*\n/) + 1);
+    keys.push(...[...values.matchAll(/\('([\w.]+)',\s*'\w+'/g)].map((m) => m[1]));
+  }
+  return keys.sort();
+}
+
+/** Role -> permissions from the role_templates insert, with later `update ... set permissions` applied. */
 function sqlRoleTemplates(): Record<string, string[]> {
   const out: Record<string, string[]> = {};
-  for (const m of migration.matchAll(/\('(\w+)',\s*'[^']*',\s*'[^']*',\s*\d+,\s*array\[([^\]]*)\]\)/g)) {
-    out[m[1]] = [...m[2].matchAll(/'([\w.]+)'/g)].map((x) => x[1]).sort();
-  }
+  const parse = (list: string) => [...list.matchAll(/'([\w.]+)'/g)].map((x) => x[1]).sort();
+  for (const m of migrations.matchAll(/\('(\w+)',\s*'[^']*',\s*'[^']*',\s*\d+,\s*array\[([^\]]*)\]\)/g)) out[m[1]] = parse(m[2]);
+  for (const m of migrations.matchAll(/update private\.role_templates set permissions = array\[([^\]]*)\] where key = '(\w+)'/g)) out[m[2]] = parse(m[1]);
   return out;
 }
 
 describe("authorization matrix", () => {
   it("mirrors the database permission catalogue", () => {
-    const catalogue = migration.slice(migration.indexOf("insert into public.permissions"), migration.indexOf("create table private.role_templates"));
-    const keys = [...catalogue.matchAll(/\('([\w.]+)',\s*'\w+'/g)].map((m) => m[1]).sort();
-    expect(keys).toEqual([...PERMISSIONS].sort());
+    expect(sqlPermissionKeys()).toEqual([...PERMISSIONS].sort());
   });
 
   it("mirrors the database role templates exactly", () => {

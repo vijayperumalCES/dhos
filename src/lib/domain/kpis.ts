@@ -1,4 +1,4 @@
-import { addDays, differenceInCalendarDays, parseISO, startOfDay, subDays } from "date-fns";
+import { parseISO, subDays } from "date-fns";
 
 import {
   IN_FLIGHT_STATUSES,
@@ -7,6 +7,7 @@ import {
   type ProjectHealth,
   type ProjectStatus,
 } from "./project-lifecycle";
+import { addDaysToDate, todayInTimeZone } from "./time";
 
 /**
  * KPI catalogue. Every number on the Command Center is defined here with its formula,
@@ -93,7 +94,7 @@ export const KPI_CATALOGUE = {
     definition: "In-flight projects whose target end date has passed without completion.",
     formula: "count(in-flight projects where target_end_date < today)",
     sources: ["projects.target_end_date", "projects.status"],
-    period: "Point in time (today, organization time zone not yet applied — UTC)",
+    period: "Point in time (today in the organization's time zone)",
     owner: "Delivery Head",
     threshold: "Target: 0",
     freshness: "Live",
@@ -104,7 +105,7 @@ export const KPI_CATALOGUE = {
     id: "due_next_30_days",
     name: "Target end within 30 days",
     definition: "In-flight projects whose target end date falls within the next 30 days.",
-    formula: "count(in-flight projects where today <= target_end_date <= today + 30)",
+    formula: "count(in-flight projects where today <= target_end_date <= today + 30), today in the organization's time zone",
     sources: ["projects.target_end_date"],
     period: "Next 30 days",
     owner: "Delivery Head",
@@ -168,6 +169,8 @@ export type PortfolioKpiInput = {
   projects: ProjectSnapshot[];
   history: HistorySnapshot[];
   now: Date;
+  /** IANA time zone used to decide which calendar day "today" is. */
+  timeZone: string;
   staleAfterDays: number;
   periodDays: number;
 };
@@ -183,17 +186,17 @@ export function isHealthStale(p: ProjectSnapshot, now: Date, staleAfterDays: num
   return parseISO(p.health_updated_at) < subDays(now, staleAfterDays);
 }
 
-export function isPastTargetEnd(p: ProjectSnapshot, now: Date): boolean {
+export function isPastTargetEnd(p: Pick<ProjectSnapshot, "target_end_date">, now: Date, timeZone: string): boolean {
   if (!p.target_end_date) return false;
-  return differenceInCalendarDays(parseISO(p.target_end_date), startOfDay(now)) < 0;
+  return p.target_end_date < todayInTimeZone(now, timeZone);
 }
 
 export function computePortfolioKpis(input: PortfolioKpiInput) {
-  const { projects, history, now, staleAfterDays, periodDays } = input;
+  const { projects, history, now, timeZone, staleAfterDays, periodDays } = input;
   const live = projects.filter((p) => p.archived_at === null);
   const inFlight = live.filter(isInFlight);
-  const today = startOfDay(now);
-  const in30 = addDays(today, 30);
+  const today = todayInTimeZone(now, timeZone);
+  const in30 = addDaysToDate(today, 30);
   const periodStart = subDays(now, periodDays);
 
   const healthDistribution = Object.fromEntries(
@@ -220,12 +223,8 @@ export function computePortfolioKpis(input: PortfolioKpiInput) {
     health_distribution: healthDistribution,
     projects_at_risk: healthDistribution.amber + healthDistribution.red,
     stale_health: inFlight.filter((p) => isHealthStale(p, now, staleAfterDays)).length,
-    overdue_target_end: inFlight.filter((p) => isPastTargetEnd(p, now)).length,
-    due_next_30_days: inFlight.filter((p) => {
-      if (!p.target_end_date) return false;
-      const d = parseISO(p.target_end_date);
-      return d >= today && d <= in30;
-    }).length,
+    overdue_target_end: inFlight.filter((p) => isPastTargetEnd(p, now, timeZone)).length,
+    due_next_30_days: inFlight.filter((p) => !!p.target_end_date && p.target_end_date >= today && p.target_end_date <= in30).length,
     status_changes: inPeriod.length,
     health_deteriorations: deteriorations.length,
     lifecycle_distribution: lifecycleDistribution,

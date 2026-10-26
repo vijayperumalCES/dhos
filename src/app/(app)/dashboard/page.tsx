@@ -17,7 +17,7 @@ import { getDashboardData } from "@/lib/data/dashboard";
 import { loadProjectFormOptions } from "@/lib/data/options";
 import { KPI_CATALOGUE, parseReportingPeriod, REPORTING_PERIODS } from "@/lib/domain/kpis";
 import { HEALTH_LABELS, PROJECT_STATUSES, STATUS_LABELS } from "@/lib/domain/project-lifecycle";
-import { formatDate, formatDateTime, formatRelative, personName } from "@/lib/format";
+import { clientLabel, formatDate, formatDateTime, formatRelative, personName } from "@/lib/format";
 import { uuid } from "@/lib/validation/common";
 
 export const metadata: Metadata = { title: "Command Center" };
@@ -58,7 +58,7 @@ export default async function DashboardPage({ searchParams }: PageProps<"/dashbo
         description={`Live view of ${scope}. Every figure is computed from records in Stride — open the ⓘ next to a metric for its definition.`}
         meta={
           <span className="text-xs text-muted-foreground">
-            Generated {formatDateTime(data.generatedAt)} · health considered stale after {ctx.settings.healthStaleAfterDays} days
+            Generated {formatDateTime(data.generatedAt, ctx.settings.timezone)} ({ctx.settings.timezone}) · health considered stale after {ctx.settings.healthStaleAfterDays} days
           </span>
         }
       />
@@ -119,7 +119,7 @@ export default async function DashboardPage({ searchParams }: PageProps<"/dashbo
                             {p.name}
                           </Link>
                           <p className="text-xs text-muted-foreground">
-                            {p.client?.name ?? "Internal"} · {personName(p.manager)}
+                            {clientLabel(p)} · {personName(p.manager)}
                           </p>
                           {p.health_reason && (p.flags.red || p.flags.amber) && <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">{p.health_reason}</p>}
                         </div>

@@ -1,4 +1,4 @@
-import { ArrowDown, ArrowUp, Plus } from "lucide-react";
+import { ArrowDown, ArrowUp, Download, Plus, Upload } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 
@@ -15,7 +15,7 @@ import { loadProjectFormOptions } from "@/lib/data/options";
 import { listProjects } from "@/lib/data/projects";
 import { isPastTargetEnd } from "@/lib/domain/kpis";
 import { HEALTH_LABELS, PROJECT_HEALTHS, PROJECT_STATUSES, STATUS_LABELS } from "@/lib/domain/project-lifecycle";
-import { formatDate, personName } from "@/lib/format";
+import { clientLabel, formatDate, personName } from "@/lib/format";
 import { projectListFiltersSchema } from "@/lib/validation/project";
 
 export const metadata: Metadata = { title: "Projects" };
@@ -51,13 +51,28 @@ export default async function ProjectsPage({ searchParams }: PageProps<"/project
             : "Projects you manage, own, created or are a member of."
         }
         actions={
-          ctx.permissions.has("project.create") && (
-            <Button asChild>
-              <Link href="/projects/new">
-                <Plus className="size-4" /> New project
-              </Link>
+          <>
+            <Button variant="outline" asChild>
+              {/* A plain anchor: this is a file download, not a client-side navigation. */}
+              <a href={`/api/export/projects${filters.archived === "include" || filters.archived === "only" ? "?archived=include" : ""}`}>
+                <Download className="size-4" /> Export CSV
+              </a>
             </Button>
-          )
+            {ctx.permissions.has("project.create") && (
+              <>
+                <Button variant="outline" asChild>
+                  <Link href="/projects/import">
+                    <Upload className="size-4" /> Import
+                  </Link>
+                </Button>
+                <Button asChild>
+                  <Link href="/projects/new">
+                    <Plus className="size-4" /> New project
+                  </Link>
+                </Button>
+              </>
+            )}
+          </>
         }
       />
 
@@ -120,7 +135,7 @@ export default async function ProjectsPage({ searchParams }: PageProps<"/project
             </TableHeader>
             <TableBody>
               {rows.map((p) => {
-                const overdue = ["planning", "active", "on_hold"].includes(p.status) && isPastTargetEnd(p, now);
+                const overdue = ["planning", "active", "on_hold"].includes(p.status) && isPastTargetEnd(p, now, ctx.settings.timezone);
                 return (
                   <TableRow key={p.id}>
                     <TableCell className="font-mono text-xs">{p.code}</TableCell>
@@ -137,7 +152,7 @@ export default async function ProjectsPage({ searchParams }: PageProps<"/project
                     <TableCell>
                       <HealthBadge health={p.health} />
                     </TableCell>
-                    <TableCell className="hidden md:table-cell">{p.client?.name ?? <span className="text-muted-foreground">Internal</span>}</TableCell>
+                    <TableCell className="hidden md:table-cell">{p.client ? p.client.name : <span className="text-muted-foreground">{clientLabel(p)}</span>}</TableCell>
                     <TableCell className="hidden lg:table-cell">{personName(p.manager)}</TableCell>
                     <TableCell className="hidden tabular-nums sm:table-cell">
                       <span className={overdue ? "font-medium text-health-red" : undefined}>{formatDate(p.target_end_date)}</span>

@@ -42,4 +42,6 @@ export const AUDITED_ENTITY_TYPES = [
   "organization_memberships",
   "membership_roles",
   "organization_invitations",
+  "role_definitions",
+  "departments",
 ] as const;

@@ -43,7 +43,8 @@ Demo accounts (local only, password `DemoPass123`):
 
 | Command | Purpose |
 |---|---|
-| `pnpm dev` / `pnpm build` / `pnpm start` | Run / build / serve |
+| `pnpm dev` / `pnpm build` / `pnpm start` | Run / build / serve (`.env.local`) |
+| `pnpm dev:local` | Run against the local Supabase stack regardless of `.env.local` |
 | `pnpm typecheck` / `pnpm lint` | Static checks |
 | `pnpm test` | Unit tests (Vitest) |
 | `pnpm test:db` | Database authorization tests (pgTAP) |

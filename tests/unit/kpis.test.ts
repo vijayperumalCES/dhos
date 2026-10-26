@@ -25,7 +25,7 @@ function project(overrides: Partial<ProjectSnapshot>): ProjectSnapshot {
   };
 }
 
-const base = { history: [] as HistorySnapshot[], now: NOW, staleAfterDays: 14, periodDays: 30 };
+const base = { history: [] as HistorySnapshot[], now: NOW, timeZone: "UTC", staleAfterDays: 14, periodDays: 30 };
 
 describe("portfolio KPIs", () => {
   it("counts in-flight projects as planning, active and on hold only", () => {
@@ -114,6 +114,15 @@ describe("portfolio KPIs", () => {
       expect(def.period.length).toBeGreaterThan(0);
       expect(def.limitations.length).toBeGreaterThan(0);
     }
+  });
+
+  it("decides overdue by the calendar day in the organization's time zone", () => {
+    // 2026-10-26T20:00Z is already 27 Oct (01:30) in Kolkata but still 26 Oct in New York.
+    const now = new Date("2026-10-26T20:00:00Z");
+    const due26 = [project({ target_end_date: "2026-10-26" })];
+    expect(computePortfolioKpis({ ...base, now, projects: due26, timeZone: "Asia/Kolkata" }).overdue_target_end).toBe(1);
+    expect(computePortfolioKpis({ ...base, now, projects: due26, timeZone: "America/New_York" }).overdue_target_end).toBe(0);
+    expect(computePortfolioKpis({ ...base, now, projects: due26, timeZone: "UTC" }).overdue_target_end).toBe(0);
   });
 
   it("accepts only supported reporting periods", () => {

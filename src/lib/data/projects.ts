@@ -12,7 +12,7 @@ export const PROJECTS_PAGE_SIZE = 20;
 const PERSON = "id, user_profiles(display_name)";
 
 const LIST_COLUMNS = `
-  id, code, name, status, health, health_updated_at, target_end_date, planned_start_date, archived_at, updated_at,
+  id, code, name, status, health, health_updated_at, target_end_date, planned_start_date, archived_at, updated_at, client_id,
   client:clients!projects_client_id_organization_id_fkey(id, name),
   manager:organization_memberships!projects_project_manager_id_organization_id_fkey(${PERSON}),
   team:teams!projects_primary_team_id_organization_id_fkey(id, name)

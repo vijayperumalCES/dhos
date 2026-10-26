@@ -25,6 +25,11 @@ export default async function LoginPage({ searchParams }: PageProps<"/login">) {
         </p>
       )}
       <LoginForm next={typeof next === "string" ? next : undefined} />
+      <p className="-mt-3 text-right text-sm">
+        <Link href="/forgot-password" className="text-muted-foreground underline-offset-4 hover:text-foreground hover:underline">
+          Forgot password?
+        </Link>
+      </p>
       <p className="text-sm text-muted-foreground">
         New to Stride?{" "}
         <Link href="/signup" className="font-medium text-primary underline-offset-4 hover:underline">

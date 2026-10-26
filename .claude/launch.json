@@ -4,7 +4,17 @@
     {
       "name": "stride-web",
       "runtimeExecutable": "pnpm",
-      "runtimeArgs": ["dev"],
+      "runtimeArgs": [
+        "dev"
+      ],
+      "port": 3100
+    },
+    {
+      "name": "stride-local",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": [
+        "dev:local"
+      ],
       "port": 3100
     }
   ]

@@ -236,6 +236,35 @@ from (values
   ) as x(code, from_h, to_h, reason, age)
 join public.projects p on p.code = x.code;
 
+-- Departments and reporting lines
+insert into public.departments (organization_id, name, code, description, head_membership_id, created_by)
+select o.id, d.name, d.code, d.description, (select id from private.seed_m where email = d.head), '00000000-0000-4000-a000-000000000001'
+from public.organizations o,
+  (values
+    ('Delivery',    'DEL', 'Delivery and program management.', 'priya@northwind.example'),
+    ('Engineering', 'ENG', 'Software and data engineering.',   'lena@northwind.example'),
+    ('Quality',     'QA',  'Testing and release quality.',     'tom@northwind.example'),
+    ('IT',          'IT',  'Internal IT and administration.',  'omar@northwind.example')
+  ) as d(name, code, description, head)
+where o.slug = 'northwind-demo';
+
+update public.organization_memberships m
+   set department_id = (select id from public.departments d where d.organization_id = m.organization_id and d.code = x.dept),
+       manager_membership_id = (select id from private.seed_m where email = x.manager)
+from (values
+    ('priya@northwind.example', 'DEL', null),
+    ('arjun@northwind.example', 'DEL', 'priya@northwind.example'),
+    ('mei@northwind.example',   'DEL', 'priya@northwind.example'),
+    ('lena@northwind.example',  'ENG', 'priya@northwind.example'),
+    ('dev@northwind.example',   'ENG', 'lena@northwind.example'),
+    ('rahul@northwind.example', 'ENG', 'lena@northwind.example'),
+    ('sofia@northwind.example', 'ENG', 'lena@northwind.example'),
+    ('tom@northwind.example',   'QA',  'lena@northwind.example'),
+    ('omar@northwind.example',  'IT',  'priya@northwind.example')
+  ) as x(email, dept, manager)
+join public.user_profiles p on p.email = x.email
+where m.user_id = p.id and m.organization_id = (select id from public.organizations where slug = 'northwind-demo');
+
 drop table private.seed_m;
 
 end;

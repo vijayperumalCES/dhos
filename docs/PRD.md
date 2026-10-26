@@ -92,6 +92,27 @@ See `docs/AUTHORIZATION.md` for the full role catalogue. Primary Phase 1 persona
 
 **US-1.12 Audit.** As an auditor-role user I can view an append-only audit log of changes.
 
+**US-1.13 Invitation emails.** Invitees receive a one-click sign-in link, land on a welcome page that
+accepts the invitation and lets them set a password. Admins see when an invitation was emailed and can resend.
+
+**US-1.14 Password reset.** "Forgot password?" emails a reset link (no account enumeration); signed-in
+users can change their password on the profile page.
+
+**US-1.15 Organization time zone.** "Today" for overdue and due-soon metrics, and all displayed
+timestamps, use the organization's IANA time zone.
+
+**US-1.16 Custom roles.** Administrators with `org.roles.manage` create roles from the permission
+catalogue, edit their permissions and delete unused ones; system roles are fixed.
+
+**US-1.17 Confidential clients.** Confidential clients are visible only to holders of
+`client.confidential.read`, the account owner and people assigned to its projects.
+
+**US-1.18 Departments and reporting lines.** Departments with heads; each member can have a manager;
+the org chart shows reporting lines; cycles are rejected.
+
+**US-1.19 Import / export.** Projects and members export to CSV; projects import from CSV after a
+validated preview (all-or-nothing); invitations can be created in bulk from CSV.
+
 ### 5.2 Out of scope for Phase 1
 
 Work items, sprints, milestones, attendance, leave, timesheets, financials, RAID, releases,

@@ -7,7 +7,7 @@ import { ACTIVE_ORG_COOKIE } from "@/lib/auth/org-context";
 import { resolveSiteOrigin } from "@/lib/auth/site-origin";
 import { env } from "@/lib/env";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { safeNextPath, signInSchema, signUpSchema } from "@/lib/validation/auth";
+import { forgotPasswordSchema, safeNextPath, setPasswordSchema, signInSchema, signUpSchema } from "@/lib/validation/auth";
 
 import { fail, fromZodError, ok, type ActionResult } from "./result";
 
@@ -57,4 +57,39 @@ export async function signOut() {
   await supabase.auth.signOut();
   (await cookies()).delete(ACTIVE_ORG_COOKIE);
   redirect("/login");
+}
+
+export async function requestPasswordReset(input: unknown): Promise<ActionResult> {
+  const parsed = forgotPasswordSchema.safeParse(input);
+  if (!parsed.success) return fromZodError(parsed.error);
+
+  const supabase = await createSupabaseServerClient();
+  const origin = resolveSiteOrigin(await headers(), env.NEXT_PUBLIC_SITE_URL);
+  // PKCE: the code verifier is stored in this browser, so the link must be opened here.
+  const { error } = await supabase.auth.resetPasswordForEmail(parsed.data.email, {
+    redirectTo: `${origin}/auth/confirm?next=/reset-password`,
+  });
+  if (error && (error.status === 429 || error.code === "over_email_send_rate_limit")) {
+    return fail("Too many requests. Please wait a few minutes and try again.");
+  }
+  // Same response whether or not the account exists, so emails can't be enumerated.
+  return ok(undefined, "If an account exists for that email, a reset link is on its way.");
+}
+
+export async function setPassword(input: unknown): Promise<ActionResult> {
+  const parsed = setPasswordSchema.safeParse(input);
+  if (!parsed.success) return fromZodError(parsed.error);
+
+  const supabase = await createSupabaseServerClient();
+  const { data: claims } = await supabase.auth.getClaims();
+  if (!claims?.claims?.sub) return fail("Your session has expired. Request a new link.");
+
+  const { error } = await supabase.auth.updateUser({ password: parsed.data.password });
+  if (error) {
+    if (error.code === "same_password") return fail("Choose a password you haven't used for this account.");
+    if (error.code === "weak_password") return fail("That password is too weak. Choose a longer, less common password.");
+    if (error.code === "reauthentication_needed") return fail("For security, sign in again before changing your password.");
+    return fail("We couldn't update your password. Please try again.");
+  }
+  return ok(undefined, "Password updated.");
 }

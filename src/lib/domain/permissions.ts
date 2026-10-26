@@ -10,8 +10,10 @@ export const PERMISSIONS = [
   "org.settings.manage",
   "org.members.read",
   "org.members.manage",
+  "org.roles.manage",
   "audit.read",
   "client.read",
+  "client.confidential.read",
   "client.manage",
   "project.read_all",
   "project.read_assigned",
@@ -46,12 +48,24 @@ export const ROLE_KEYS = [
 
 export type RoleKey = (typeof ROLE_KEYS)[number];
 
+/** Custom (organization-defined) role keys follow the same format as system keys. */
+export const ROLE_KEY_PATTERN = /^[a-z][a-z_]{1,48}$/;
+
 export const ROLE_TEMPLATES: Record<RoleKey, readonly Permission[]> = {
-  org_admin: ["org.settings.manage", "org.members.read", "org.members.manage", "audit.read", "team.read", "team.manage"],
+  org_admin: [
+    "org.settings.manage",
+    "org.members.read",
+    "org.members.manage",
+    "org.roles.manage",
+    "audit.read",
+    "team.read",
+    "team.manage",
+  ],
   delivery_head: [
     "org.members.read",
     "audit.read",
     "client.read",
+    "client.confidential.read",
     "client.manage",
     "project.read_all",
     "project.create",
@@ -99,7 +113,7 @@ export const ROLE_TEMPLATES: Record<RoleKey, readonly Permission[]> = {
   qa_engineer: ["org.members.read", "project.read_assigned", "team.read"],
   resource_manager: ["org.members.read", "project.read_all", "team.read", "team.manage"],
   hr_admin: ["org.members.read", "team.read"],
-  finance_manager: ["org.members.read", "client.read", "project.read_all", "dashboard.portfolio.view"],
+  finance_manager: ["org.members.read", "client.read", "client.confidential.read", "project.read_all", "dashboard.portfolio.view"],
   client_stakeholder: ["project.read_assigned"],
   ai_agent_operator: ["org.members.read"],
 };

@@ -145,7 +145,7 @@ export default async function TeamPage({ params }: PageProps<"/teams/[teamId]">)
               <CardTitle>Audit trail</CardTitle>
             </CardHeader>
             <CardContent>
-              <AuditTrail rows={audit.rows} names={audit.names} />
+              <AuditTrail rows={audit.rows} names={audit.names} timeZone={ctx.settings.timezone} />
             </CardContent>
           </Card>
         )}

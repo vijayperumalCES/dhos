@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 
+import { SetPasswordForm } from "@/components/auth/set-password-form";
 import { PageHeader } from "@/components/common/page-header";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -21,6 +22,15 @@ export default async function AccountPage() {
         </CardHeader>
         <CardContent>
           <ProfileForm displayName={ctx.user.displayName} />
+        </CardContent>
+      </Card>
+      <Card>
+        <CardHeader>
+          <CardTitle>Password</CardTitle>
+          <CardDescription>Change the password you use to sign in. Forgotten it? Sign out and use “Forgot password?”.</CardDescription>
+        </CardHeader>
+        <CardContent className="max-w-md">
+          <SetPasswordForm submitLabel="Change password" />
         </CardContent>
       </Card>
       <Card>

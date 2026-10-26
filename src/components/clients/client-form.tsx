@@ -60,7 +60,7 @@ export function ClientForm({ clientId, defaultValues, members }: { clientId?: st
               name="confidentiality"
               label="Confidentiality"
               required
-              description="Recorded for policy. Confidential-client access restrictions are enforced from Phase 4."
+              description="Confidential clients are visible only to people with confidential-client access, the account owner, and teams of its projects."
               options={[
                 { value: "standard", label: "Standard" },
                 { value: "confidential", label: "Confidential" },

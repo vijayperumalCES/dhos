@@ -9,7 +9,8 @@ pnpm install
 cp .env.example .env.local     # local defaults already filled in
 pnpm db:start                  # Supabase on :55321 (API), :55322 (DB), :55323 (Studio), :55324 (Mailpit)
 pnpm db:reset                  # migrations + demo seed
-pnpm dev                       # http://localhost:3100
+pnpm dev                       # http://localhost:3100 (uses .env.local)
+pnpm dev:local                 # same, but forced onto the local Supabase stack
 ```
 
 Sign in with a seeded demo user (password `DemoPass123`), e.g. `priya@northwind.example`
@@ -28,7 +29,10 @@ Ports were moved off Supabase's defaults (543xx) to avoid clashing with other lo
    (matches `supabase/config.toml` and the sign-up form).
 5. Email templates: change the confirmation link to
    `{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=email&next=/onboarding`.
-6. Configure a custom SMTP provider (Supabase's default sender is rate-limited and for testing only).
+6. **Configure a custom SMTP provider** (Project Settings → Authentication → SMTP). Supabase's
+   built-in sender allows only a few emails per hour and is for testing. Stride sends sign-up
+   confirmations, password resets and **invitation emails**, so bulk invitations need real SMTP; raise
+   *Rate limits → emails per hour* afterwards.
 7. Link and push migrations:
    ```bash
    supabase login
@@ -78,3 +82,25 @@ with `supabase db push` using a `SUPABASE_ACCESS_TOKEN` secret (not yet wired �
 
 Supabase Pro includes daily backups and optional point-in-time recovery. Restore drills and runbooks
 are Phase 8 deliverables.
+
+## 7. Auth emails
+
+| Email | Sent when | Link lands on |
+|---|---|---|
+| Confirm sign-up | Someone signs up (hosted: email confirmation on) | `/auth/confirm` → `/onboarding` |
+| Magic link | An admin invites someone, or resends an invitation | `/auth/callback` → `/welcome` (accept + set password) |
+| Reset password | "Forgot password?" | `/auth/confirm` → `/reset-password` |
+
+The default Supabase templates work as-is. Links point at the host the request came from, so make sure
+every production host is listed under Authentication → URL Configuration → Redirect URLs
+(e.g. `https://stride.vercel.app/**`). Locally, all emails are captured by Mailpit at
+http://127.0.0.1:55324.
+
+## 8. Applying new migrations to the hosted project
+
+Each release may add migrations (e.g. `20261027000100_phase1_gaps.sql`). Apply them before or with the
+app deploy:
+
+```bash
+supabase db push
+```

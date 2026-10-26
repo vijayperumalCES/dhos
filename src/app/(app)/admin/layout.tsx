@@ -10,6 +10,8 @@ export default async function AdminLayout({ children }: LayoutProps<"/admin">) {
   const items = [
     p.has("org.settings.manage") && { href: "/admin", label: "Settings" },
     p.has("org.members.read") && { href: "/admin/members", label: "Members" },
+    p.has("org.members.read") && { href: "/admin/departments", label: "Departments" },
+    p.has("org.members.read") && { href: "/admin/org-chart", label: "Org chart" },
     p.has("org.members.read") && { href: "/admin/roles", label: "Roles & permissions" },
     p.has("audit.read") && { href: "/admin/audit", label: "Audit log" },
   ].filter((x): x is { href: string; label: string } => Boolean(x));

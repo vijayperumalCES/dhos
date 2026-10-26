@@ -141,6 +141,60 @@ export type Database = {
           },
         ]
       }
+      departments: {
+        Row: {
+          archived_at: string | null
+          code: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          head_membership_id: string | null
+          id: string
+          name: string
+          organization_id: string
+          updated_at: string
+        }
+        Insert: {
+          archived_at?: string | null
+          code?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          head_membership_id?: string | null
+          id?: string
+          name: string
+          organization_id: string
+          updated_at?: string
+        }
+        Update: {
+          archived_at?: string | null
+          code?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          head_membership_id?: string | null
+          id?: string
+          name?: string
+          organization_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "departments_head_membership_id_organization_id_fkey"
+            columns: ["head_membership_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "organization_memberships"
+            referencedColumns: ["id", "organization_id"]
+          },
+          {
+            foreignKeyName: "departments_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       membership_roles: {
         Row: {
           granted_at: string
@@ -185,6 +239,8 @@ export type Database = {
           accepted_at: string | null
           created_at: string
           email: string
+          email_last_sent_at: string | null
+          email_sent_count: number
           expires_at: string
           id: string
           invited_by: string | null
@@ -196,6 +252,8 @@ export type Database = {
           accepted_at?: string | null
           created_at?: string
           email: string
+          email_last_sent_at?: string | null
+          email_sent_count?: number
           expires_at?: string
           id?: string
           invited_by?: string | null
@@ -207,6 +265,8 @@ export type Database = {
           accepted_at?: string | null
           created_at?: string
           email?: string
+          email_last_sent_at?: string | null
+          email_sent_count?: number
           expires_at?: string
           id?: string
           invited_by?: string | null
@@ -227,8 +287,10 @@ export type Database = {
       organization_memberships: {
         Row: {
           created_at: string
+          department_id: string | null
           id: string
           job_title: string | null
+          manager_membership_id: string | null
           organization_id: string
           status: Database["public"]["Enums"]["membership_status"]
           updated_at: string
@@ -236,8 +298,10 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          department_id?: string | null
           id?: string
           job_title?: string | null
+          manager_membership_id?: string | null
           organization_id: string
           status?: Database["public"]["Enums"]["membership_status"]
           updated_at?: string
@@ -245,14 +309,30 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          department_id?: string | null
           id?: string
           job_title?: string | null
+          manager_membership_id?: string | null
           organization_id?: string
           status?: Database["public"]["Enums"]["membership_status"]
           updated_at?: string
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "organization_memberships_department_fkey"
+            columns: ["department_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "departments"
+            referencedColumns: ["id", "organization_id"]
+          },
+          {
+            foreignKeyName: "organization_memberships_manager_fkey"
+            columns: ["manager_membership_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "organization_memberships"
+            referencedColumns: ["id", "organization_id"]
+          },
           {
             foreignKeyName: "organization_memberships_organization_id_fkey"
             columns: ["organization_id"]
@@ -588,6 +668,7 @@ export type Database = {
           key: string
           name: string
           organization_id: string
+          updated_at: string
         }
         Insert: {
           created_at?: string
@@ -597,6 +678,7 @@ export type Database = {
           key: string
           name: string
           organization_id: string
+          updated_at?: string
         }
         Update: {
           created_at?: string
@@ -606,6 +688,7 @@ export type Database = {
           key?: string
           name?: string
           organization_id?: string
+          updated_at?: string
         }
         Relationships: [
           {
@@ -779,6 +862,17 @@ export type Database = {
         Args: { p_name: string; p_slug: string }
         Returns: string
       }
+      create_role: {
+        Args: {
+          p_description: string
+          p_key: string
+          p_name: string
+          p_org: string
+          p_permissions: string[]
+        }
+        Returns: string
+      }
+      delete_role: { Args: { p_role: string }; Returns: undefined }
       has_permission: {
         Args: { p_org: string; p_permission: string }
         Returns: boolean
@@ -796,6 +890,10 @@ export type Database = {
         Returns: boolean
       }
       my_permissions: { Args: { p_org: string }; Returns: string[] }
+      record_invitation_email_sent: {
+        Args: { p_invitation: string }
+        Returns: undefined
+      }
       revoke_invitation: { Args: { p_invitation: string }; Returns: undefined }
       set_member_roles: {
         Args: { p_membership: string; p_role_keys: string[] }
@@ -825,6 +923,15 @@ export type Database = {
           p_project: string
           p_reason?: string
           p_to: Database["public"]["Enums"]["project_status"]
+        }
+        Returns: undefined
+      }
+      update_role: {
+        Args: {
+          p_description: string
+          p_name: string
+          p_permissions: string[]
+          p_role: string
         }
         Returns: undefined
       }

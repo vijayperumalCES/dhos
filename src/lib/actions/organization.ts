@@ -1,11 +1,14 @@
 "use server";
 
-import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
+import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 
 import { ACTIVE_ORG_COOKIE, getOrgContext, requireOrgContext } from "@/lib/auth/org-context";
 import { requireUser } from "@/lib/auth/session";
+import { resolveSiteOrigin } from "@/lib/auth/site-origin";
+import { env } from "@/lib/env";
+import { sendInvitationEmail } from "@/lib/supabase/email-client";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { requiredText, uuid } from "@/lib/validation/common";
 import {
@@ -86,15 +89,52 @@ export async function inviteMember(input: unknown): Promise<ActionResult> {
   if (!parsed.success) return fromZodError(parsed.error);
 
   const supabase = await createSupabaseServerClient();
-  const { error } = await supabase.rpc("invite_member", {
+  const { data: invitationId, error } = await supabase.rpc("invite_member", {
     p_org: ctx.organization.id,
     p_email: parsed.data.email,
     p_role_keys: parsed.data.roleKeys,
   });
   if (error) return fromPostgrestError(error, { duplicate: "That person is already a member of this organization." });
 
+  const emailed = await emailInvitation(invitationId, parsed.data.email);
   revalidatePath("/admin/members");
-  return ok(undefined, "Invitation recorded. It is accepted when that person signs in with this email.");
+  return ok(
+    undefined,
+    emailed.ok
+      ? `Invitation emailed to ${parsed.data.email}.`
+      : `Invitation recorded, but the email was not sent: ${emailed.reason}. They can still join by signing up with this email.`,
+  );
+}
+
+/** Sends (or resends) the sign-in link for a pending invitation and records the send. */
+async function emailInvitation(invitationId: string, email: string) {
+  const origin = resolveSiteOrigin(await headers(), env.NEXT_PUBLIC_SITE_URL);
+  const result = await sendInvitationEmail(email, origin);
+  if (result.ok) {
+    const supabase = await createSupabaseServerClient();
+    await supabase.rpc("record_invitation_email_sent", { p_invitation: invitationId });
+  }
+  return result;
+}
+
+export async function resendInvitation(invitationId: string): Promise<ActionResult> {
+  const ctx = await requireOrgContext();
+  if (!uuid.safeParse(invitationId).success) return fail("Invalid invitation.");
+  if (!ctx.permissions.has("org.members.manage")) return fail("You don't have permission to invite members.");
+
+  const supabase = await createSupabaseServerClient();
+  const { data: invitation } = await supabase
+    .from("organization_invitations")
+    .select("id, email, status, expires_at")
+    .eq("id", invitationId)
+    .eq("organization_id", ctx.organization.id)
+    .maybeSingle();
+  if (!invitation || invitation.status !== "pending") return fail("That invitation is no longer pending.");
+  if (new Date(invitation.expires_at) < new Date()) return fail("That invitation has expired. Revoke it and invite again.");
+
+  const emailed = await emailInvitation(invitation.id, invitation.email);
+  revalidatePath("/admin/members");
+  return emailed.ok ? ok(undefined, `Invitation re-sent to ${invitation.email}.`) : fail(`The email was not sent: ${emailed.reason}.`);
 }
 
 export async function revokeInvitation(invitationId: string): Promise<ActionResult> {

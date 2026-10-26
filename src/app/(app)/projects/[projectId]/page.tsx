@@ -19,7 +19,7 @@ import { listMemberOptions } from "@/lib/data/members";
 import { getProject, getProjectHistory, getProjectMembers, resolveUserNames } from "@/lib/data/projects";
 import { isHealthStale, isPastTargetEnd } from "@/lib/domain/kpis";
 import { HEALTH_LABELS, METHODOLOGY_LABELS, STATUS_LABELS } from "@/lib/domain/project-lifecycle";
-import { formatDate, formatDateTime, formatRelative, personName } from "@/lib/format";
+import { clientLabel, formatDate, formatDateTime, formatRelative, personName } from "@/lib/format";
 
 export async function generateMetadata({ params }: PageProps<"/projects/[projectId]">): Promise<Metadata> {
   const ctx = await requireOrgContext();
@@ -44,7 +44,7 @@ export default async function ProjectPage({ params }: PageProps<"/projects/[proj
   const archived = project.archived_at !== null;
   const now = new Date();
   const stale = isHealthStale(project, now, ctx.settings.healthStaleAfterDays);
-  const overdue = !["completed", "cancelled"].includes(project.status) && isPastTargetEnd(project, now);
+  const overdue = !["completed", "cancelled"].includes(project.status) && isPastTargetEnd(project, now, ctx.settings.timezone);
   const onProject = new Set(members.map((m) => m.membership_id));
   const candidates = memberOptions
     .filter((m) => !onProject.has(m.id))
@@ -120,7 +120,7 @@ export default async function ProjectPage({ params }: PageProps<"/projects/[proj
             </CardHeader>
             <CardContent>
               <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 text-sm">
-                <Detail label="Client" value={project.client?.name ?? "Internal"} href={project.client ? `/clients/${project.client.id}` : undefined} />
+                <Detail label="Client" value={clientLabel(project)} href={project.client ? `/clients/${project.client.id}` : undefined} />
                 <Detail label="Sponsor" value={project.sponsor_name} />
                 <Detail label="Project manager" value={personName(project.manager)} />
                 <Detail label="Delivery owner" value={personName(project.owner)} />
@@ -130,7 +130,7 @@ export default async function ProjectPage({ params }: PageProps<"/projects/[proj
                 <Detail label="Target end" value={formatDate(project.target_end_date)} />
                 <Detail label="Actual end" value={formatDate(project.actual_end_date)} />
                 <Detail label="In stage since" value={formatDate(project.status_changed_at)} />
-                <Detail label="Last updated" value={formatDateTime(project.updated_at)} />
+                <Detail label="Last updated" value={formatDateTime(project.updated_at, ctx.settings.timezone)} />
               </dl>
             </CardContent>
           </Card>
@@ -218,7 +218,7 @@ export default async function ProjectPage({ params }: PageProps<"/projects/[proj
                     </p>
                     {h.reason && <p className="text-muted-foreground">{h.reason}</p>}
                     <p className="text-xs text-muted-foreground">
-                      {formatDateTime(h.changed_at)} · {h.changed_by ? (historyNames.get(h.changed_by) ?? "a user") : "system"}
+                      {formatDateTime(h.changed_at, ctx.settings.timezone)} · {h.changed_by ? (historyNames.get(h.changed_by) ?? "a user") : "system"}
                     </p>
                   </li>
                 ))}
@@ -235,7 +235,7 @@ export default async function ProjectPage({ params }: PageProps<"/projects/[proj
                 <CardDescription>Every change to this project record, newest first. Append-only.</CardDescription>
               </CardHeader>
               <CardContent>
-                <AuditTrail rows={audit.rows} names={audit.names} />
+                <AuditTrail rows={audit.rows} names={audit.names} timeZone={ctx.settings.timezone} />
               </CardContent>
             </Card>
           </TabsContent>

@@ -56,6 +56,11 @@ const RPC_MESSAGES: Record<string, string> = {
   last_admin: "The organization must keep at least one active administrator.",
   cannot_suspend_self: "You cannot suspend your own membership.",
   rate_limited: "Too many requests. Please wait and try again.",
+  system_role: "System roles can't be changed. Create a custom role instead.",
+  role_in_use: "Remove this role from all members before deleting it.",
+  reserved_role_key: "That key is used by a system role. Choose another.",
+  permissions_required: "A role needs at least one permission.",
+  reporting_cycle: "That change would make someone report to themselves.",
 };
 
 export function humanizeRpcMessage(message: string): string {
