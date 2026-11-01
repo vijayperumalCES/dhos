@@ -5,11 +5,13 @@ import { DemoBanner } from "@/components/shell/demo-banner";
 import { TopBar, type QuickCreate } from "@/components/shell/top-bar";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { requireOrgContext } from "@/lib/auth/org-context";
+import { getUnreadSummary } from "@/lib/data/automation";
 import { buildNavigation } from "@/lib/navigation";
 
 export default async function AppLayout({ children }: LayoutProps<"/">) {
   const ctx = await requireOrgContext();
   const p = ctx.permissions;
+  const { unread, recent } = await getUnreadSummary(ctx);
 
   const quickCreate: QuickCreate = [
     p.has("project.create") && { label: "New project", href: "/projects/new" },
@@ -36,7 +38,7 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
       <SidebarInset>
         {ctx.organization.isDemo && <DemoBanner orgName={ctx.organization.name} />}
         <Suspense>
-          <TopBar quickCreate={quickCreate} />
+          <TopBar quickCreate={quickCreate} unread={unread} recent={recent} />
         </Suspense>
         <main id="main" className="flex-1 px-4 py-6 sm:px-6 lg:px-8">
           {children}

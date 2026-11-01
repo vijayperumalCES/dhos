@@ -126,6 +126,8 @@ timesheets without any of the HR permissions. See section 3a.
   boards or sprints (no `work.read`). Status-report snapshots therefore store counts, not item titles.
 - **AI Agent Operator** configures agents (`agent.read`, `agent.manage`) with directory access and self-service workforce; it cannot run agents, approve their actions or read delivery data.
 
+- **Org Admin** also holds `automation.read` and `automation.manage` (Phase 7): they configure rules, webhooks, the scheduler and integrations; Delivery Head and Program Manager hold `automation.read`.
+
 ### 3a. HR data (Phase 3)
 
 Attendance, leave and timesheets follow their own rule, not project visibility
@@ -204,3 +206,17 @@ output, evidence) is readable only by the person who ran it. A proposal is visib
 and to approvers who can read the project. Approving an action also requires the permission for that
 action on the project (`work.create` for a draft work item), and the action runs as the approver.
 See `docs/DECISIONS/ADR-0011-ai-agents.md` and `docs/AGENT_ARCHITECTURE.md`.
+
+## 7. Automation (Phase 7)
+
+| Permission | Allows |
+|---|---|
+| `automation.read` | See rules, webhook endpoints and deliveries, scheduled jobs and runs, integrations and the event stream (events only for projects the viewer can read). Never webhook secrets |
+| `automation.manage` | Create and change rules, webhooks, job schedules and integration connections; rotate secrets; retry deliveries; run jobs |
+
+Notifications need no permission: every member has an inbox and preferences, and only the recipient can
+read a notification (administrators included). A notification about a project reaches only people who can
+read that project, including when a rule names a role. Webhook signing secrets sit in a table with no
+grant to any session role and are returned once, by the RPC that creates or rotates them. Background
+work uses `service_role` RPCs that are revoked from `anon` and `authenticated`; the Org Admin default
+holds `read` + `manage`, Delivery Head and Program Manager `read`. See `docs/DECISIONS/ADR-0012-automation.md`.

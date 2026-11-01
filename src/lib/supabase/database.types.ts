@@ -1458,6 +1458,199 @@ export type Database = {
           },
         ]
       }
+      integration_connections: {
+        Row: {
+          config: NonNullable<Json>
+          created_at: string
+          created_by: string | null
+          enabled: boolean
+          health: string
+          id: string
+          last_error: string | null
+          last_sync_at: string | null
+          mode: string
+          name: string
+          organization_id: string
+          provider: string
+          updated_at: string
+        }
+        ComputedFields: never
+        Insert: {
+          config?: NonNullable<Json>
+          created_at?: string
+          created_by?: string | null
+          enabled?: boolean
+          health?: string
+          id?: string
+          last_error?: string | null
+          last_sync_at?: string | null
+          mode?: string
+          name: string
+          organization_id: string
+          provider: string
+          updated_at?: string
+        }
+        Update: {
+          config?: NonNullable<Json>
+          created_at?: string
+          created_by?: string | null
+          enabled?: boolean
+          health?: string
+          id?: string
+          last_error?: string | null
+          last_sync_at?: string | null
+          mode?: string
+          name?: string
+          organization_id?: string
+          provider?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "integration_connections_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      integration_links: {
+        Row: {
+          connection_id: string
+          created_at: string
+          created_by: string | null
+          external_id: string
+          external_status: string | null
+          external_url: string | null
+          id: string
+          last_synced_at: string | null
+          organization_id: string
+          work_item_id: string
+        }
+        ComputedFields: never
+        Insert: {
+          connection_id: string
+          created_at?: string
+          created_by?: string | null
+          external_id: string
+          external_status?: string | null
+          external_url?: string | null
+          id?: string
+          last_synced_at?: string | null
+          organization_id: string
+          work_item_id: string
+        }
+        Update: {
+          connection_id?: string
+          created_at?: string
+          created_by?: string | null
+          external_id?: string
+          external_status?: string | null
+          external_url?: string | null
+          id?: string
+          last_synced_at?: string | null
+          organization_id?: string
+          work_item_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "integration_links_connection_id_organization_id_fkey"
+            columns: ["connection_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "integration_connections"
+            referencedColumns: ["id", "organization_id"]
+          },
+          {
+            foreignKeyName: "integration_links_work_item_id_organization_id_fkey"
+            columns: ["work_item_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "work_items"
+            referencedColumns: ["id", "organization_id"]
+          },
+        ]
+      }
+      integration_sync_runs: {
+        Row: {
+          connection_id: string
+          created_at: string
+          error: string | null
+          id: string
+          organization_id: string
+          status: string
+          summary: NonNullable<Json>
+        }
+        ComputedFields: never
+        Insert: {
+          connection_id: string
+          created_at?: string
+          error?: string | null
+          id?: string
+          organization_id: string
+          status: string
+          summary?: NonNullable<Json>
+        }
+        Update: {
+          connection_id?: string
+          created_at?: string
+          error?: string | null
+          id?: string
+          organization_id?: string
+          status?: string
+          summary?: NonNullable<Json>
+        }
+        Relationships: [
+          {
+            foreignKeyName: "integration_sync_runs_connection_id_organization_id_fkey"
+            columns: ["connection_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "integration_connections"
+            referencedColumns: ["id", "organization_id"]
+          },
+        ]
+      }
+      job_runs: {
+        Row: {
+          created_at: string
+          error: string | null
+          id: string
+          job_id: string
+          job_key: string
+          organization_id: string
+          status: string
+          summary: NonNullable<Json>
+        }
+        ComputedFields: never
+        Insert: {
+          created_at?: string
+          error?: string | null
+          id?: string
+          job_id: string
+          job_key: string
+          organization_id: string
+          status: string
+          summary?: NonNullable<Json>
+        }
+        Update: {
+          created_at?: string
+          error?: string | null
+          id?: string
+          job_id?: string
+          job_key?: string
+          organization_id?: string
+          status?: string
+          summary?: NonNullable<Json>
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_runs_job_id_organization_id_fkey"
+            columns: ["job_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "scheduled_jobs"
+            referencedColumns: ["id", "organization_id"]
+          },
+        ]
+      }
       leave_balances: {
         Row: {
           granted_days: number
@@ -1701,6 +1894,108 @@ export type Database = {
           },
         ]
       }
+      notification_preferences: {
+        Row: {
+          category: string
+          email: boolean
+          in_app: boolean
+          membership_id: string
+          organization_id: string
+        }
+        ComputedFields: never
+        Insert: {
+          category: string
+          email?: boolean
+          in_app?: boolean
+          membership_id: string
+          organization_id: string
+        }
+        Update: {
+          category?: string
+          email?: boolean
+          in_app?: boolean
+          membership_id?: string
+          organization_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notification_preferences_membership_id_organization_id_fkey"
+            columns: ["membership_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "organization_memberships"
+            referencedColumns: ["id", "organization_id"]
+          },
+        ]
+      }
+      notifications: {
+        Row: {
+          body: string | null
+          category: string
+          created_at: string
+          dedupe_key: string
+          email_attempts: number
+          email_status: string | null
+          event_id: string | null
+          id: string
+          link: string | null
+          membership_id: string
+          occurrences: number
+          organization_id: string
+          read_at: string | null
+          severity: string
+          title: string
+          type: string
+          updated_at: string
+        }
+        ComputedFields: never
+        Insert: {
+          body?: string | null
+          category: string
+          created_at?: string
+          dedupe_key: string
+          email_attempts?: number
+          email_status?: string | null
+          event_id?: string | null
+          id?: string
+          link?: string | null
+          membership_id: string
+          occurrences?: number
+          organization_id: string
+          read_at?: string | null
+          severity?: string
+          title: string
+          type: string
+          updated_at?: string
+        }
+        Update: {
+          body?: string | null
+          category?: string
+          created_at?: string
+          dedupe_key?: string
+          email_attempts?: number
+          email_status?: string | null
+          event_id?: string | null
+          id?: string
+          link?: string | null
+          membership_id?: string
+          occurrences?: number
+          organization_id?: string
+          read_at?: string | null
+          severity?: string
+          title?: string
+          type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_membership_id_organization_id_fkey"
+            columns: ["membership_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "organization_memberships"
+            referencedColumns: ["id", "organization_id"]
+          },
+        ]
+      }
       organization_invitations: {
         Row: {
           accepted_at: string | null
@@ -1897,6 +2192,70 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      outbox_events: {
+        Row: {
+          actor_membership_id: string | null
+          attempts: number
+          created_at: string
+          entity_id: string
+          entity_type: string
+          error: string | null
+          event_type: string
+          id: string
+          locked_until: string | null
+          organization_id: string
+          payload: NonNullable<Json>
+          processed_at: string | null
+          project_id: string | null
+        }
+        ComputedFields: never
+        Insert: {
+          actor_membership_id?: string | null
+          attempts?: number
+          created_at?: string
+          entity_id: string
+          entity_type: string
+          error?: string | null
+          event_type: string
+          id?: string
+          locked_until?: string | null
+          organization_id: string
+          payload?: NonNullable<Json>
+          processed_at?: string | null
+          project_id?: string | null
+        }
+        Update: {
+          actor_membership_id?: string | null
+          attempts?: number
+          created_at?: string
+          entity_id?: string
+          entity_type?: string
+          error?: string | null
+          event_type?: string
+          id?: string
+          locked_until?: string | null
+          organization_id?: string
+          payload?: NonNullable<Json>
+          processed_at?: string | null
+          project_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "outbox_events_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "outbox_events_project_id_organization_id_fkey"
+            columns: ["project_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id", "organization_id"]
+          },
+        ]
       }
       permissions: {
         Row: {
@@ -3018,6 +3377,76 @@ export type Database = {
           },
         ]
       }
+      scheduled_jobs: {
+        Row: {
+          config: NonNullable<Json>
+          enabled: boolean
+          id: string
+          interval_minutes: number
+          key: string
+          last_error: string | null
+          last_run_at: string | null
+          last_status: string | null
+          next_run_at: string
+          organization_id: string
+          updated_at: string
+        }
+        ComputedFields: never
+        Insert: {
+          config?: NonNullable<Json>
+          enabled?: boolean
+          id?: string
+          interval_minutes: number
+          key: string
+          last_error?: string | null
+          last_run_at?: string | null
+          last_status?: string | null
+          next_run_at?: string
+          organization_id: string
+          updated_at?: string
+        }
+        Update: {
+          config?: NonNullable<Json>
+          enabled?: boolean
+          id?: string
+          interval_minutes?: number
+          key?: string
+          last_error?: string | null
+          last_run_at?: string | null
+          last_status?: string | null
+          next_run_at?: string
+          organization_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "scheduled_jobs_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      scheduler_heartbeat: {
+        Row: {
+          id: boolean
+          last_tick_at: string
+          summary: NonNullable<Json>
+        }
+        ComputedFields: never
+        Insert: {
+          id?: boolean
+          last_tick_at?: string
+          summary?: NonNullable<Json>
+        }
+        Update: {
+          id?: boolean
+          last_tick_at?: string
+          summary?: NonNullable<Json>
+        }
+        Relationships: []
+      }
       sprint_daily_stats: {
         Row: {
           day: string
@@ -3361,6 +3790,151 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      webhook_deliveries: {
+        Row: {
+          attempts: number
+          created_at: string
+          delivered_at: string | null
+          endpoint_id: string
+          error: string | null
+          event_id: string
+          event_type: string
+          id: string
+          next_attempt_at: string
+          organization_id: string
+          payload: NonNullable<Json>
+          response_status: number | null
+          status: Database["public"]["Enums"]["delivery_status"]
+        }
+        ComputedFields: never
+        Insert: {
+          attempts?: number
+          created_at?: string
+          delivered_at?: string | null
+          endpoint_id: string
+          error?: string | null
+          event_id: string
+          event_type: string
+          id?: string
+          next_attempt_at?: string
+          organization_id: string
+          payload: NonNullable<Json>
+          response_status?: number | null
+          status?: Database["public"]["Enums"]["delivery_status"]
+        }
+        Update: {
+          attempts?: number
+          created_at?: string
+          delivered_at?: string | null
+          endpoint_id?: string
+          error?: string | null
+          event_id?: string
+          event_type?: string
+          id?: string
+          next_attempt_at?: string
+          organization_id?: string
+          payload?: NonNullable<Json>
+          response_status?: number | null
+          status?: Database["public"]["Enums"]["delivery_status"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "webhook_deliveries_endpoint_id_organization_id_fkey"
+            columns: ["endpoint_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "webhook_endpoints"
+            referencedColumns: ["id", "organization_id"]
+          },
+          {
+            foreignKeyName: "webhook_deliveries_event_id_organization_id_fkey"
+            columns: ["event_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "outbox_events"
+            referencedColumns: ["id", "organization_id"]
+          },
+        ]
+      }
+      webhook_endpoints: {
+        Row: {
+          consecutive_failures: number
+          created_at: string
+          created_by: string | null
+          disabled_reason: string | null
+          enabled: boolean
+          event_types: string[]
+          format: string
+          id: string
+          last_success_at: string | null
+          name: string
+          organization_id: string
+          updated_at: string
+          url: string
+        }
+        ComputedFields: never
+        Insert: {
+          consecutive_failures?: number
+          created_at?: string
+          created_by?: string | null
+          disabled_reason?: string | null
+          enabled?: boolean
+          event_types?: string[]
+          format?: string
+          id?: string
+          last_success_at?: string | null
+          name: string
+          organization_id: string
+          updated_at?: string
+          url: string
+        }
+        Update: {
+          consecutive_failures?: number
+          created_at?: string
+          created_by?: string | null
+          disabled_reason?: string | null
+          enabled?: boolean
+          event_types?: string[]
+          format?: string
+          id?: string
+          last_success_at?: string | null
+          name?: string
+          organization_id?: string
+          updated_at?: string
+          url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "webhook_endpoints_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      webhook_secrets: {
+        Row: {
+          endpoint_id: string
+          secret: string
+        }
+        ComputedFields: never
+        Insert: {
+          endpoint_id: string
+          secret: string
+        }
+        Update: {
+          endpoint_id?: string
+          secret?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "webhook_secrets_endpoint_id_fkey"
+            columns: ["endpoint_id"]
+            isOneToOne: true
+            referencedRelation: "webhook_endpoints"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       work_calendars: {
         Row: {
@@ -3772,6 +4346,148 @@ export type Database = {
           },
         ]
       }
+      workflow_rule_versions: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          organization_id: string
+          rule_id: string
+          snapshot: NonNullable<Json>
+          version: number
+        }
+        ComputedFields: never
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          organization_id: string
+          rule_id: string
+          snapshot: NonNullable<Json>
+          version: number
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          organization_id?: string
+          rule_id?: string
+          snapshot?: NonNullable<Json>
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workflow_rule_versions_rule_id_fkey"
+            columns: ["rule_id"]
+            isOneToOne: false
+            referencedRelation: "workflow_rules"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      workflow_rules: {
+        Row: {
+          actions: NonNullable<Json>
+          archived_at: string | null
+          conditions: NonNullable<Json>
+          created_at: string
+          created_by: string | null
+          description: string | null
+          enabled: boolean
+          id: string
+          name: string
+          organization_id: string
+          trigger_event: string
+          updated_at: string
+          version: number
+        }
+        ComputedFields: never
+        Insert: {
+          actions: NonNullable<Json>
+          archived_at?: string | null
+          conditions?: NonNullable<Json>
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          enabled?: boolean
+          id?: string
+          name: string
+          organization_id: string
+          trigger_event: string
+          updated_at?: string
+          version?: number
+        }
+        Update: {
+          actions?: NonNullable<Json>
+          archived_at?: string | null
+          conditions?: NonNullable<Json>
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          enabled?: boolean
+          id?: string
+          name?: string
+          organization_id?: string
+          trigger_event?: string
+          updated_at?: string
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workflow_rules_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      workflow_runs: {
+        Row: {
+          created_at: string
+          detail: NonNullable<Json>
+          event_id: string
+          id: string
+          organization_id: string
+          rule_id: string
+          rule_version: number
+          status: string
+        }
+        ComputedFields: never
+        Insert: {
+          created_at?: string
+          detail?: NonNullable<Json>
+          event_id: string
+          id?: string
+          organization_id: string
+          rule_id: string
+          rule_version: number
+          status: string
+        }
+        Update: {
+          created_at?: string
+          detail?: NonNullable<Json>
+          event_id?: string
+          id?: string
+          organization_id?: string
+          rule_id?: string
+          rule_version?: number
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workflow_runs_event_id_organization_id_fkey"
+            columns: ["event_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "outbox_events"
+            referencedColumns: ["id", "organization_id"]
+          },
+          {
+            foreignKeyName: "workflow_runs_rule_id_fkey"
+            columns: ["rule_id"]
+            isOneToOne: false
+            referencedRelation: "workflow_rules"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       workflow_states: {
         Row: {
           archived_at: string | null
@@ -3883,6 +4599,8 @@ export type Database = {
         Args: { p_type: Database["public"]["Enums"]["work_item_type"] }
         Returns: Database["public"]["Enums"]["work_item_type"][]
       }
+      apply_integration_status: { Args: { p_link: string; p_status: string }; Returns: boolean }
+      apply_workflow_rule: { Args: { p_event: string; p_rule: string }; Returns: Json }
       approve_budget: { Args: { p_budget: string }; Returns: undefined }
       attendance_exceptions: {
         Args: { p_from: string; p_org: string; p_to: string }
@@ -3917,8 +4635,81 @@ export type Database = {
         Returns: string
       }
       check_out: { Args: { p_org: string }; Returns: undefined }
+      claim_due_jobs: {
+        Args: { p_limit: number }
+        Returns: {
+          config: NonNullable<Json>
+          enabled: boolean
+          id: string
+          interval_minutes: number
+          key: string
+          last_error: string | null
+          last_run_at: string | null
+          last_status: string | null
+          next_run_at: string
+          organization_id: string
+          updated_at: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "scheduled_jobs"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      claim_outbox_events: {
+        Args: { p_limit: number }
+        Returns: {
+          actor_membership_id: string | null
+          attempts: number
+          created_at: string
+          entity_id: string
+          entity_type: string
+          error: string | null
+          event_type: string
+          id: string
+          locked_until: string | null
+          organization_id: string
+          payload: NonNullable<Json>
+          processed_at: string | null
+          project_id: string | null
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "outbox_events"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      claim_pending_emails: {
+        Args: { p_limit: number }
+        Returns: {
+          body: string
+          id: string
+          link: string
+          organization_name: string
+          title: string
+          to_email: string
+        }[]
+      }
+      claim_webhook_deliveries: {
+        Args: { p_limit: number }
+        Returns: {
+          attempts: number
+          endpoint_id: string
+          event_type: string
+          format: string
+          id: string
+          organization_id: string
+          payload: Json
+          secret: string
+          url: string
+        }[]
+      }
       complete_agent_approval: { Args: { p_approval: string; p_ok: boolean; p_result: Json }; Returns: undefined }
+      complete_notification_email: { Args: { p_id: string; p_status: string }; Returns: undefined }
       complete_sprint: { Args: { p_move_to?: string; p_sprint: string }; Returns: undefined }
+      complete_webhook_delivery: { Args: { p_delivery: string; p_error: string; p_status: number }; Returns: undefined }
       create_document: {
         Args: {
           p_content: string
@@ -3937,9 +4728,25 @@ export type Database = {
         Args: { p_description: string; p_key: string; p_name: string; p_org: string; p_permissions: string[] }
         Returns: string
       }
+      create_webhook_endpoint: {
+        Args: { p_event_types: string[]; p_format: string; p_name: string; p_org: string; p_url: string }
+        Returns: Json
+      }
       decide_agent_approval: { Args: { p_approval: string; p_approve: boolean; p_note?: string }; Returns: undefined }
       decide_change_request: { Args: { p_approve: boolean; p_change: string; p_note?: string }; Returns: undefined }
       delete_role: { Args: { p_role: string }; Returns: undefined }
+      due_integration_connections: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          config: Json
+          id: string
+          mode: string
+          organization_id: string
+          provider: string
+        }[]
+      }
+      fail_outbox_event: { Args: { p_error: string; p_event: string }; Returns: undefined }
+      fan_out_event: { Args: { p_event: string }; Returns: Json }
       finish_agent_execution: {
         Args: {
           p_cost: number
@@ -3961,6 +4768,18 @@ export type Database = {
       grant_annual_leave_allowances: { Args: { p_org: string; p_year: number }; Returns: number }
       has_permission: { Args: { p_org: string; p_permission: string }; Returns: boolean }
       implement_change_request: { Args: { p_change: string }; Returns: undefined }
+      integration_sync_inputs: {
+        Args: { p_connection: string }
+        Returns: {
+          assignee_membership_id: string
+          created_at: string
+          external_id: string
+          external_status: string
+          link_id: string
+          project_id: string
+          work_item_key: string
+        }[]
+      }
       invite_member: { Args: { p_email: string; p_org: string; p_role_keys: string[] }; Returns: string }
       is_org_member: { Args: { p_org: string }; Returns: boolean }
       is_valid_project_transition: {
@@ -4032,7 +4851,17 @@ export type Database = {
         Args: { p_gate: string; p_note?: string; p_status: Database["public"]["Enums"]["gate_status"] }
         Returns: undefined
       }
+      record_heartbeat: { Args: { p_summary: Json }; Returns: undefined }
+      record_integration_sync: {
+        Args: { p_connection: string; p_error: string; p_status: string; p_summary: Json }
+        Returns: undefined
+      }
       record_invitation_email_sent: { Args: { p_invitation: string }; Returns: undefined }
+      record_job_result: {
+        Args: { p_error: string; p_job: string; p_status: string; p_summary: Json }
+        Returns: undefined
+      }
+      redeliver_webhook: { Args: { p_delivery: string }; Returns: undefined }
       release_readiness: {
         Args: { p_release: string }
         Returns: {
@@ -4074,6 +4903,16 @@ export type Database = {
       review_leave_request: { Args: { p_approve: boolean; p_note?: string; p_request: string }; Returns: undefined }
       review_timesheet: { Args: { p_approve: boolean; p_note?: string; p_timesheet: string }; Returns: undefined }
       revoke_invitation: { Args: { p_invitation: string }; Returns: undefined }
+      rotate_webhook_secret: { Args: { p_endpoint: string }; Returns: string }
+      rule_candidates: {
+        Args: { p_event: string }
+        Returns: {
+          conditions: Json
+          rule_id: string
+        }[]
+      }
+      run_job_now: { Args: { p_job: string }; Returns: Json }
+      run_scheduled_job: { Args: { p_job: string }; Returns: Json }
       set_agent_enabled: { Args: { p_agent: string; p_enabled: boolean }; Returns: undefined }
       set_default_calendar: { Args: { p_calendar: string }; Returns: undefined }
       set_leave_balance: {
@@ -4148,6 +4987,7 @@ export type Database = {
       contract_type: "msa" | "sow" | "nda" | "support" | "other"
       cost_category: "labour" | "software" | "infrastructure" | "travel" | "subcontractor" | "other"
       decision_status: "proposed" | "accepted" | "rejected" | "superseded"
+      delivery_status: "pending" | "succeeded" | "dead"
       dependency_kind: "blocks" | "relates_to" | "duplicates"
       document_type: "charter" | "requirements" | "specification" | "design" | "plan" | "report" | "other"
       document_visibility: "internal" | "client"
@@ -4293,6 +5133,7 @@ export const Constants = {
       contract_type: ["msa", "sow", "nda", "support", "other"],
       cost_category: ["labour", "software", "infrastructure", "travel", "subcontractor", "other"],
       decision_status: ["proposed", "accepted", "rejected", "superseded"],
+      delivery_status: ["pending", "succeeded", "dead"],
       dependency_kind: ["blocks", "relates_to", "duplicates"],
       document_type: ["charter", "requirements", "specification", "design", "plan", "report", "other"],
       document_visibility: ["internal", "client"],

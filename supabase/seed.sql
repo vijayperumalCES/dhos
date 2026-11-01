@@ -847,6 +847,54 @@ cross join (values
 ) as x(summary, payload)
 where e.id = '00000000-0000-4000-b000-000000000001';
 
+-- ---------------------------------------------------------------------------
+-- Automation (Phase 7): everything the seed did above wrote outbox events; mark them processed so
+-- the first scheduler tick does not flood the demo users. Then a curated set: a paused Teams
+-- webhook, one rule, a mock GitHub connection with two links (backdated, so the first sync shows a
+-- status change), and a few notifications so the inbox is not empty.
+-- ---------------------------------------------------------------------------
+update public.outbox_events set processed_at = now() where processed_at is null;
+
+with ep as (
+  insert into public.webhook_endpoints (organization_id, name, url, format, event_types, enabled, disabled_reason, created_by)
+  select o.id, 'Delivery channel (demo, paused)', 'https://example.com/hooks/stride-demo', 'teams', array['project.health_changed', 'escalation.raised', 'escalation.overdue'], false,
+         'Demo endpoint. Point it at a real Teams incoming webhook, then enable it.', '00000000-0000-4000-a000-000000000001'
+  from public.organizations o where o.slug = 'northwind-demo'
+  returning id
+)
+insert into public.webhook_secrets (endpoint_id, secret) select id, private.new_webhook_secret() from ep;
+
+insert into public.workflow_rules (organization_id, name, description, enabled, trigger_event, conditions, actions, created_by)
+select o.id, 'Red health reaches the delivery head', 'Tells every delivery head the moment a project turns red.', true, 'project.health_changed',
+       '[{"field":"to","op":"eq","value":"red"}]'::jsonb,
+       '[{"type":"notify","to":"role","roleKey":"delivery_head","title":"{{code}} turned red","message":"Was {{from}}. Open the project for the recorded reason.","severity":"critical"}]'::jsonb,
+       '00000000-0000-4000-a000-000000000001'
+from public.organizations o where o.slug = 'northwind-demo';
+
+with conn as (
+  insert into public.integration_connections (organization_id, provider, name, config, created_by)
+  select o.id, 'github', 'Northwind GitHub (mock)', '{"repo":"northwind/payments"}'::jsonb, '00000000-0000-4000-a000-000000000001'
+  from public.organizations o where o.slug = 'northwind-demo'
+  returning id, organization_id
+)
+insert into public.integration_links (organization_id, connection_id, work_item_id, external_id, external_url, external_status, created_by, created_at)
+select c.organization_id, c.id, w.id, 'northwind/payments#' || (100 + w.rn), 'https://github.com/northwind/payments/issues/' || (100 + w.rn), 'open', '00000000-0000-4000-a000-000000000001', now() - interval '4 days'
+from conn c
+cross join lateral (
+  select x.id, row_number() over (order by x.seq) as rn
+  from public.work_items x join private.seed_p p on p.id = x.project_id and p.code = 'NW-PAY'
+  where x.type in ('story', 'task') order by x.seq limit 2
+) w;
+
+perform private.notify_member(m.organization_id, m.id, null, n.category, n.type, n.title, n.body, n.link, n.severity, n.dedupe, null, false)
+from private.seed_m m
+cross join (values
+  ('governance', 'escalation.overdue', 'Escalation overdue: sample', 'The response deadline has passed.', '/governance/escalations', 'critical', 'seed:overdue'),
+  ('delivery', 'project.health_changed', 'NW-PAY health is now amber', 'Was green.', '/projects', 'warning', 'seed:health'),
+  ('workforce', 'timesheet.missing', 'Timesheet not submitted', 'Last week is still open.', '/timesheets', 'warning', 'seed:timesheet')
+) as n(category, type, title, body, link, severity, dedupe)
+where m.email in ('priya@northwind.example', 'arjun@northwind.example');
+
 perform set_config('request.jwt.claims', '', true);
 drop table private.seed_b;
 drop table private.seed_p;

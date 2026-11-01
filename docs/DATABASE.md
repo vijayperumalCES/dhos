@@ -142,6 +142,28 @@ RPCs: `start_agent_execution` (all gates), `finish_agent_execution`, `decide_age
 `agent_usage` (aggregate, no content). Four permissions (`agent.read|run|approve|manage`). See
 [ADR-0011](DECISIONS/ADR-0011-ai-agents.md).
 
+### Phase 7 additions (automation)
+
+| Table | Purpose |
+|---|---|
+| `outbox_events` | One row per domain event, written by triggers in the same transaction as the change; claimed, fanned out and marked processed by the worker |
+| `notifications` | Per-recipient inbox; unread repeats collapse by `dedupe_key`; email status tracked per row |
+| `notification_preferences` | In-app and email choice per person per category |
+| `webhook_endpoints`, `webhook_secrets` | Outbound endpoints; signing secrets in a separate table with no session grants |
+| `webhook_deliveries` | One row per (endpoint, event) with attempts, backoff and final status |
+| `workflow_rules`, `workflow_rule_versions`, `workflow_runs` | Rules, their immutable history and what each run did (once per rule and event) |
+| `scheduled_jobs`, `job_runs`, `scheduler_heartbeat` | Five per-organization jobs seeded by trigger, their run log, and the platform's last tick |
+| `integration_connections`, `integration_links`, `integration_sync_runs` | Mock-adapter connections, work-item ↔ external-issue links, sync history |
+
+Worker RPCs (`service_role` only): `claim_outbox_events`, `fail_outbox_event`, `rule_candidates`,
+`apply_workflow_rule`, `fan_out_event`, `claim_webhook_deliveries`, `complete_webhook_delivery`,
+`claim_pending_emails`, `complete_notification_email`, `claim_due_jobs`, `run_scheduled_job`,
+`record_job_result`, `record_heartbeat`, `integration_sync_inputs`, `apply_integration_status`,
+`record_integration_sync`, `due_integration_connections`. Operator RPCs: `create_webhook_endpoint`,
+`rotate_webhook_secret`, `redeliver_webhook`, `run_job_now`. Retention (30 days events and deliveries,
+90 days read notifications and logs) is the `retention` job; the audit log is never purged. See
+[ADR-0012](DECISIONS/ADR-0012-automation.md).
+
 ### Phase 4 additions (governance)
 
 | Table | Purpose |

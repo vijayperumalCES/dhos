@@ -30,6 +30,14 @@ provider that obeys an injected instruction and one that invents findings) and P
 `agents.spec.ts`. Nothing in the suite calls an external model; the Anthropic provider is exercised
 only by pointing `ANTHROPIC_BASE_URL` at a test double.
 
+Automation is tested at three levels: pgTAP `08_automation` (event triggers, recipient gating, deduplication
+and preferences, webhook secrecy, retry and auto-disable, rule versioning and once-only runs, jobs,
+retention, integrations, service-only RPCs, tenant isolation), unit `automation.test.ts` (rule
+evaluation and dry runs, HMAC signing and verification, the outbound URL guard, delivery with an
+injected `fetch`, email providers, mock adapters, and the dispatcher against a scripted database with
+stage isolation) and Playwright `automation.spec.ts`. Nothing in the suite makes a real outbound call:
+webhook and email delivery take an injected `fetch` and resolver.
+
 ## Rules for new features
 
 1. Every new tenant table gets pgTAP tests for: anon denial, cross-tenant read denial, cross-tenant

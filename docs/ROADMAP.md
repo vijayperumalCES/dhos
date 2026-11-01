@@ -1,6 +1,6 @@
 # Stride — Roadmap
 
-_Last updated: 2026-11-04._ Status: ✅ done · 🟡 partial · ⬜ not started
+_Last updated: 2026-11-05._ Status: ✅ done · 🟡 partial · ⬜ not started
 
 | Phase | Theme | Status |
 |---|---|---|
@@ -10,7 +10,7 @@ _Last updated: 2026-11-04._ Status: ✅ done · 🟡 partial · ⬜ not started
 | 4 | Delivery governance | ✅ (see `IMPLEMENTATION_STATUS.md`) |
 | 5 | Financial and portfolio intelligence | ✅ (see `IMPLEMENTATION_STATUS.md`) |
 | 6 | AI agents | ✅ (see `IMPLEMENTATION_STATUS.md`) |
-| 7 | Automation and integrations | ⬜ |
+| 7 | Automation and integrations | ✅ (see `IMPLEMENTATION_STATUS.md`) |
 | 8 | Production readiness | ⬜ (some groundwork in Phase 1) |
 
 ## Phase 2 — Work management (done 2026-10-28)
@@ -67,10 +67,18 @@ Deliberately left out: the other ten planned agents, tool-calling models, embedd
 retrieval, scheduled or event-triggered runs (Phase 7), agent-initiated writes beyond drafts for
 approval, and a price table for cost (organizations enter their own prices).
 
-## Phase 7 — Automation & integrations
+## Phase 7 — Automation & integrations (done 2026-11-05)
 
-Outbox, webhooks, workflow builder, scheduler, GitHub / Azure DevOps / Jira adapters (mock adapters
-first), email and Teams notifications, notification center with deduplication.
+A transactional outbox fed by database triggers; a notification center with per-person preferences
+and deduplication; signed, retried webhooks (generic, Teams and Slack formats) with SSRF protection;
+workflow rules with dry runs and immutable versions; a scheduler (overdue escalations, timesheet
+reminders, sprint burndown snapshots, integration sync, retention) driven by one authenticated HTTP
+tick; and GitHub / Azure DevOps / Jira connections on mock adapters. The only privileged path is a
+fixed set of `service_role` RPCs ([ADR-0012](DECISIONS/ADR-0012-automation.md)).
+
+Deliberately left out: live provider adapters and their credential store, inbound webhooks, Slack and
+Teams apps (incoming-webhook posts only), a canvas workflow builder, scheduled agent runs, monthly
+leave accrual, and realtime push of notifications.
 
 ## Phase 8 — Production readiness
 

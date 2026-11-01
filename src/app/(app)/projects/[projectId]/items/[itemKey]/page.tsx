@@ -181,7 +181,7 @@ export default async function WorkItemPage({ params }: PageProps<"/projects/[pro
           </CardHeader>
           <CardContent className="space-y-2 text-sm">
             {rel.links.length === 0 && (
-              <p className="text-muted-foreground">No linked pull requests, builds or documents. Integrations will add these automatically in Phase 7.</p>
+              <p className="text-muted-foreground">No linked pull requests, builds or documents. External issues are linked from Integrations (mock adapters for now).</p>
             )}
             {rel.links.map((l) => (
               <div key={l.id} className="flex items-center justify-between gap-2">

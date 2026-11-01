@@ -101,7 +101,8 @@ Phase 1 implements the **pre-hook / post-hook** concept with database triggers:
 | Post-hook: audit | `private.audit_row_change()` (AFTER on all Phase 1 tables) |
 
 The versioned event envelope, outbox, webhooks, retries and dead-letter handling are designed in
-`docs/WORKFLOWS.md` and built in Phase 7. **No event bus, webhook or scheduler is operational yet.**
+`docs/WORKFLOWS.md` and built in Phase 7: triggers now write `outbox_events`, and a worker (`/api/cron/tick`)
+fans them out to notifications, rules and signed webhooks (ADR-0012). The bus is a table, not a broker.
 
 ## 7. Environments
 

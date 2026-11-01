@@ -3,7 +3,8 @@ import { NextResponse, type NextRequest } from "next/server";
 
 import type { Database } from "./database.types";
 
-const PUBLIC_PATHS = ["/login", "/signup", "/forgot-password", "/auth"];
+// /api/cron authenticates itself with a bearer secret; it has no browser session.
+const PUBLIC_PATHS = ["/login", "/signup", "/forgot-password", "/auth", "/api/cron"];
 
 /**
  * Refreshes the Supabase session cookie on every request and performs an optimistic

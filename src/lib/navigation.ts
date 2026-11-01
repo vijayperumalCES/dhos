@@ -74,9 +74,9 @@ export const NAVIGATION: NavGroup[] = [
     label: "Automation",
     items: [
       { title: "AI Agents", icon: "bot", href: "/agents", anyOf: ["agent.read", "agent.run", "agent.approve"] },
-      { title: "Workflow Automation", icon: "workflow", plannedPhase: 7, slug: "workflows" },
-      { title: "Integrations", icon: "plug", plannedPhase: 7, slug: "integrations" },
-      { title: "Notifications", icon: "bell", plannedPhase: 7, slug: "notifications" },
+      { title: "Workflow Automation", icon: "workflow", href: "/automation", anyOf: ["automation.read"] },
+      { title: "Integrations", icon: "plug", href: "/integrations", anyOf: ["automation.read"] },
+      { title: "Notifications", icon: "bell", href: "/notifications" },
     ],
   },
   {
@@ -93,26 +93,8 @@ export const NAVIGATION: NavGroup[] = [
   },
 ];
 
-export const PLANNED_MODULES: Record<string, { title: string; phase: number; summary: string; scope: string[] }> = {
-  workflows: {
-    title: "Workflow Automation",
-    phase: 7,
-    summary: "Visual workflows with triggers, conditions, approvals and retries.",
-    scope: ["Workflow builder", "Pre/post hooks", "Outbox and retries", "Dry runs and versioning"],
-  },
-  integrations: {
-    title: "Integrations",
-    phase: 7,
-    summary: "GitHub, Azure DevOps, Jira, Slack, Teams, calendar and email adapters.",
-    scope: ["Connection management", "Sync runs", "Webhooks", "Integration health"],
-  },
-  notifications: {
-    title: "Notifications",
-    phase: 7,
-    summary: "In-app, email and chat notifications with deduplication and escalation rules.",
-    scope: ["Notification center", "Preferences", "Escalation rules", "Delivery tracking"],
-  },
-};
+/** Modules that are planned but not built. Empty now that Phase 7 has shipped; Phase 8 is not a module. */
+export const PLANNED_MODULES: Record<string, { title: string; phase: number; summary: string; scope: string[] }> = {};
 
 /** Serializable nav model for the client sidebar, filtered by the viewer's permissions. */
 export function buildNavigation(permissions: PermissionSet): NavGroup[] {

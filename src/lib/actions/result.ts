@@ -114,6 +114,8 @@ const RPC_MESSAGES: Record<string, string> = {
   eval_required: "Run the evaluation and pass every case first.",
   approval_state: "That proposal has already been decided.",
   invalid_status: "That status isn't valid here.",
+  unknown_job: "That job doesn't exist.",
+  app_job: "That job runs in the application. Use its own Sync now button.",
 };
 
 /** RPC keys whose detail text is written for users and is more specific than the generic message. */

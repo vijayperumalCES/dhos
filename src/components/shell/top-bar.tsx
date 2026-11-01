@@ -1,10 +1,11 @@
 "use client";
 
-import { Bell, Plus, Search } from "lucide-react";
+import { Plus, Search } from "lucide-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef } from "react";
 
+import { NotificationBell, type BellItem } from "@/components/automation/notification-controls";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -14,13 +15,12 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 
 export type QuickCreate = { label: string; href: string }[];
 
-export function TopBar({ quickCreate }: { quickCreate: QuickCreate }) {
+export function TopBar({ quickCreate, unread, recent }: { quickCreate: QuickCreate; unread: number; recent: BellItem[] }) {
   const router = useRouter();
   const params = useSearchParams();
   const inputRef = useRef<HTMLInputElement>(null);
@@ -84,21 +84,7 @@ export function TopBar({ quickCreate }: { quickCreate: QuickCreate }) {
             </DropdownMenuContent>
           </DropdownMenu>
         )}
-        <Popover>
-          <PopoverTrigger asChild>
-            <Button variant="ghost" size="icon" aria-label="Notifications">
-              <Bell className="size-4" />
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent align="end" className="w-80 text-sm">
-            <p className="font-medium">Notifications</p>
-            <p className="mt-1 text-muted-foreground">
-              The notification center is not built yet. Alerts for overdue milestones, unowned risks and health
-              changes arrive with the Notifications module in Phase 7. Until then, the Command Center lists projects
-              needing attention.
-            </p>
-          </PopoverContent>
-        </Popover>
+        <NotificationBell unread={unread} recent={recent} />
       </div>
     </header>
   );

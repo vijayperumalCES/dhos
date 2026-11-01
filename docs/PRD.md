@@ -202,11 +202,28 @@ validated preview (all-or-nothing); invitations can be created in bulk from CSV.
   content is visible only to the person who ran it; nobody approves their own request; runs stop at the
   token cap and when either switch is off (pgTAP `07_ai_agents`, unit `agents.test.ts`).
 
+### Phase 7 — Automation and integrations (delivered 2026-11-05)
+
+- **US-7.1 Notifications.** Everyone has an inbox for what needs them (health turning red, an
+  assignment, an escalation, an approval, a missing timesheet); repeats collapse while unread; each
+  person chooses in-app and email per category.
+- **US-7.2 Rules.** An administrator writes "when this happens and these conditions hold, tell these
+  people or call this webhook", tests it against recent events first, and can see every version and run.
+- **US-7.3 Webhooks.** An administrator sends events to Teams, Slack or their own system, signed,
+  retried with backoff, with a delivery log and one-click retry; a failing endpoint switches itself off.
+- **US-7.4 Scheduler.** Recurring work (overdue escalations, timesheet reminders, burndown snapshots,
+  integration sync, retention) runs on a visible schedule with a run log and a heartbeat.
+- **US-7.5 Integrations.** An administrator links work items to GitHub, Azure DevOps or Jira issues
+  and the assignee and project manager hear when the external status changes (mock adapters).
+- AC: a notification never reaches someone who can't read the project; a rule runs once per event; a
+  webhook never calls a private address and its secret is shown once; the worker can only call its
+  fixed RPCs (pgTAP `08_automation`, unit `automation.test.ts`).
+
 ### 5.2 Out of scope for Phase 1
 
 Work items, sprints, milestones, attendance, leave, timesheets, financials, RAID, releases,
 documents, notifications, AI agents, workflows, integrations. Work management shipped in Phase 2,
-workforce in Phase 3, governance in Phase 4, finance in Phase 5 and AI agents in Phase 6; the rest is in `docs/ROADMAP.md`.
+workforce in Phase 3, governance in Phase 4, finance in Phase 5, AI agents in Phase 6 and automation in Phase 7; the rest is in `docs/ROADMAP.md`.
 
 ## 6. Non-functional requirements
 

@@ -52,9 +52,14 @@ Environment variables:
 | `NEXT_PUBLIC_SITE_URL` | `https://stride-ces.vercel.app` | public |
 | `ANTHROPIC_API_KEY` | Anthropic API key. Optional: only needed if an organization selects the Anthropic provider for AI agents (the built-in provider needs nothing) | **server-only secret** — never prefix with `NEXT_PUBLIC_` |
 | `ANTHROPIC_BASE_URL` | Optional override of `https://api.anthropic.com` (proxy or test double) | server-only |
+| `SUPABASE_SECRET_KEY` | The project's secret (service-role) key. **Required for automation (Phase 7)**: only the background worker and the "Process now" / "Sync now" buttons use it, and only to call a fixed set of `service_role` RPCs | **server-only secret** |
+| `CRON_SECRET` | At least 16 random characters. The scheduler endpoint refuses every request without `Authorization: Bearer <this>`, and answers 503 while it is unset | **server-only secret** |
+| `RESEND_API_KEY`, `EMAIL_FROM` | Optional. Set both to send notification email through Resend; without them email is recorded as *simulated* | server-only |
 
-The service-role / secret key is **not** needed by the app and must not be configured on the web
-host. Build: `pnpm build`; start: `pnpm start` (port 3100, or set `PORT`/adjust the script).
+The secret key is used for one purpose: the automation worker (`/api/cron/tick` and the two admin
+buttons that run a worker pass). It is created only in `src/lib/supabase/service.ts`, never reaches
+the browser, and the app reads no tenant table with it — see ADR-0012. Without it the app runs, but
+nothing is delivered, reminded or synced. Build: `pnpm build`; start: `pnpm start` (port 3100, or set `PORT`/adjust the script).
 
 Vercel: import the repo, **name the project `stride-ces`** (this gives `https://stride-ces.vercel.app`; if the
 name is taken Vercel adds a suffix — use whatever URL it assigns everywhere below), framework preset
@@ -106,3 +111,26 @@ app deploy:
 ```bash
 supabase db push
 ```
+
+
+## Scheduler (Phase 7)
+
+Automation needs something to call `GET|POST /api/cron/tick` with `Authorization: Bearer $CRON_SECRET`
+about once a minute (every request is idempotent and safe to overlap). Pick one:
+
+- **Vercel Cron** — add a `crons` entry for `/api/cron/tick` in `vercel.json` (`* * * * *` needs a paid plan; the
+  free tier allows one run a day, which is too slow for webhooks and notifications). Vercel sends
+  `Authorization: Bearer $CRON_SECRET` automatically when `CRON_SECRET` is set.
+- **GitHub Actions** — a `schedule:` workflow that runs `curl -fsS -X POST -H "Authorization: Bearer $CRON_SECRET" https://<host>/api/cron/tick`
+  (GitHub's schedule can be several minutes late).
+- **Supabase `pg_cron` + `pg_net`** — `select net.http_post(url := 'https://<host>/api/cron/tick', headers := jsonb_build_object('Authorization', 'Bearer <secret>'))` every minute.
+
+The Scheduler page (Workflow Automation → Scheduler) shows the last tick and turns red after 15 quiet
+minutes. Locally, the **Process now** button there runs one pass.
+
+Outbound webhooks are refused if they resolve to a private address, but a hostname can change between
+that check and the connection. If your host allows it, also restrict the web server's egress to the
+public internet (no route to your VPC, the cloud metadata address or `localhost`).
+
+New in Phase 7: migration `20261105000100_automation.sql` — **must be pushed to the hosted project**
+(`supabase db push`).

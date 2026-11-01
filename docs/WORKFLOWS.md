@@ -1,9 +1,11 @@
 # Stride — Workflows, Hooks and Event Processing
 
 > **Status:** Phase 1 implements deterministic pre-hooks and post-hooks as **database triggers**
-> (described below and operational). The workflow engine, webhooks, outbox, scheduler and
-> integrations are **design only** and are built in Phase 7. Nothing in this document beyond §1 is
-> operational yet.
+> (§1). **Phase 7 built a deliberately smaller version of §2–§6** — see
+> [ADR-0012](DECISIONS/ADR-0012-automation.md): outbox events, notifications, signed webhooks with
+> retries, rules (notify or call a webhook; no multi-step engine or approvals inside rules), a
+> scheduler tick and mock integrations. Where this document and the ADR differ, the ADR describes what
+> exists; the rest of the design below remains the intended direction.
 
 ## 1. Implemented in Phase 1
 

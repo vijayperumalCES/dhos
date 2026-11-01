@@ -55,6 +55,8 @@ export const PERMISSIONS = [
   "agent.run",
   "agent.approve",
   "agent.manage",
+  "automation.read",
+  "automation.manage",
 ] as const;
 
 export type Permission = (typeof PERMISSIONS)[number];
@@ -93,6 +95,8 @@ export const ROLE_TEMPLATES: Record<RoleKey, readonly Permission[]> = {
     "workflow.manage",
     "agent.read",
     "agent.manage",
+    "automation.read",
+    "automation.manage",
   ],
   delivery_head: [
     "org.members.read",
@@ -135,6 +139,7 @@ export const ROLE_TEMPLATES: Record<RoleKey, readonly Permission[]> = {
     "agent.read",
     "agent.run",
     "agent.approve",
+    "automation.read",
   ],
   program_manager: [
     "org.members.read",
@@ -166,6 +171,7 @@ export const ROLE_TEMPLATES: Record<RoleKey, readonly Permission[]> = {
     "agent.read",
     "agent.run",
     "agent.approve",
+    "automation.read",
   ],
   project_manager: [
     "org.members.read",

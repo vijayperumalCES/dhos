@@ -1,6 +1,6 @@
 # Stride — Implementation Status
 
-_Last updated: 2026-11-02._ A feature is "Done" only when it meets the Definition of Done in the
+_Last updated: 2026-11-05._ A feature is "Done" only when it meets the Definition of Done in the
 master brief: UI end-to-end, persisted, authorized, tenant-tested, validated, audited, tested,
 empty/loading/error states, documented.
 
@@ -185,6 +185,40 @@ Set `ANTHROPIC_API_KEY` on the web host only if an organization should use the A
 - A run is synchronous inside one request (up to the agent's timeout); there is no queue or cancellation.
 - Cost is estimated only when the organization enters prices; Stride ships no price table.
 
+## Phase 7 — Automation and integrations (2026-11-05)
+
+| Feature | Status | Evidence |
+|---|---|---|
+| Transactional outbox: triggers on projects, work items, RAID, escalations, leave, timesheets, releases, sprints and agent proposals; payloads carry ids and labels only | Done | pgTAP |
+| Dispatcher: claim with SKIP LOCKED and a lease, rules, fan-out, retry with backoff; idempotent steps; stages isolated | Done | pgTAP, unit |
+| Notification center: inbox, bell with unread count, mark read, delete, per-category in-app and email preferences, deduplication while unread | Done | pgTAP, e2e (not run) |
+| Recipient gating: recipient must be an active member who can read the project; actor not notified; rules cannot widen it | Done | pgTAP |
+| Webhooks: generic (HMAC-SHA256, timestamped), Teams and Slack formats; secrets in a no-grant table, shown once; rotate; retry schedule; dead letters with manual retry; auto-disable after 10 failures | Done | pgTAP, unit |
+| Outbound URL guard: https only, public addresses only, no redirects, 8 s timeout | Done | unit |
+| Workflow rules: trigger, up to 10 conditions (form edits 3), notify or webhook actions, dry run on recent events, immutable versions, run log, once per event | Done | pgTAP, unit |
+| Scheduler: `/api/cron/tick` (bearer secret), five per-organization jobs, run log, heartbeat, run now, pause, re-time | Done | pgTAP, unit |
+| Jobs: overdue escalations, timesheet reminders, sprint burndown snapshot, integration sync, retention | Done | pgTAP |
+| Email: Resend when configured; otherwise recorded as simulated and labelled | Done | unit |
+| Integrations: GitHub, Azure DevOps and Jira connections on deterministic mock adapters; link work items; sync; status change announced | Done | pgTAP, unit |
+| 2 permissions and role templates; ADR-0012; audit of rules, endpoints, jobs and connections (never secrets) | Done | pgTAP, unit drift test |
+| Demo seed: paused Teams webhook, one rule, mock GitHub connection with two backdated links, three notifications each for Priya and Arjun; seed-time events pre-processed | Done | `supabase/seed.sql` run on a throwaway Postgres |
+
+New migration `20261105000100_automation.sql` — **must be pushed to the hosted project** (`supabase db push`).
+Set `SUPABASE_SECRET_KEY` and `CRON_SECRET` on the web host and schedule the tick (see DEPLOYMENT.md);
+without them the app works but nothing is delivered, reminded or synced.
+
+### Phase 7 limitations
+- The pages and the worker were checked by compiling, lint, the unit suite and the database tests (including a seed run); they were not exercised against a running Supabase stack, and `tests/e2e/automation.spec.ts` has not been run.
+- Integrations are mock only: they do not talk to GitHub, Azure DevOps or Jira. Live adapters need a credential store, which this phase does not add.
+- Email goes out only with `RESEND_API_KEY` and `EMAIL_FROM`; the Resend path is covered by an injected `fetch`, not a real send.
+- Notifications update on navigation or refresh; there is no realtime push.
+- The rule form edits three conditions and one notify plus one webhook action; the database and evaluator accept more, and a rule defined that way is shown but only its first of each kind is editable.
+- Rules cannot start approvals or change records, and cannot trigger each other (by design).
+- Scheduled agent runs are not built: agents act as the person who runs them, so a scheduled run needs a decision about whose authority it uses.
+- Monthly leave accrual (Phase 3 limitation) is still not built; the scheduler can host it.
+- DNS rebinding between the address check and the connection is not closed in application code; restrict egress at the network layer (see DEPLOYMENT.md).
+- Sprint burndown now gets a daily snapshot only for sprints that are `active`; days before this migration are not backfilled.
+
 ## Known gaps and limitations (Phase 1)
 
 - **Email delivery limits:** hosted Supabase's built-in mailer sends only a few emails per hour. Configure
@@ -193,7 +227,7 @@ Set `ANTHROPIC_API_KEY` on the web host only if an organization should use the A
 - Imported projects always start as Proposed / Not assessed; lifecycle history is not imported.
 - Custom roles can only use the existing permission catalogue; per-project role overrides are not built.
 - Departments are flat (no sub-departments).
-- **Notification center** is a labelled placeholder (Phase 7).
+- **Notification center** shipped in Phase 7 (below).
 - KPIs are computed in the app from RLS-filtered rows; move to SQL views/RPCs when portfolios exceed
   a few thousand projects.
 - Org admins can grant themselves delivery roles or build a powerful custom role (audited); dual
@@ -206,7 +240,7 @@ Set `ANTHROPIC_API_KEY` on the web host only if an organization should use the A
 
 | Suite | Command | Count | Last result |
 |---|---|---|---|
-| Unit (Vitest) | `pnpm test` | 158 | ✅ pass |
-| Database (pgTAP) | `pnpm test:db` | 428 (45 + 25 + 34 + 53 + 98 + 72 + 101) | ✅ pass (run on a throwaway Postgres 17, Phase 6 on top of all earlier suites) |
-| End-to-end (Playwright) | `pnpm test:e2e` | 26 + 5 for agents | 26 last run before Phase 5; the 5 agent journeys are written but not run (no local stack here) |
+| Unit (Vitest) | `pnpm test` | 210 | ✅ pass |
+| Database (pgTAP) | `pnpm test:db` | 535 (45 + 25 + 34 + 53 + 98 + 72 + 101 + 107) | ✅ pass (run on a throwaway Postgres 17, Phase 7 on top of all earlier suites) |
+| End-to-end (Playwright) | `pnpm test:e2e` | 26 + 5 for agents + 8 for automation | 26 last run before Phase 5; the agent and automation journeys are written but not run (no local stack here) |
 | Typecheck / lint / build | `pnpm typecheck`, `pnpm lint`, `pnpm build` | — | ✅ pass |

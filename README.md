@@ -8,7 +8,7 @@ An organization-wide operating platform for a Delivery Head: one governed, evide
 projects, teams, clients and commitments, built to grow into workforce, governance, financial, AI
 agent and automation modules.
 
-**Current release: Phase 6 — AI agents** (on top of Phase 1, foundation and Command Center; Phase 2, work management; Phase 3, workforce; Phase 4, delivery governance; and Phase 5, financial and portfolio intelligence).
+**Current release: Phase 7 — Automation and integrations** (on top of Phase 1, foundation and Command Center; Phase 2, work management; Phase 3, workforce; Phase 4, delivery governance; Phase 5, financial and portfolio intelligence; and Phase 6, AI agents).
 See [`docs/IMPLEMENTATION_STATUS.md`](docs/IMPLEMENTATION_STATUS.md) for exactly what works today.
 
 ## Stack
@@ -63,7 +63,7 @@ Demo accounts (local only, password `DemoPass123`):
 | [Database](docs/DATABASE.md) | Conventions, ER model, functions, retention |
 | [Authorization](docs/AUTHORIZATION.md) | Permission catalogue, role matrix, enforcement map |
 | [Agent architecture](docs/AGENT_ARCHITECTURE.md) | AI agents: design and what Phase 6 built |
-| [Workflows](docs/WORKFLOWS.md) | Hooks (Phase 1 triggers), event model and engine design (Phase 7) |
+| [Workflows](docs/WORKFLOWS.md) | Hooks, outbox, webhooks, rules and scheduler (design, and what Phase 7 built) |
 | [Roadmap](docs/ROADMAP.md) | Phases 1–8 |
 | [Implementation status](docs/IMPLEMENTATION_STATUS.md) | What is done, gaps, test inventory |
 | [Testing](docs/TESTING.md) | Strategy and rules |
