@@ -107,6 +107,25 @@ triggers `leave_requests_before_write`, `timesheets_before_write`, `time_entries
 New organizations get a default calendar and Annual, Sick and Unpaid leave types
 (`private.seed_workforce_defaults`). See [ADR-0008](DECISIONS/ADR-0008-workforce-model.md).
 
+### Phase 5 additions (finance)
+
+| Table | Purpose |
+|---|---|
+| `rate_card_lines` | Hourly cost and bill rate per job title, effective-dated, never edited (`finance.manage` only) |
+| `member_cost_rates` | A person's own cost rate, effective-dated; overrides the card (`finance.manage` only) |
+| `project_budgets`, `budget_lines` | Versioned budgets by cost category; one draft and one approved baseline per project; approved content frozen |
+| `cost_entries` | Append-only non-labour actuals; corrected by a reversing entry |
+| `forecast_entries` | Expected non-labour spend per category and month; editable |
+| `contract_values` | Contract value and billing model, kept apart from `client_contracts` for its own policy |
+| `revenue_lines` | Planned revenue (forecast) until recognised (fact, locked) |
+
+Key functions: `start_budget`, `approve_budget`, `reverse_cost_entry`, `recognise_revenue`,
+`project_financials` (one row per visible project: facts and forecasts separately),
+`project_monthly_actuals`; private helpers `can_see_project_finance`, `cost_rate_for`; triggers
+`project_budgets_before_write`, `budget_lines_before_write`, `cost_entries_before_insert`,
+`revenue_lines_before_write`, `audit_finance_change` (redacts amounts). See
+[ADR-0010](DECISIONS/ADR-0010-finance-model.md).
+
 ### Phase 4 additions (governance)
 
 | Table | Purpose |
@@ -117,7 +136,7 @@ New organizations get a default calendar and Annual, Sick and Unpaid leave types
 | `escalations`, `escalation_evidence` | Escalations with a recipient, severity and response deadline; append-only evidence; created only by `raise_escalation` |
 | `change_requests` | Draft → submitted → approved / rejected → implemented (or withdrawn); content locked after draft |
 | `releases`, `release_gates` | Releases with quality gates (default five); approval requires every required gate passed or waived |
-| `client_contacts`, `client_contracts` | Under a client; visibility and edit rights inherited from the client (terms and dates only, no money) |
+| `client_contacts`, `client_contracts` | Under a client; visibility and edit rights inherited from the client (terms and dates; the value is in `contract_values`) |
 | `documents`, `document_versions` | Versioned documents; versions are append-only; `internal` or `client` visibility |
 
 Key functions: `raise_escalation`, `acknowledge_escalation`, `resolve_escalation`, `submit_change_request`,

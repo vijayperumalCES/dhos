@@ -48,6 +48,9 @@ export const PERMISSIONS = [
   "release.approve",
   "document.read",
   "document.manage",
+  "finance.read",
+  "finance.manage",
+  "finance.approve",
 ] as const;
 
 export type Permission = (typeof PERMISSIONS)[number];
@@ -121,6 +124,8 @@ export const ROLE_TEMPLATES: Record<RoleKey, readonly Permission[]> = {
     "release.approve",
     "document.read",
     "document.manage",
+    "finance.read",
+    "finance.approve",
   ],
   program_manager: [
     "org.members.read",
@@ -274,6 +279,9 @@ export const ROLE_TEMPLATES: Record<RoleKey, readonly Permission[]> = {
     "resource.read",
     "governance.read",
     "document.read",
+    "finance.read",
+    "finance.manage",
+    "finance.approve",
   ],
   client_stakeholder: ["project.read_assigned"],
   ai_agent_operator: ["org.members.read", "workforce.self"],

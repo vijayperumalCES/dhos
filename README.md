@@ -8,7 +8,7 @@ An organization-wide operating platform for a Delivery Head: one governed, evide
 projects, teams, clients and commitments, built to grow into workforce, governance, financial, AI
 agent and automation modules.
 
-**Current release: Phase 4 — Delivery governance** (on top of Phase 1, foundation and Command Center; Phase 2, work management; and Phase 3, workforce).
+**Current release: Phase 5 — Financial and portfolio intelligence** (on top of Phase 1, foundation and Command Center; Phase 2, work management; Phase 3, workforce; and Phase 4, delivery governance).
 See [`docs/IMPLEMENTATION_STATUS.md`](docs/IMPLEMENTATION_STATUS.md) for exactly what works today.
 
 ## Stack

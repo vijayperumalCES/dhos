@@ -29,7 +29,8 @@ begin
       ('00000000-0000-4000-a000-000000000009'::uuid, 'tom@northwind.example',   'Tom Becker'),
       ('00000000-0000-4000-a000-000000000010'::uuid, 'claire@contoso.example',  'Claire Dubois'),
       ('00000000-0000-4000-a000-000000000011'::uuid, 'alex@globex.example',     'Alex Morgan'),
-      ('00000000-0000-4000-a000-000000000012'::uuid, 'hana@northwind.example',  'Hana Sato')
+      ('00000000-0000-4000-a000-000000000012'::uuid, 'hana@northwind.example',  'Hana Sato'),
+      ('00000000-0000-4000-a000-000000000013'::uuid, 'fiona@northwind.example', 'Fiona Gray')
     ) as t(id, email, display_name)
   loop
     insert into auth.users (
@@ -78,7 +79,8 @@ begin
       ('00000000-0000-4000-a000-000000000008'::uuid, 'Data Engineer',           array['developer']),
       ('00000000-0000-4000-a000-000000000009'::uuid, 'QA Lead',                 array['qa_engineer']),
       ('00000000-0000-4000-a000-000000000010'::uuid, 'Client Product Owner (Contoso)', array['client_stakeholder']),
-      ('00000000-0000-4000-a000-000000000012'::uuid, 'HR Manager',              array['hr_admin'])
+      ('00000000-0000-4000-a000-000000000012'::uuid, 'HR Manager',              array['hr_admin']),
+      ('00000000-0000-4000-a000-000000000013'::uuid, 'Finance Manager',        array['finance_manager'])
     ) as t(user_id, job_title, roles)
   loop
     insert into public.organization_memberships (organization_id, user_id, job_title)
@@ -715,6 +717,102 @@ update public.escalations e set created_at = now() - interval '4 days' from priv
 update public.project_actions a set created_at = now() - interval '4 days' from private.seed_p p where p.id = a.project_id and p.code = 'NW-PAY';
 
 perform set_config('request.jwt.claims', '', true);
+drop table private.seed_p;
+
+-- ---------------------------------------------------------------------------
+-- Finance (Phase 5): rate card, budgets and baselines, ledger, forecasts, contract values, revenue.
+-- Amounts are in INR (the demo organization's currency). Fiona (Finance Manager) drafts and Priya
+-- (Delivery Head) approves, as the two-person rule requires. "Data Engineer" is left off the rate
+-- card on purpose so the report shows hours without a rate. NW-CRM has no budget (no baseline).
+-- ---------------------------------------------------------------------------
+create table private.seed_p as
+  select p.id, p.code, p.organization_id from public.projects p
+  where p.organization_id = (select id from public.organizations where slug = 'northwind-demo');
+
+insert into public.rate_card_lines (organization_id, role_title, cost_rate, bill_rate, effective_from, created_by)
+select (select id from public.organizations where slug = 'northwind-demo'), x.title, x.cost, x.bill, current_date - 365, '00000000-0000-4000-a000-000000000013'
+from (values
+    ('Software Engineer', 1800, 3000), ('Mobile Tech Lead', 2800, 4200), ('QA Lead', 1900, 3000), ('Engineering Manager', 3000, 4500),
+    ('Senior Delivery Manager', 3200, 4800), ('Program Manager', 3400, 5000), ('Delivery Head', 4500, 6500), ('IT Administrator', 1500, null)
+  ) as x(title, cost, bill);
+-- A rate change that takes effect next month: forecasts use it, past actuals don't.
+insert into public.rate_card_lines (organization_id, role_title, cost_rate, bill_rate, effective_from, created_by)
+select (select id from public.organizations where slug = 'northwind-demo'), 'Software Engineer', 1950, 3100,
+       (date_trunc('month', current_date) + interval '1 month')::date, '00000000-0000-4000-a000-000000000013';
+
+perform set_config('request.jwt.claims', '{"sub":"00000000-0000-4000-a000-000000000013","role":"authenticated"}', true);
+create table private.seed_b (code text, budget_id uuid);
+insert into private.seed_b
+select x.code, public.start_budget((select id from private.seed_p where code = x.code), 'Initial budget')
+from (values ('NW-PAY'), ('NW-MOB'), ('NW-DWH'), ('NW-POR'), ('NW-SEC')) as x(code);
+insert into public.budget_lines (organization_id, project_id, budget_id, category, amount, note)
+select p.organization_id, p.id, b.budget_id, x.category::public.cost_category, x.amount, x.note
+from (values
+    ('NW-PAY', 'labour', 700000, 'Core team for the planned duration'), ('NW-PAY', 'infrastructure', 500000, 'Under-budgeted: the revision below raises it'), ('NW-PAY', 'software', 200000, null),
+    ('NW-MOB', 'labour', 1800000, null), ('NW-MOB', 'subcontractor', 700000, 'Design agency'), ('NW-MOB', 'software', 150000, null),
+    ('NW-DWH', 'labour', 1500000, null), ('NW-DWH', 'infrastructure', 900000, null),
+    ('NW-POR', 'labour', 2600000, null), ('NW-POR', 'software', 120000, null),
+    ('NW-SEC', 'labour', 1200000, null), ('NW-SEC', 'other', 300000, 'Audit fees')
+  ) as x(code, category, amount, note)
+join private.seed_p p on p.code = x.code
+join private.seed_b b on b.code = x.code;
+
+perform set_config('request.jwt.claims', '{"sub":"00000000-0000-4000-a000-000000000001","role":"authenticated"}', true);
+perform public.approve_budget(budget_id) from private.seed_b;
+-- Backdate the approvals so the baselines predate the actuals.
+update public.project_budgets set approved_at = now() - interval '45 days', created_at = now() - interval '46 days' where status = 'approved' and project_id in (select id from private.seed_p);
+
+-- NW-PAY: a revision in review. Fiona raised the infrastructure line; it is still a draft, so the baseline
+-- (and the over-budget forecast) stands until Priya approves it.
+perform set_config('request.jwt.claims', '{"sub":"00000000-0000-4000-a000-000000000013","role":"authenticated"}', true);
+perform public.start_budget((select id from private.seed_p where code = 'NW-PAY'), 'Revision 2 — added hosting for the new region');
+update public.budget_lines set amount = 900000
+ where category = 'infrastructure' and budget_id = (select id from public.project_budgets where project_id = (select id from private.seed_p where code = 'NW-PAY') and status = 'draft');
+
+insert into public.cost_entries (organization_id, project_id, entry_date, category, amount, description, vendor, reference, created_by)
+select p.organization_id, p.id, current_date + x.day_offset, x.category::public.cost_category, x.amount, x.description, x.vendor, x.ref, '00000000-0000-4000-a000-000000000013'
+from (values
+    ('NW-PAY', -40, 'infrastructure', 450000, 'Cloud hosting, setup and first quarter', 'Azure', 'INV-2290'),
+    ('NW-PAY', -25, 'software', 180000, 'Observability licences, annual', 'Datadog', 'INV-2311'),
+    ('NW-PAY', -10, 'infrastructure', 110000, 'Load-test environment', 'Azure', 'INV-2352'),
+    ('NW-MOB', -35, 'subcontractor', 420000, 'Design agency, discovery sprint', 'Pixel & Co', 'PO-0412'),
+    ('NW-MOB', -12, 'software', 60000, 'Device farm subscription', 'BrowserStack', 'INV-2340'),
+    ('NW-DWH', -30, 'infrastructure', 240000, 'Landing zone and network', 'AWS', 'INV-2301'),
+    ('NW-POR', -20, 'software', 45000, 'Identity provider, first year', 'Auth0', 'INV-2330'),
+    ('NW-SEC', -15, 'other', 150000, 'Auditor retainer', 'Assure LLP', 'PO-0419')
+  ) as x(code, day_offset, category, amount, description, vendor, ref)
+join private.seed_p p on p.code = x.code;
+-- A mistake, reversed (both lines stay on the ledger).
+insert into public.cost_entries (organization_id, project_id, entry_date, category, amount, description, vendor, reference, created_by)
+select p.organization_id, p.id, current_date - 8, 'software', 90000, 'Duplicate licence charge', 'Datadog', 'INV-2311-DUP', '00000000-0000-4000-a000-000000000013'
+from private.seed_p p where p.code = 'NW-PAY';
+perform public.reverse_cost_entry(e.id, 'Charged twice; credited by the vendor')
+from public.cost_entries e where e.reference = 'INV-2311-DUP';
+
+insert into public.forecast_entries (organization_id, project_id, category, period, amount, note, created_by)
+select p.organization_id, p.id, x.category::public.cost_category, (date_trunc('month', current_date) + make_interval(months => x.month_offset))::date, x.amount, x.note, '00000000-0000-4000-a000-000000000013'
+from (values
+    ('NW-PAY', 'infrastructure', 0, 120000, 'Production hosting ramps up'), ('NW-PAY', 'infrastructure', 1, 180000, null), ('NW-PAY', 'infrastructure', 2, 180000, null),
+    ('NW-MOB', 'subcontractor', 1, 280000, 'Visual design phase'),
+    ('NW-DWH', 'infrastructure', 1, 150000, null), ('NW-DWH', 'infrastructure', 2, 150000, null)
+  ) as x(code, category, month_offset, amount, note)
+join private.seed_p p on p.code = x.code;
+
+-- Contract values and revenue (Contoso is a confidential client; Priya and Fiona can see it)
+insert into public.contract_values (contract_id, organization_id, total_value, billing_model, notes, updated_by)
+select c.id, c.organization_id, x.value, x.model::public.billing_model, 'Demo figure.', '00000000-0000-4000-a000-000000000013'
+from (values ('SOW-2025-004', 2400000, 'fixed_price'), ('SUP-2025-009', 2400000, 'retainer')) as x(ref, value, model)
+join public.client_contracts c on c.reference = x.ref;
+insert into public.revenue_lines (organization_id, project_id, contract_id, description, planned_date, amount, created_by)
+select p.organization_id, p.id, (select id from public.client_contracts where reference = 'SOW-2025-004'), x.description, current_date + x.day_offset, x.amount, '00000000-0000-4000-a000-000000000013'
+from (values
+    ('Milestone 1 — design sign-off', -60, 800000), ('Milestone 2 — ledger core live', 15, 800000), ('Milestone 3 — cut-over', 80, 800000)
+  ) as x(description, day_offset, amount)
+join private.seed_p p on p.code = 'NW-PAY';
+perform public.recognise_revenue(r.id, r.planned_date) from public.revenue_lines r where r.description like 'Milestone 1%';
+
+perform set_config('request.jwt.claims', '', true);
+drop table private.seed_b;
 drop table private.seed_p;
 
 drop table private.seed_m;

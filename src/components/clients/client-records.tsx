@@ -106,7 +106,7 @@ export function ContractDialog({
         )
       }
       title={item ? "Edit contract" : "Add a contract"}
-      description="Terms and dates only. Monetary values arrive with Phase 5 under a finance-only policy."
+      description="Terms and dates. A contract's monetary value is set separately by people who manage finance."
       submitLabel="Save contract"
       schema={contractSchema}
       defaultValues={item ?? EMPTY_CONTRACT}

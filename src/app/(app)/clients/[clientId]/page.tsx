@@ -13,7 +13,10 @@ import { requireOrgContext } from "@/lib/auth/org-context";
 import { ContactDialog, ContactRowActions, ContractDialog, ContractRowActions } from "@/components/clients/client-records";
 import { ContractStatusBadge } from "@/components/governance/badges";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { ContractValueDialog } from "@/components/finance/finance-controls";
 import { listClientContacts, listClientContracts } from "@/lib/data/client-records";
+import { listContractValues } from "@/lib/data/finance";
+import { BILLING_MODEL_LABELS, formatMoney, type BillingModel } from "@/lib/domain/finance";
 import { getClient, getClientProjects } from "@/lib/data/clients";
 import { CONTRACT_TYPE_LABELS, contractTiming } from "@/lib/domain/governance";
 import { todayInTimeZone } from "@/lib/domain/time";
@@ -29,7 +32,13 @@ export default async function ClientPage({ params }: PageProps<"/clients/[client
   const projects = ctx.permissions.canReadProjects ? await getClientProjects(ctx, client.id) : [];
   const canManage = ctx.permissions.has("client.manage");
   const archived = client.archived_at !== null;
-  const [contacts, contracts] = await Promise.all([listClientContacts(client.id), listClientContracts(client.id)]);
+  const canSeeValues = ctx.permissions.has("finance.read");
+  const canSetValues = ctx.permissions.has("finance.manage");
+  const [contacts, contracts, values] = await Promise.all([
+    listClientContacts(client.id),
+    listClientContracts(client.id),
+    canSeeValues ? listContractValues(client.id) : Promise.resolve(new Map<string, { totalValue: number; billingModel: string; notes: string | null }>()),
+  ]);
   const today = todayInTimeZone(new Date(), ctx.settings.timezone);
   const activeContacts = contacts.filter((c) => !c.archived_at);
   const activeContracts = contracts.filter((c) => !c.archived_at);
@@ -193,6 +202,7 @@ export default async function ClientPage({ params }: PageProps<"/clients/[client
                     <TableHead className="pl-6">Contract</TableHead>
                     <TableHead>Term</TableHead>
                     <TableHead>Status</TableHead>
+                    {canSeeValues && <TableHead className="text-right">Value</TableHead>}
                     {canManage && (
                       <TableHead className="w-12 pr-6">
                         <span className="sr-only">Actions</span>
@@ -216,6 +226,19 @@ export default async function ClientPage({ params }: PageProps<"/clients/[client
                       <TableCell>
                         <ContractStatusBadge status={c.status} timing={contractTiming(c, today)} />
                       </TableCell>
+                      {canSeeValues && (
+                        <TableCell className="text-right">
+                          {values.get(c.id) ? (
+                            <div className="tabular-nums">
+                              {formatMoney(values.get(c.id)!.totalValue, ctx.settings.currencyCode)}
+                              <div className="text-xs text-muted-foreground">{BILLING_MODEL_LABELS[values.get(c.id)!.billingModel as BillingModel]}</div>
+                            </div>
+                          ) : (
+                            <span className="text-muted-foreground">—</span>
+                          )}
+                          {canSetValues && !archived && <ContractValueDialog clientId={client.id} contractId={c.id} title={c.title} current={values.get(c.id)} />}
+                        </TableCell>
+                      )}
                       {canManage && (
                         <TableCell className="pr-6">
                           <ContractRowActions clientId={client.id} contract={c} />

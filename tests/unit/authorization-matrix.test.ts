@@ -24,12 +24,14 @@ function sqlPermissionKeys(): string[] {
   return keys.sort();
 }
 
-/** Role -> permissions from the role_templates insert, with later `update ... set permissions` applied. */
+/** Role -> permissions from the role_templates insert, with later `update ... set permissions` (replace or append) applied. */
 function sqlRoleTemplates(): Record<string, string[]> {
   const out: Record<string, string[]> = {};
   const parse = (list: string) => [...list.matchAll(/'([\w.]+)'/g)].map((x) => x[1]).sort();
   for (const m of migrations.matchAll(/\('(\w+)',\s*'[^']*',\s*'[^']*',\s*\d+,\s*array\[([^\]]*)\]\)/g)) out[m[1]] = parse(m[2]);
   for (const m of migrations.matchAll(/update private\.role_templates set permissions = array\[([^\]]*)\] where key = '(\w+)'/g)) out[m[2]] = parse(m[1]);
+  // Later migrations may append to a template instead of restating it.
+  for (const m of migrations.matchAll(/update private\.role_templates set permissions = permissions \|\| array\[([^\]]*)\] where key = '(\w+)'/g)) out[m[2]] = [...out[m[2]], ...parse(m[1])].sort();
   return out;
 }
 

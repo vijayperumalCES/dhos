@@ -1,6 +1,6 @@
 # Stride — Roadmap
 
-_Last updated: 2026-11-02._ Status: ✅ done · 🟡 partial · ⬜ not started
+_Last updated: 2026-11-03._ Status: ✅ done · 🟡 partial · ⬜ not started
 
 | Phase | Theme | Status |
 |---|---|---|
@@ -8,7 +8,7 @@ _Last updated: 2026-11-02._ Status: ✅ done · 🟡 partial · ⬜ not started
 | 2 | Work management | ✅ (see `IMPLEMENTATION_STATUS.md`) |
 | 3 | Workforce management | ✅ (see `IMPLEMENTATION_STATUS.md`) |
 | 4 | Delivery governance | ✅ (see `IMPLEMENTATION_STATUS.md`) |
-| 5 | Financial and portfolio intelligence | ⬜ |
+| 5 | Financial and portfolio intelligence | ✅ (see `IMPLEMENTATION_STATUS.md`) |
 | 6 | AI agents | ⬜ |
 | 7 | Automation and integrations | ⬜ |
 | 8 | Production readiness | ⬜ (some groundwork in Phase 1) |
@@ -39,13 +39,20 @@ that inherit client confidentiality, versioned documents, and an executive gover
 "red with no recovery action" measure.
 
 Deliberately left out: meeting records, scheduled and branded client reports (Phase 7 scheduler),
-organization-level gate templates, file uploads (Phase 8), contract values (Phase 5), a confidentiality
+organization-level gate templates, file uploads (Phase 8), contract values (done in Phase 5), a confidentiality
 flag on individual RAID items.
 
-## Phase 5 — Financial & portfolio
+## Phase 5 — Financial & portfolio (done 2026-11-03)
 
-Budgets and baselines, rate cards, actuals and forecasts (facts vs forecasts separated), variance,
-margin where data supports it, portfolio analytics. Finance-only RLS policies, column-level isolation.
+Effective-dated rate cards and personal rates, versioned project budgets whose approved version is the
+baseline (approved by someone other than the drafter), labour actuals from approved timesheets, an
+append-only cost ledger, forecasts kept apart from facts, contract values and a revenue schedule,
+variance, margin where revenue exists, and portfolio roll-ups by client and program. Finance-only
+policies; rates never appear in a report; audit entries redact amounts
+([ADR-0010](DECISIONS/ADR-0010-finance-model.md)).
+
+Deliberately left out: multi-currency, invoicing and time-and-materials billing, shared-cost
+allocation, trend snapshots of the estimate over time (Phase 7 scheduler).
 
 ## Phase 6 — AI agents
 

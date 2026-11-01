@@ -1,6 +1,6 @@
 # Stride — Product Requirements Document
 
-_Living document. Last updated: 2026-11-02 (Phase 4)._
+_Living document. Last updated: 2026-11-03 (Phase 5)._
 
 ## 1. Problem
 
@@ -167,11 +167,28 @@ validated preview (all-or-nothing); invitations can be created in bulk from CSV.
   permission; recorded decisions, submitted changes and document versions can't be edited; nobody
   decides their own change request (pgTAP `05_governance`).
 
+### Phase 5 — Financial and portfolio intelligence (delivered 2026-11-03)
+
+- **US-5.1 Rates.** Finance keeps a rate card by job title and personal overrides, each effective-dated.
+  Hours with no rate are counted and flagged, never priced at zero.
+- **US-5.2 Budgets and baselines.** Finance drafts a budget by category; someone else approves it as the
+  baseline. Revisions keep the earlier baselines.
+- **US-5.3 Actuals and forecasts.** Labour comes from approved timesheets, other costs from an
+  append-only ledger (mistakes are reversed, not edited). Forecasts (allocations, monthly spend) are
+  shown separately from actuals.
+- **US-5.4 Variance and margin.** Each project shows estimate at completion, variance to the baseline and,
+  where revenue is planned, margin to date and forecast margin.
+- **US-5.5 Portfolio view.** The Delivery Head sees budget, actual, estimate, variance and margin across
+  projects, most at-risk first, rolled up by client and program.
+- AC: finance data needs finance permissions and client visibility; rates are readable only by finance
+  managers and never returned by a report; approved budgets and recognised revenue can't be edited;
+  nobody approves their own budget (pgTAP `06_finance`).
+
 ### 5.2 Out of scope for Phase 1
 
 Work items, sprints, milestones, attendance, leave, timesheets, financials, RAID, releases,
 documents, notifications, AI agents, workflows, integrations. Work management shipped in Phase 2,
-workforce in Phase 3 and governance in Phase 4; the rest is in `docs/ROADMAP.md`.
+workforce in Phase 3, governance in Phase 4 and finance in Phase 5; the rest is in `docs/ROADMAP.md`.
 
 ## 6. Non-functional requirements
 

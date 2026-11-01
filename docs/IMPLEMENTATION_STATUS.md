@@ -130,6 +130,32 @@ New migration `20261102000100_governance.sql` — **must be pushed to the hosted
 - Lists show at most 500 rows (no pagination yet) and refresh on navigation, not live.
 - No Playwright journeys for governance yet; pgTAP and unit tests cover the rules, and the pages were checked by hand.
 
+## Phase 5 — Financial and portfolio (2026-11-03)
+
+| Feature | Status | Evidence |
+|---|---|---|
+| Rate card by job title and personal rates, effective-dated, never edited; deletable only before they take effect; finance-manager-only | Done | pgTAP |
+| Budgets: draft, edit, approve as baseline by someone other than the drafter, revise (earlier baselines kept), frozen once approved | Done | pgTAP |
+| Labour actuals from approved timesheets × rate in force on the day; hours with no rate counted and flagged | Done | pgTAP, unit |
+| Append-only cost ledger with reversal; non-labour forecasts per month; labour forecast from dated allocations | Done | pgTAP |
+| Contract values and billing model under a finance-only, client-visibility policy | Done | pgTAP |
+| Revenue schedule: planned until recognised, then locked | Done | pgTAP |
+| Variance, estimate at completion, margin only where revenue exists; at-risk (95%) and over-budget flags | Done | unit |
+| Portfolio page: totals, needs-attention list, projects by risk, roll-ups by client and program; project Finance tab; Rates page | Done | build, manual |
+| 3 permissions and role templates; audit entries with amounts redacted; ADR-0010 | Done | pgTAP, unit drift test |
+| Demo seed: rate card (Data Engineer unrated on purpose), baselines, ledger with a reversal, forecasts, contract values, revenue; NW-PAY over budget, NW-MOB at risk, NW-CRM no baseline | Done | `supabase/seed.sql` |
+
+New migration `20261103000100_finance.sql` — **must be pushed to the hosted project** (`supabase db push`).
+The demo seed adds Fiona Gray (Finance Manager); sign in as Priya to approve a draft Fiona created.
+
+### Phase 5 limitations
+- Single currency (the organization's); no FX, invoicing, tax or time-and-materials billing.
+- Labour forecast ignores approved leave and uses the rate in force on each future day.
+- Adding a rate with an earlier effective date re-prices past actuals (visible in the audit log, amounts redacted).
+- No trend of the estimate over time (needs the Phase 7 scheduler for snapshots).
+- Shared costs are not allocated across projects.
+- The pages were checked by compiling and by the database tests; they were not exercised against a running Supabase stack, and there are no Playwright journeys for finance yet.
+
 ## Known gaps and limitations (Phase 1)
 
 - **Email delivery limits:** hosted Supabase's built-in mailer sends only a few emails per hour. Configure

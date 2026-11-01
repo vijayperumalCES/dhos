@@ -45,7 +45,6 @@ export const NAVIGATION: NavGroup[] = [
       { title: "Command Center", icon: "gauge", href: "/dashboard", anyOf: ["dashboard.portfolio.view"] },
       { title: "Projects", icon: "folder", href: "/projects", anyOf: ["project.read_all", "project.read_assigned"] },
       { title: "Clients", icon: "building", href: "/clients", anyOf: ["client.read"] },
-      { title: "Portfolio", icon: "briefcase", plannedPhase: 5, slug: "portfolio" },
       { title: "Programs", icon: "layers", href: "/programs", anyOf: ["project.read_all", "project.read_assigned"] },
       { title: "My Work", icon: "kanban", href: "/work", anyOf: ["work.read"] },
       { title: "Releases & Quality", icon: "rocket", href: "/releases", anyOf: ["release.read"] },
@@ -68,7 +67,7 @@ export const NAVIGATION: NavGroup[] = [
       { title: "Decisions & Actions", icon: "messages", href: "/governance/decisions", anyOf: ["governance.read"] },
       { title: "Governance Report", icon: "report", href: "/governance", anyOf: ["governance.read"] },
       { title: "Documents", icon: "file", href: "/documents", anyOf: ["document.read", "project.read_assigned", "project.read_all"] },
-      { title: "Financials", icon: "wallet", plannedPhase: 5, slug: "financials" },
+      { title: "Financials", icon: "wallet", href: "/finance", anyOf: ["finance.read"] },
     ],
   },
   {
@@ -95,18 +94,6 @@ export const NAVIGATION: NavGroup[] = [
 ];
 
 export const PLANNED_MODULES: Record<string, { title: string; phase: number; summary: string; scope: string[] }> = {
-  portfolio: {
-    title: "Portfolio",
-    phase: 5,
-    summary: "Portfolio analytics, forecasting and variance across all projects.",
-    scope: ["Portfolio health trends", "Forecast vs actual", "Variance analysis", "Business-unit roll-ups"],
-  },
-  financials: {
-    title: "Financials",
-    phase: 5,
-    summary: "Budgets, rates, actuals and forecasts for authorised users only.",
-    scope: ["Budgets and baselines", "Rate cards", "Forecasts", "Margin and billing readiness"],
-  },
   agents: {
     title: "AI Agents",
     phase: 6,

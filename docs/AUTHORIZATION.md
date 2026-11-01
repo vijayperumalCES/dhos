@@ -61,6 +61,9 @@ added and removed.
 | `release.read` / `release.manage` | View releases and gates / create releases, record gate results, move releases through review and out |
 | `release.approve` | Approve a release for go-live; waive a required quality gate with a reason |
 | `document.read` / `document.manage` | View internal project documents (client-shared ones need no permission) / create documents and add versions |
+| `finance.read` | View budgets, actuals, forecasts, variance and margin on visible projects, and contract values of visible clients (never individual rates) |
+| `finance.manage` | Rate card and personal rates; draft budgets; record and reverse costs; forecasts; contract values; plan revenue |
+| `finance.approve` | Approve a budget as the baseline (never your own draft) |
 
 Direct managers (`manager_membership_id`) can see and review their reports' attendance, leave and
 timesheets without any of the HR permissions. See section 3a.
@@ -102,6 +105,9 @@ timesheets without any of the HR permissions. See section 3a.
 | timesheet.approve | | ✓ | |  | |  | |  | |  | |  | |  |
 | resource.read | | ✓ | ✓ | ✓ | ✓ | |  | |  | ✓ | | ✓ | |  |
 | resource.manage | | ✓ | ✓ | |  | |  | |  | ✓ | |  | |  |
+| finance.read | | ✓ | | | | | | | | | | ✓ | | |
+| finance.manage | | | | | | | | | | | | ✓ | | |
+| finance.approve | | ✓ | | | | | | | | | | ✓ | | |
 
 ### Notable design choices
 
@@ -111,8 +117,11 @@ timesheets without any of the HR permissions. See section 3a.
   approval for privileged role grants is a Phase 8 item.
 - **Client stakeholders** see only projects they are explicitly a member of, only their own project
   membership row, no internal directory and no teams.
-- **Finance** reads all projects now so that Phase 5 financial views have context; financial data
-  itself will live in separate tables with their own policies.
+- **Finance** reads all projects and holds the finance permissions. Financial data lives in separate
+  tables with their own policies ([ADR-0010](DECISIONS/ADR-0010-finance-model.md)): rates and personal
+  rates need `finance.manage` and are never returned by a report; every finance read also needs
+  visibility of the project's client; audit entries for finance tables hide the amounts. The Delivery
+  Head reads and approves budgets but cannot read rates.
 - **Client stakeholders** see milestones and status reports of shared projects, never work items,
   boards or sprints (no `work.read`). Status-report snapshots therefore store counts, not item titles.
 - **AI Agent Operator** has directory access and self-service workforce only until Phase 6.

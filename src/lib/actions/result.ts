@@ -103,6 +103,10 @@ const RPC_MESSAGES: Record<string, string> = {
   release_transition: "That release can't move to that stage from where it is.",
   document_archived: "Restore the document before adding a version.",
   immutable: "That record can't be changed.",
+  draft_exists: "Finish or discard the current draft budget first.",
+  budget_state: "Only a draft budget can be approved.",
+  already_reversed: "That entry has already been reversed, or is itself a reversal.",
+  revenue_state: "That revenue is already recognised.",
 };
 
 /** RPC keys whose detail text is written for users and is more specific than the generic message. */
@@ -137,6 +141,10 @@ const DETAILED_KEYS = new Set([
   "release_locked",
   "release_transition",
   "document_archived",
+  "draft_exists",
+  "budget_state",
+  "already_reversed",
+  "revenue_state",
 ]);
 
 export function humanizeRpcMessage(message: string): string {

@@ -159,6 +159,52 @@ export type Database = {
           },
         ]
       }
+      budget_lines: {
+        Row: {
+          amount: number
+          budget_id: string
+          category: Database["public"]["Enums"]["cost_category"]
+          id: string
+          note: string | null
+          organization_id: string
+          project_id: string
+        }
+        ComputedFields: never
+        Insert: {
+          amount: number
+          budget_id: string
+          category: Database["public"]["Enums"]["cost_category"]
+          id?: string
+          note?: string | null
+          organization_id: string
+          project_id: string
+        }
+        Update: {
+          amount?: number
+          budget_id?: string
+          category?: Database["public"]["Enums"]["cost_category"]
+          id?: string
+          note?: string | null
+          organization_id?: string
+          project_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "budget_lines_budget_id_organization_id_fkey"
+            columns: ["budget_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "project_budgets"
+            referencedColumns: ["id", "organization_id"]
+          },
+          {
+            foreignKeyName: "budget_lines_project_id_organization_id_fkey"
+            columns: ["project_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id", "organization_id"]
+          },
+        ]
+      }
       change_requests: {
         Row: {
           created_at: string
@@ -438,6 +484,106 @@ export type Database = {
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contract_values: {
+        Row: {
+          billing_model: Database["public"]["Enums"]["billing_model"]
+          contract_id: string
+          notes: string | null
+          organization_id: string
+          total_value: number
+          updated_at: string
+          updated_by: string | null
+        }
+        ComputedFields: never
+        Insert: {
+          billing_model?: Database["public"]["Enums"]["billing_model"]
+          contract_id: string
+          notes?: string | null
+          organization_id: string
+          total_value: number
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          billing_model?: Database["public"]["Enums"]["billing_model"]
+          contract_id?: string
+          notes?: string | null
+          organization_id?: string
+          total_value?: number
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contract_values_contract_id_organization_id_fkey"
+            columns: ["contract_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "client_contracts"
+            referencedColumns: ["id", "organization_id"]
+          },
+        ]
+      }
+      cost_entries: {
+        Row: {
+          amount: number
+          category: Database["public"]["Enums"]["cost_category"]
+          created_at: string
+          created_by: string | null
+          description: string
+          entry_date: string
+          id: string
+          organization_id: string
+          project_id: string
+          reference: string | null
+          reverses_id: string | null
+          vendor: string | null
+        }
+        ComputedFields: never
+        Insert: {
+          amount: number
+          category: Database["public"]["Enums"]["cost_category"]
+          created_at?: string
+          created_by?: string | null
+          description: string
+          entry_date: string
+          id?: string
+          organization_id: string
+          project_id: string
+          reference?: string | null
+          reverses_id?: string | null
+          vendor?: string | null
+        }
+        Update: {
+          amount?: number
+          category?: Database["public"]["Enums"]["cost_category"]
+          created_at?: string
+          created_by?: string | null
+          description?: string
+          entry_date?: string
+          id?: string
+          organization_id?: string
+          project_id?: string
+          reference?: string | null
+          reverses_id?: string | null
+          vendor?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cost_entries_project_id_organization_id_fkey"
+            columns: ["project_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id", "organization_id"]
+          },
+          {
+            foreignKeyName: "cost_entries_reverses_id_fkey"
+            columns: ["reverses_id"]
+            isOneToOne: false
+            referencedRelation: "cost_entries"
             referencedColumns: ["id"]
           },
         ]
@@ -845,6 +991,54 @@ export type Database = {
           },
         ]
       }
+      forecast_entries: {
+        Row: {
+          amount: number
+          category: Database["public"]["Enums"]["cost_category"]
+          created_at: string
+          created_by: string | null
+          id: string
+          note: string | null
+          organization_id: string
+          period: string
+          project_id: string
+          updated_at: string
+        }
+        ComputedFields: never
+        Insert: {
+          amount: number
+          category: Database["public"]["Enums"]["cost_category"]
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          note?: string | null
+          organization_id: string
+          period: string
+          project_id: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          category?: Database["public"]["Enums"]["cost_category"]
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          note?: string | null
+          organization_id?: string
+          period?: string
+          project_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "forecast_entries_project_id_organization_id_fkey"
+            columns: ["project_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id", "organization_id"]
+          },
+        ]
+      }
       holidays: {
         Row: {
           calendar_id: string
@@ -1042,6 +1236,45 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "organizations"
             referencedColumns: ["id"]
+          },
+        ]
+      }
+      member_cost_rates: {
+        Row: {
+          cost_rate: number
+          created_at: string
+          created_by: string | null
+          effective_from: string
+          id: string
+          membership_id: string
+          organization_id: string
+        }
+        ComputedFields: never
+        Insert: {
+          cost_rate: number
+          created_at?: string
+          created_by?: string | null
+          effective_from: string
+          id?: string
+          membership_id: string
+          organization_id: string
+        }
+        Update: {
+          cost_rate?: number
+          created_at?: string
+          created_by?: string | null
+          effective_from?: string
+          id?: string
+          membership_id?: string
+          organization_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "member_cost_rates_membership_id_organization_id_fkey"
+            columns: ["membership_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "organization_memberships"
+            referencedColumns: ["id", "organization_id"]
           },
         ]
       }
@@ -1479,6 +1712,74 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "project_baselines_project_id_organization_id_fkey"
+            columns: ["project_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id", "organization_id"]
+          },
+        ]
+      }
+      project_budgets: {
+        Row: {
+          approved_at: string | null
+          approved_by_membership_id: string | null
+          created_at: string
+          drafted_by_membership_id: string | null
+          id: string
+          name: string
+          notes: string | null
+          organization_id: string
+          project_id: string
+          status: Database["public"]["Enums"]["budget_status"]
+          updated_at: string
+          version: number
+        }
+        ComputedFields: never
+        Insert: {
+          approved_at?: string | null
+          approved_by_membership_id?: string | null
+          created_at?: string
+          drafted_by_membership_id?: string | null
+          id?: string
+          name: string
+          notes?: string | null
+          organization_id: string
+          project_id: string
+          status?: Database["public"]["Enums"]["budget_status"]
+          updated_at?: string
+          version: number
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by_membership_id?: string | null
+          created_at?: string
+          drafted_by_membership_id?: string | null
+          id?: string
+          name?: string
+          notes?: string | null
+          organization_id?: string
+          project_id?: string
+          status?: Database["public"]["Enums"]["budget_status"]
+          updated_at?: string
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_budgets_approved_by_membership_id_organization_id_fkey"
+            columns: ["approved_by_membership_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "organization_memberships"
+            referencedColumns: ["id", "organization_id"]
+          },
+          {
+            foreignKeyName: "project_budgets_drafted_by_membership_id_organization_id_fkey"
+            columns: ["drafted_by_membership_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "organization_memberships"
+            referencedColumns: ["id", "organization_id"]
+          },
+          {
+            foreignKeyName: "project_budgets_project_id_organization_id_fkey"
             columns: ["project_id", "organization_id"]
             isOneToOne: false
             referencedRelation: "projects"
@@ -1943,6 +2244,48 @@ export type Database = {
           },
         ]
       }
+      rate_card_lines: {
+        Row: {
+          bill_rate: number | null
+          cost_rate: number
+          created_at: string
+          created_by: string | null
+          effective_from: string
+          id: string
+          organization_id: string
+          role_title: string
+        }
+        ComputedFields: never
+        Insert: {
+          bill_rate?: number | null
+          cost_rate: number
+          created_at?: string
+          created_by?: string | null
+          effective_from: string
+          id?: string
+          organization_id: string
+          role_title: string
+        }
+        Update: {
+          bill_rate?: number | null
+          cost_rate?: number
+          created_at?: string
+          created_by?: string | null
+          effective_from?: string
+          id?: string
+          organization_id?: string
+          role_title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rate_card_lines_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       release_gates: {
         Row: {
           category: string
@@ -2148,6 +2491,70 @@ export type Database = {
           },
           {
             foreignKeyName: "resource_allocations_project_id_organization_id_fkey"
+            columns: ["project_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id", "organization_id"]
+          },
+        ]
+      }
+      revenue_lines: {
+        Row: {
+          amount: number
+          contract_id: string | null
+          created_at: string
+          created_by: string | null
+          description: string
+          id: string
+          organization_id: string
+          planned_date: string
+          project_id: string
+          recognised_by: string | null
+          recognised_on: string | null
+          status: Database["public"]["Enums"]["revenue_status"]
+          updated_at: string
+        }
+        ComputedFields: never
+        Insert: {
+          amount: number
+          contract_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          description: string
+          id?: string
+          organization_id: string
+          planned_date: string
+          project_id: string
+          recognised_by?: string | null
+          recognised_on?: string | null
+          status?: Database["public"]["Enums"]["revenue_status"]
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          contract_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string
+          id?: string
+          organization_id?: string
+          planned_date?: string
+          project_id?: string
+          recognised_by?: string | null
+          recognised_on?: string | null
+          status?: Database["public"]["Enums"]["revenue_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "revenue_lines_contract_id_organization_id_fkey"
+            columns: ["contract_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "client_contracts"
+            referencedColumns: ["id", "organization_id"]
+          },
+          {
+            foreignKeyName: "revenue_lines_project_id_organization_id_fkey"
             columns: ["project_id", "organization_id"]
             isOneToOne: false
             referencedRelation: "projects"
@@ -3079,6 +3486,7 @@ export type Database = {
         Args: { p_type: Database["public"]["Enums"]["work_item_type"] }
         Returns: Database["public"]["Enums"]["work_item_type"][]
       }
+      approve_budget: { Args: { p_budget: string }; Returns: undefined }
       attendance_exceptions: {
         Args: { p_from: string; p_org: string; p_to: string }
         Returns: {
@@ -3155,6 +3563,35 @@ export type Database = {
         }[]
       }
       my_permissions: { Args: { p_org: string }; Returns: string[] }
+      project_financials: {
+        Args: { p_org: string; p_project?: string }
+        Returns: {
+          approved_hours: number
+          baseline_approved_at: string
+          budget_labour: number
+          budget_total: number
+          budget_version: number
+          has_revenue: boolean
+          labour_actual: number
+          labour_forecast: number
+          other_actual: number
+          other_forecast: number
+          project_id: string
+          revenue_planned: number
+          revenue_recognised: number
+          unrated_forecast_hours: number
+          unrated_hours: number
+        }[]
+      }
+      project_monthly_actuals: {
+        Args: { p_project: string }
+        Returns: {
+          hours: number
+          labour: number
+          month: string
+          other: number
+        }[]
+      }
       raise_escalation: {
         Args: {
           p_description: string
@@ -3169,6 +3606,7 @@ export type Database = {
         Returns: string
       }
       recall_timesheet: { Args: { p_timesheet: string }; Returns: undefined }
+      recognise_revenue: { Args: { p_line: string; p_on: string }; Returns: undefined }
       record_gate_result: {
         Args: { p_gate: string; p_note?: string; p_status: Database["public"]["Enums"]["gate_status"] }
         Returns: undefined
@@ -3207,6 +3645,7 @@ export type Database = {
         Returns: string
       }
       resolve_escalation: { Args: { p_escalation: string; p_note: string }; Returns: undefined }
+      reverse_cost_entry: { Args: { p_entry: string; p_reason: string }; Returns: string }
       review_attendance_correction: {
         Args: { p_approve: boolean; p_correction: string; p_note?: string }
         Returns: undefined
@@ -3231,6 +3670,7 @@ export type Database = {
         Returns: undefined
       }
       set_work_item_archived: { Args: { p_archived: boolean; p_item: string }; Returns: undefined }
+      start_budget: { Args: { p_name: string; p_project: string }; Returns: string }
       start_sprint: { Args: { p_sprint: string }; Returns: undefined }
       submit_change_request: { Args: { p_change: string }; Returns: undefined }
       submit_timesheet: { Args: { p_timesheet: string }; Returns: undefined }
@@ -3272,10 +3712,13 @@ export type Database = {
     Enums: {
       action_status: "open" | "in_progress" | "done" | "cancelled"
       attendance_source: "self" | "correction"
+      billing_model: "fixed_price" | "time_and_materials" | "retainer"
+      budget_status: "draft" | "approved" | "superseded"
       change_status: "draft" | "submitted" | "approved" | "rejected" | "implemented" | "withdrawn"
       client_confidentiality: "standard" | "confidential"
       contract_status: "draft" | "active" | "expired" | "terminated"
       contract_type: "msa" | "sow" | "nda" | "support" | "other"
+      cost_category: "labour" | "software" | "infrastructure" | "travel" | "subcontractor" | "other"
       decision_status: "proposed" | "accepted" | "rejected" | "superseded"
       dependency_kind: "blocks" | "relates_to" | "duplicates"
       document_type: "charter" | "requirements" | "specification" | "design" | "plan" | "report" | "other"
@@ -3293,6 +3736,7 @@ export type Database = {
       raid_type: "risk" | "assumption" | "issue" | "dependency"
       release_status: "planned" | "in_review" | "approved" | "released" | "cancelled"
       request_status: "pending" | "approved" | "rejected" | "cancelled"
+      revenue_status: "planned" | "recognised"
       sprint_state: "planned" | "active" | "completed"
       time_category: "delivery" | "internal" | "training" | "presales"
       timesheet_status: "draft" | "submitted" | "approved" | "rejected"
@@ -3411,10 +3855,13 @@ export const Constants = {
     Enums: {
       action_status: ["open", "in_progress", "done", "cancelled"],
       attendance_source: ["self", "correction"],
+      billing_model: ["fixed_price", "time_and_materials", "retainer"],
+      budget_status: ["draft", "approved", "superseded"],
       change_status: ["draft", "submitted", "approved", "rejected", "implemented", "withdrawn"],
       client_confidentiality: ["standard", "confidential"],
       contract_status: ["draft", "active", "expired", "terminated"],
       contract_type: ["msa", "sow", "nda", "support", "other"],
+      cost_category: ["labour", "software", "infrastructure", "travel", "subcontractor", "other"],
       decision_status: ["proposed", "accepted", "rejected", "superseded"],
       dependency_kind: ["blocks", "relates_to", "duplicates"],
       document_type: ["charter", "requirements", "specification", "design", "plan", "report", "other"],
@@ -3432,6 +3879,7 @@ export const Constants = {
       raid_type: ["risk", "assumption", "issue", "dependency"],
       release_status: ["planned", "in_review", "approved", "released", "cancelled"],
       request_status: ["pending", "approved", "rejected", "cancelled"],
+      revenue_status: ["planned", "recognised"],
       sprint_state: ["planned", "active", "completed"],
       time_category: ["delivery", "internal", "training", "presales"],
       timesheet_status: ["draft", "submitted", "approved", "rejected"],
