@@ -1,7 +1,7 @@
 # Stride — Authorization
 
-_Last updated: 2026-11-01 (Phase 3). Authoritative source: `supabase/migrations/20261026000200_authorization.sql`,
-`…000400_rls_and_grants.sql` and later migrations that update role templates (`20261029000100_workforce.sql`). `tests/unit/authorization-matrix.test.ts` fails if the TypeScript
+_Last updated: 2026-11-02 (Phase 4). Authoritative source: `supabase/migrations/20261026000200_authorization.sql`,
+`…000400_rls_and_grants.sql` and later migrations that update role templates (`20261029000100_workforce.sql`, `20261102000100_governance.sql`). `tests/unit/authorization-matrix.test.ts` fails if the TypeScript
 mirror (`src/lib/domain/permissions.ts`) drifts from the SQL._
 
 ## 1. Model
@@ -55,6 +55,12 @@ added and removed.
 | `timesheet.approve` | Approve or return anyone's timesheet except your own |
 | `resource.read` | Capacity, utilisation and allocations for the organization |
 | `resource.manage` | Create, edit and remove allocations on visible projects |
+| `governance.read` | View RAID items, decisions, actions, escalations and change requests on visible projects |
+| `governance.manage` | Create and edit RAID items, decisions, actions and escalations; draft and submit change requests |
+| `change.approve` | Approve or reject change requests (never your own) |
+| `release.read` / `release.manage` | View releases and gates / create releases, record gate results, move releases through review and out |
+| `release.approve` | Approve a release for go-live; waive a required quality gate with a reason |
+| `document.read` / `document.manage` | View internal project documents (client-shared ones need no permission) / create documents and add versions |
 
 Direct managers (`manager_membership_id`) can see and review their reports' attendance, leave and
 timesheets without any of the HR permissions. See section 3a.
@@ -127,6 +133,21 @@ Attendance, leave and timesheets follow their own rule, not project visibility
 Leave, balances, attendance and corrections have no write grants; every change goes through an RPC
 that checks the rule above. Timesheet entries are written by their owner and lock on submission.
 
+### 3b. Governance data (Phase 4)
+
+Governance records follow project visibility plus a permission ([ADR-0009](DECISIONS/ADR-0009-governance-model.md)):
+
+| Record | Read | Write | Special rules |
+|---|---|---|---|
+| RAID, decisions, actions | `governance.read` on a readable project | `governance.manage` (owners may also move their own actions) | Recorded decisions are locked; closing a RAID item needs a note |
+| Escalations | `governance.read` | `raise_escalation` (needs `governance.manage`) | Needs evidence, a future deadline and a recipient who can open the project; only the recipient acknowledges |
+| Change requests | `governance.read` | Draft: `governance.manage`. Decide: `change.approve` | Never the requester; content locked after submission |
+| Releases and gates | `release.read` | `release.manage`; waive and approve need `release.approve` | Approval blocked while a required gate is open |
+| Client contacts and contracts | Exactly who can see the client | `client.manage` and the client's confidentiality rule | Hidden with a confidential client |
+| Documents | `document.read`, or any project reader for `client`-visibility documents | `document.manage` | Versions are append-only |
+
+Client stakeholders and organization administrators hold none of these permissions by default.
+
 ## 4. Enforcement map
 
 | Concern | Where enforced |
@@ -136,6 +157,8 @@ that checks the rule above. Timesheet entries are written by their owner and loc
 | Lifecycle validity | BEFORE trigger (cannot be bypassed by any caller, including RPCs) |
 | Governed changes | `transition_project_status`, `set_project_health`, `set_project_archived`, `set_member_roles`, `set_membership_status` |
 | HR data | `private.can_view_hr_of` / `can_review_hr_of` (and the timesheet equivalents) in RLS and RPCs |
+| Governance records | `public.can_act_on_project(project, 'governance.read' / 'governance.manage' / …)` in RLS; state changes through RPCs; immutability triggers |
+| Client contacts and contracts | `private.can_see_client` / `can_manage_client` (the clients policies, reused) |
 | Tenant consistency of references | Composite foreign keys `(id, organization_id)` |
 | Audit immutability | No update/delete grants + trigger that raises on update/delete |
 | Rate limits | Org creation (5/user/day), invitations (50/org/hour) in RPCs; Supabase Auth rate limits for sign-in/up |
@@ -149,7 +172,9 @@ cross-tenant reads/writes, role-scoped visibility, admin-without-data, client is
 status-update denial, lifecycle and reason rules, cross-tenant FK rejection, invitation flow,
 last-admin guard, suspension and audit immutability. `04_workforce.test.sql` (53 assertions) covers
 the HR visibility rule, self-approval denial, balances, timesheet locks, RPC-only writes and
-over-allocation. Playwright covers the same boundaries through the UI.
+over-allocation. `05_governance.test.sql` (98 assertions) covers project-scoped governance
+visibility, decision and change-request locks, escalation preconditions, release gates, client
+record confidentiality and document immutability. Playwright covers the same boundaries through the UI.
 
 ## 6. AI agents (Phase 6 constraint)
 

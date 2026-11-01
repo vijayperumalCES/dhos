@@ -1,6 +1,6 @@
 # Stride — Implementation Status
 
-_Last updated: 2026-11-01._ A feature is "Done" only when it meets the Definition of Done in the
+_Last updated: 2026-11-02._ A feature is "Done" only when it meets the Definition of Done in the
 master brief: UI end-to-end, persisted, authorized, tenant-tested, validated, audited, tested,
 empty/loading/error states, documented.
 
@@ -100,6 +100,36 @@ New migration `20261029000100_workforce.sql` — **must be pushed to the hosted 
 - Sprint planning doesn't use people capacity yet; it still uses average velocity.
 - Timesheet entries are added one at a time; no inline grid editing or copy-last-week.
 
+## Phase 4 — Delivery governance (2026-11-02)
+
+| Feature | Status | Evidence |
+|---|---|---|
+| Unified RAID register (risk, assumption, issue, dependency): owner, due date, response, probability × impact score, resolution note required, archive | Done | pgTAP, unit |
+| Decision log: propose, accept or reject (locked), supersede by a newer decision | Done | pgTAP |
+| Actions with one owner and a due date, linked to a RAID item or decision; owners complete their own | Done | pgTAP |
+| Escalations: recipient, severity, deadline, evidence (append-only); acknowledge, resolve; overdue and due-soon flags | Done | pgTAP, unit |
+| Change requests: draft, submit, approve or reject by someone else, implement, withdraw; locked after draft | Done | pgTAP |
+| Releases with quality gates: default five, add or remove until approval, pass, fail, waive with a reason; approval needs every required gate; failing a gate withdraws approval; open S1/S2 defects shown as context | Done | pgTAP, unit |
+| Client contacts and contracts inheriting client confidentiality; contract end flags | Done | pgTAP, unit |
+| Documents with immutable versions (Markdown and/or link), internal or client-visible | Done | pgTAP |
+| Executive governance report with "red with no recorded recovery action", copyable as Markdown; project Governance tab | Done | unit, manual |
+| 8 new permissions and role templates; separate access doc section; ADR-0009 | Done | pgTAP, unit drift test |
+| Demo seed: register, decisions, actions, escalations (one overdue), changes, releases (shipped, in review, planned), contacts, contracts, documents; NW-PAY red with no recovery action | Done | `supabase/seed.sql` |
+
+New migration `20261102000100_governance.sql` — **must be pushed to the hosted project** (`supabase db push`).
+
+### Phase 4 limitations
+- No meeting records; decisions and actions stand alone.
+- Client reporting is limited to Phase 2 status reports and `client`-visibility documents; scheduled or branded client reports need the Phase 7 scheduler.
+- Quality gates are per release (five defaults), not an organization-level template; open critical defects inform but don't block approval.
+- Approving a change request records the decision and impact; it does not edit milestones or baselines.
+- Documents are text and links; there are no file uploads (Phase 8).
+- Contracts hold terms and dates only; monetary values arrive with Phase 5.
+- A RAID item can't be hidden from project members who hold `governance.read`.
+- The "red with no recovery action" list shows the open interval, not a trend of time-to-first-action.
+- Lists show at most 500 rows (no pagination yet) and refresh on navigation, not live.
+- No Playwright journeys for governance yet; pgTAP and unit tests cover the rules, and the pages were checked by hand.
+
 ## Known gaps and limitations (Phase 1)
 
 - **Email delivery limits:** hosted Supabase's built-in mailer sends only a few emails per hour. Configure
@@ -121,7 +151,7 @@ New migration `20261029000100_workforce.sql` — **must be pushed to the hosted 
 
 | Suite | Command | Count | Last result |
 |---|---|---|---|
-| Unit (Vitest) | `pnpm test` | 82 | ✅ pass |
-| Database (pgTAP) | `pnpm test:db` | 157 (45 + 25 + 34 + 53) | ✅ pass |
+| Unit (Vitest) | `pnpm test` | 103 | ✅ pass |
+| Database (pgTAP) | `pnpm test:db` | 255 (45 + 25 + 34 + 53 + 98) | ✅ pass |
 | End-to-end (Playwright) | `pnpm test:e2e` | 26 | ✅ pass |
 | Typecheck / lint / build | `pnpm typecheck`, `pnpm lint`, `pnpm build` | — | ✅ pass |

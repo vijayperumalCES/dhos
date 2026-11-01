@@ -1,6 +1,6 @@
 # Stride — Product Requirements Document
 
-_Living document. Last updated: 2026-11-01 (Phase 3)._
+_Living document. Last updated: 2026-11-02 (Phase 4)._
 
 ## 1. Problem
 
@@ -11,7 +11,7 @@ that should go into acting on it.
 
 ## 2. Product vision
 
-**Stride** (formerly DHOS, the Delivery Head Operating System) is an organization-wide operating platform that gives
+**Stride** is an organization-wide operating platform that gives
 the Delivery Head and their managers one governed, evidence-based view of portfolio delivery —
 projects, people, commitments, quality, finances and client governance — and progressively automates
 the recurring work around it with workflows and permission-bounded AI sub-agents, while keeping
@@ -143,11 +143,35 @@ validated preview (all-or-nothing); invitations can be created in bulk from CSV.
 - AC: Nobody can approve their own leave, correction or timesheet; HR data is visible only to the
   person, their manager and HR (pgTAP `04_workforce`).
 
+### Phase 4 — Delivery governance (delivered 2026-11-02)
+
+- **US-4.1 RAID register.** Project teams record risks, assumptions, issues and dependencies in one
+  register with an owner, due date and response. Risks are scored probability × impact; closing,
+  resolving or accepting an item needs a note.
+- **US-4.2 Decisions and actions.** Decisions are proposed, then accepted or rejected; once recorded they
+  are locked and can only be superseded by a newer decision. Actions have one owner and a due date;
+  owners can complete their own.
+- **US-4.3 Escalations.** A manager raises an escalation to a named person with at least one piece of
+  evidence and a response deadline. The recipient acknowledges; it shows as overdue until resolved.
+- **US-4.4 Change requests.** Drafts are editable; submitted requests are locked and decided by an
+  approver who is not the requester. Rejection needs a reason.
+- **US-4.5 Releases and quality gates.** Releases carry gates (five by default, more can be added). A
+  release can't be approved until every required gate is passed, or waived by an approver with a reason.
+- **US-4.6 Client records.** Contacts and contracts (terms and dates) sit under the client and are
+  visible only to people who can see that client, including confidential ones.
+- **US-4.7 Documents.** Versioned documents (Markdown and/or link), internal or shared with the client.
+- **US-4.8 Executive report.** One page of live governance numbers, red projects with no recorded
+  recovery action, top risks, escalations, releases in flight and contracts nearing their end, copyable
+  as Markdown.
+- AC: governance records are visible only on projects the viewer can read and only with the matching
+  permission; recorded decisions, submitted changes and document versions can't be edited; nobody
+  decides their own change request (pgTAP `05_governance`).
+
 ### 5.2 Out of scope for Phase 1
 
 Work items, sprints, milestones, attendance, leave, timesheets, financials, RAID, releases,
-documents, notifications, AI agents, workflows, integrations. Work management shipped in Phase 2 and
-workforce in Phase 3; the rest is in `docs/ROADMAP.md`.
+documents, notifications, AI agents, workflows, integrations. Work management shipped in Phase 2,
+workforce in Phase 3 and governance in Phase 4; the rest is in `docs/ROADMAP.md`.
 
 ## 6. Non-functional requirements
 
@@ -163,5 +187,6 @@ workforce in Phase 3; the rest is in `docs/ROADMAP.md`.
 ## 7. Success measures (to be instrumented)
 
 - Share of in-flight projects with a health rating younger than the staleness threshold.
-- Time from a project turning Red to a recorded recovery action (needs Phase 4).
+- Time from a project turning Red to a recorded recovery action. Phase 4 lists red projects with nothing
+  recorded since they turned red (executive report); the elapsed time to the first action is not yet trended.
 - Weekly active Delivery Head / manager users.

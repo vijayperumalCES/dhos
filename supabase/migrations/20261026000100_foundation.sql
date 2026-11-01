@@ -1,4 +1,4 @@
--- DHOS Phase 1 — Foundation: tenancy, identity, RBAC catalogue, audit log.
+-- Stride Phase 1 — Foundation: tenancy, identity, RBAC catalogue, audit log.
 -- Conventions (see docs/DATABASE.md):
 --   * UUID primary keys, timestamptz audit columns, organization_id on every tenant-owned row.
 --   * Composite (id, organization_id) uniques so child rows can FK on both and can never

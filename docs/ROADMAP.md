@@ -1,13 +1,13 @@
 # Stride — Roadmap
 
-_Last updated: 2026-11-01._ Status: ✅ done · 🟡 partial · ⬜ not started
+_Last updated: 2026-11-02._ Status: ✅ done · 🟡 partial · ⬜ not started
 
 | Phase | Theme | Status |
 |---|---|---|
 | 1 | Foundation and Delivery Command Center | ✅ (see `IMPLEMENTATION_STATUS.md` for known gaps) |
 | 2 | Work management | ✅ (see `IMPLEMENTATION_STATUS.md`) |
 | 3 | Workforce management | ✅ (see `IMPLEMENTATION_STATUS.md`) |
-| 4 | Delivery governance | ⬜ |
+| 4 | Delivery governance | ✅ (see `IMPLEMENTATION_STATUS.md`) |
 | 5 | Financial and portfolio intelligence | ⬜ |
 | 6 | AI agents | ⬜ |
 | 7 | Automation and integrations | ⬜ |
@@ -30,11 +30,17 @@ timesheets with approvals, dated allocations replacing indicative `allocation_pe
 utilisation (kept separate from attendance by definition). Separate HR access policy
 ([ADR-0008](DECISIONS/ADR-0008-workforce-model.md)).
 
-## Phase 4 — Governance (next)
+## Phase 4 — Governance (done 2026-11-02)
 
-RAID register (ADR on unified vs separate tables), decisions, actions, escalations with evidence and
-deadlines, change requests, release governance with quality gates, client contacts/contracts and
-confidential-client enforcement, executive and client reporting, documents with versioning.
+Unified RAID register ([ADR-0009](DECISIONS/ADR-0009-governance-model.md)), decisions (locked once
+recorded), owned actions, escalations that require evidence and a deadline, change requests approved by
+someone other than the requester, release governance with quality gates, client contacts and contracts
+that inherit client confidentiality, versioned documents, and an executive governance report with the
+"red with no recovery action" measure.
+
+Deliberately left out: meeting records, scheduled and branded client reports (Phase 7 scheduler),
+organization-level gate templates, file uploads (Phase 8), contract values (Phase 5), a confidentiality
+flag on individual RAID items.
 
 ## Phase 5 — Financial & portfolio
 

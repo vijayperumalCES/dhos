@@ -48,7 +48,7 @@ export const NAVIGATION: NavGroup[] = [
       { title: "Portfolio", icon: "briefcase", plannedPhase: 5, slug: "portfolio" },
       { title: "Programs", icon: "layers", href: "/programs", anyOf: ["project.read_all", "project.read_assigned"] },
       { title: "My Work", icon: "kanban", href: "/work", anyOf: ["work.read"] },
-      { title: "Releases & Quality", icon: "rocket", plannedPhase: 4, slug: "releases" },
+      { title: "Releases & Quality", icon: "rocket", href: "/releases", anyOf: ["release.read"] },
     ],
   },
   {
@@ -64,11 +64,11 @@ export const NAVIGATION: NavGroup[] = [
   {
     label: "Governance",
     items: [
-      { title: "Risks & Escalations", icon: "alert", plannedPhase: 4, slug: "risks" },
+      { title: "Risks & Escalations", icon: "alert", href: "/governance/raid", anyOf: ["governance.read"] },
+      { title: "Decisions & Actions", icon: "messages", href: "/governance/decisions", anyOf: ["governance.read"] },
+      { title: "Governance Report", icon: "report", href: "/governance", anyOf: ["governance.read"] },
+      { title: "Documents", icon: "file", href: "/documents", anyOf: ["document.read", "project.read_assigned", "project.read_all"] },
       { title: "Financials", icon: "wallet", plannedPhase: 5, slug: "financials" },
-      { title: "Meetings & Decisions", icon: "messages", plannedPhase: 4, slug: "meetings" },
-      { title: "Reports", icon: "report", plannedPhase: 4, slug: "reports" },
-      { title: "Documents", icon: "file", plannedPhase: 4, slug: "documents" },
     ],
   },
   {
@@ -101,41 +101,11 @@ export const PLANNED_MODULES: Record<string, { title: string; phase: number; sum
     summary: "Portfolio analytics, forecasting and variance across all projects.",
     scope: ["Portfolio health trends", "Forecast vs actual", "Variance analysis", "Business-unit roll-ups"],
   },
-  releases: {
-    title: "Releases & Quality",
-    phase: 4,
-    summary: "Release governance with configurable quality gates.",
-    scope: ["Release calendar", "Quality gates and approvals", "Defect trends", "Deployment history"],
-  },
-  risks: {
-    title: "Risks & Escalations",
-    phase: 4,
-    summary: "Unified RAID register, decisions, actions and escalation workflow.",
-    scope: ["RAID register", "Escalations", "Decision log", "Change requests"],
-  },
   financials: {
     title: "Financials",
     phase: 5,
     summary: "Budgets, rates, actuals and forecasts for authorised users only.",
     scope: ["Budgets and baselines", "Rate cards", "Forecasts", "Margin and billing readiness"],
-  },
-  meetings: {
-    title: "Meetings & Decisions",
-    phase: 4,
-    summary: "Governance meetings, notes, decisions and action items.",
-    scope: ["Meeting records", "Action items", "Decision records", "Status templates"],
-  },
-  reports: {
-    title: "Reports",
-    phase: 4,
-    summary: "Daily, weekly, monthly and executive delivery reports.",
-    scope: ["Report templates", "Scheduled reports", "Change-since-last-report", "Client reports"],
-  },
-  documents: {
-    title: "Documents",
-    phase: 4,
-    summary: "Versioned project documents with access control.",
-    scope: ["Charters, BRDs, specs", "Versioning", "Permissions", "AI retrieval (Phase 6)"],
   },
   agents: {
     title: "AI Agents",

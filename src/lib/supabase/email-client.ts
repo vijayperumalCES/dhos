@@ -28,6 +28,6 @@ export async function sendInvitationEmail(email: string, origin: string): Promis
   if (error.status === 429 || error.code === "over_email_send_rate_limit") {
     return { ok: false, reason: "the email service's rate limit was reached; try resending later" };
   }
-  console.error("[stride] invitation email failed", { code: error.code, status: error.status });
+  console.error("[stride-ces] invitation email failed", { code: error.code, status: error.status });
   return { ok: false, reason: "the email service rejected the request" };
 }

@@ -2,7 +2,7 @@
   "version": "0.0.1",
   "configurations": [
     {
-      "name": "stride-web",
+      "name": "stride-ces-web",
       "runtimeExecutable": "pnpm",
       "runtimeArgs": [
         "dev"
@@ -10,7 +10,7 @@
       "port": 3100
     },
     {
-      "name": "stride-local",
+      "name": "stride-ces-local",
       "runtimeExecutable": "pnpm",
       "runtimeArgs": [
         "dev:local"

@@ -68,7 +68,7 @@ re-activates a prior version.
 3. Recalculate project health inputs.
 4. Run Project Health Agent (read-only).
 5. Condition: escalation threshold met?
-6. If critical: create escalation record (Phase 4 table).
+6. If critical: raise an escalation (`raise_escalation`, Phase 4) with the agent's evidence attached; a human still chooses the recipient and deadline.
 7. Approval node: Delivery Head approves.
 8. On approval: notify stakeholders via configured channels.
 9. Persist execution steps and audit trail.

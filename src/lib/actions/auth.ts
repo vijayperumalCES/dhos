@@ -3,7 +3,7 @@
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 
-import { ACTIVE_ORG_COOKIE } from "@/lib/auth/org-context";
+import { ACTIVE_ORG_COOKIE, LEGACY_ORG_COOKIE } from "@/lib/auth/org-context";
 import { resolveSiteOrigin } from "@/lib/auth/site-origin";
 import { env } from "@/lib/env";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -55,7 +55,9 @@ export async function signUp(input: unknown): Promise<ActionResult<{ needsConfir
 export async function signOut() {
   const supabase = await createSupabaseServerClient();
   await supabase.auth.signOut();
-  (await cookies()).delete(ACTIVE_ORG_COOKIE);
+  const jar = await cookies();
+  jar.delete(ACTIVE_ORG_COOKIE);
+  jar.delete(LEGACY_ORG_COOKIE);
   redirect("/login");
 }
 

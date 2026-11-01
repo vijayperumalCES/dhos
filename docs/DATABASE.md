@@ -61,7 +61,7 @@ erDiagram
 | `membership_roles` | Role assignments | Audited |
 | `organization_invitations` | Pending invitations by email + role keys | Accepted via RPC on sign-in |
 | `audit_logs` | Append-only change log | Update/delete blocked by trigger |
-| `clients` | Minimal client record | Contacts/contracts in Phase 4 |
+| `clients` | Client record | Contacts and contracts added in Phase 4 |
 | `teams`, `team_members` | Organizational teams | |
 | `projects` | Project record + lifecycle + health | Budget fields deliberately absent (Phase 5, separate access policy) |
 | `project_memberships` | Project team, role, indicative allocation | Grants project read access |
@@ -107,6 +107,27 @@ triggers `leave_requests_before_write`, `timesheets_before_write`, `time_entries
 New organizations get a default calendar and Annual, Sick and Unpaid leave types
 (`private.seed_workforce_defaults`). See [ADR-0008](DECISIONS/ADR-0008-workforce-model.md).
 
+### Phase 4 additions (governance)
+
+| Table | Purpose |
+|---|---|
+| `raid_items` | Unified risks, assumptions, issues and dependencies (`type`); risks carry probability and impact (generated `score`); resolving, closing or accepting needs a note |
+| `decisions` | Proposed → accepted / rejected → superseded; recorded decisions are locked by trigger |
+| `project_actions` | Owned, dated actions, optionally linked to a RAID item or decision of the same project |
+| `escalations`, `escalation_evidence` | Escalations with a recipient, severity and response deadline; append-only evidence; created only by `raise_escalation` |
+| `change_requests` | Draft → submitted → approved / rejected → implemented (or withdrawn); content locked after draft |
+| `releases`, `release_gates` | Releases with quality gates (default five); approval requires every required gate passed or waived |
+| `client_contacts`, `client_contracts` | Under a client; visibility and edit rights inherited from the client (terms and dates only, no money) |
+| `documents`, `document_versions` | Versioned documents; versions are append-only; `internal` or `client` visibility |
+
+Key functions: `raise_escalation`, `acknowledge_escalation`, `resolve_escalation`, `submit_change_request`,
+`withdraw_change_request`, `decide_change_request`, `implement_change_request`, `record_gate_result`,
+`transition_release`, `release_readiness`, `create_document`, `add_document_version`; private helpers
+`can_see_client`, `can_manage_client`, `membership_can_read_project`, `org_today`; triggers
+`raid_items_before_write`, `decisions_before_write`, `project_actions_before_write`,
+`change_requests_before_write`, `releases_before_write`, `releases_after_insert` (seeds default gates),
+`document_versions_immutable`. See [ADR-0009](DECISIONS/ADR-0009-governance-model.md).
+
 `organization_memberships` also carries `department_id` and `manager_membership_id` (reporting line;
 a trigger rejects cycles, a check rejects self-management, composite FKs keep both in-tenant).
 `organization_invitations` tracks `email_sent_count` / `email_last_sent_at`.
@@ -132,7 +153,7 @@ a trigger rejects cycles, a check rejects self-management, composite FKs keep bo
 | `private.projects_record_history()` | trigger | Status/health history |
 
 Reasons for governed changes are passed to triggers through the transaction-local setting
-`dhos.change_reason` (set inside the RPC).
+`stride_ces.change_reason` (set inside the RPC).
 
 ## 4. Retention and deletion
 

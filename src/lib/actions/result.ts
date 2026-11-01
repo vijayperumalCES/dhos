@@ -44,7 +44,7 @@ export function fromPostgrestError(error: PostgrestError, context?: { duplicate?
     case "P0001":
       return fail(humanizeRpcMessage(error.message));
     default:
-      console.error("[stride] unexpected database error", { code: error.code, message: error.message });
+      console.error("[stride-ces] unexpected database error", { code: error.code, message: error.message });
       return fail("Something went wrong while saving. Please try again.");
   }
 }
@@ -87,6 +87,22 @@ const RPC_MESSAGES: Record<string, string> = {
   future_week: "Timesheets can be started at most one week ahead.",
   range_too_large: "Choose a shorter date range.",
   calendar_archived: "Restore the calendar before making it the default.",
+  decision_locked: "A recorded decision can only be superseded by a newer one.",
+  decision_transition: "Only an accepted decision can be superseded.",
+  invalid_link: "That link isn't valid for this project.",
+  invalid_deadline: "Choose a response deadline in the future.",
+  evidence_required: "Add at least one piece of evidence.",
+  invalid_recipient: "That person can't open governance records on this project.",
+  escalation_state: "That escalation can't be changed in its current state.",
+  change_locked: "A submitted change request can no longer be edited.",
+  change_state: "That change request can't be changed in its current state.",
+  incomplete: "Complete the required details first.",
+  self_review: "You can't decide your own change request.",
+  gates_open: "Every required quality gate needs a pass or a waiver first.",
+  release_locked: "A released or cancelled release can no longer be changed.",
+  release_transition: "That release can't move to that stage from where it is.",
+  document_archived: "Restore the document before adding a version.",
+  immutable: "That record can't be changed.",
 };
 
 /** RPC keys whose detail text is written for users and is more specific than the generic message. */
@@ -106,6 +122,21 @@ const DETAILED_KEYS = new Set([
   "invalid_entry",
   "timesheet_state",
   "range_too_large",
+  "decision_locked",
+  "decision_transition",
+  "invalid_link",
+  "invalid_deadline",
+  "evidence_required",
+  "invalid_recipient",
+  "escalation_state",
+  "change_locked",
+  "change_state",
+  "incomplete",
+  "self_review",
+  "gates_open",
+  "release_locked",
+  "release_transition",
+  "document_archived",
 ]);
 
 export function humanizeRpcMessage(message: string): string {

@@ -5,12 +5,15 @@ import { signIn, USERS } from "./helpers";
 const unique = () => Date.now().toString(36);
 
 /** A weekday next year that changes between runs, so leave requests don't overlap earlier runs. */
+// The app formats dates with date-fns ("Sep"); newer ICU versions render en-GB short months as "Sept".
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
 function nextYearWeekday(): { iso: string; label: string } {
   const year = new Date().getFullYear() + 1;
   const d = new Date(Date.UTC(year, 0, 5 + (Math.floor(Date.now() / 1000) % 330)));
   while (d.getUTCDay() === 0 || d.getUTCDay() === 6) d.setUTCDate(d.getUTCDate() + 1);
   const iso = d.toISOString().slice(0, 10);
-  const label = `${d.getUTCDate()} ${d.toLocaleString("en-GB", { month: "short", timeZone: "UTC" })} ${year}`;
+  const label = `${d.getUTCDate()} ${MONTHS[d.getUTCMonth()]} ${year}`;
   return { iso, label };
 }
 

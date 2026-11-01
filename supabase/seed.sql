@@ -547,8 +547,177 @@ select p.organization_id, sm.id, p.id, current_date + 7, current_date + 34, 30, 
 from public.projects p join private.seed_m sm on sm.email = 'dev@northwind.example' and sm.organization_id = p.organization_id
 where p.code = 'NW-DWH';
 
+-- ---------------------------------------------------------------------------
+-- Governance (Phase 4): RAID, decisions, actions, escalations, changes, releases, client records,
+-- documents. Written through the same RPCs and triggers the app uses, impersonating the
+-- demo users so that "raised by", "decided by" and the audit log carry real people.
+-- NW-PAY turns red with nothing recorded since, so the executive report has an open interval.
+-- ---------------------------------------------------------------------------
+create table private.seed_p as select id, organization_id, code from public.projects;
+
+-- Priya (Delivery Head)
+perform set_config('request.jwt.claims', '{"sub":"00000000-0000-4000-a000-000000000001","role":"authenticated"}', true);
+
+insert into public.raid_items (organization_id, project_id, type, title, description, probability, impact, owner_membership_id, due_date, mitigation, contingency)
+select p.organization_id, p.id, x.type::public.raid_type, x.title, x.description, x.prob, x.impact,
+       (select id from private.seed_m where email = x.owner and organization_id = p.organization_id), current_date + x.due, x.mitigation, x.contingency
+from (values
+    ('NW-PAY', 'risk',       'Vendor sandbox API is unstable',           'Contoso''s payment-switch sandbox drops connections under load.', 4, 4, 'arjun@northwind.example',  7,  'Agree an SLA and a stub for contract tests.', 'Fall back to recorded fixtures.'),
+    ('NW-PAY', 'risk',       'Key ledger engineer may leave',            'One engineer holds most of the ledger design knowledge.',        2, 5, 'lena@northwind.example',   -3, 'Pair a second engineer and document the design.', null),
+    ('NW-PAY', 'issue',      'Ledger migration slipped three weeks',     'Reconciliation scripts needed a rewrite.',                       null::int, 4, 'arjun@northwind.example', 5, 'Re-plan the cutover with the client.', null),
+    ('NW-PAY', 'dependency', 'Contoso network rule approval',            'Security must open the ports for the new ledger.',               null, null, 'arjun@northwind.example', 14, null, null),
+    ('NW-PAY', 'assumption', 'Contoso supplies production-like data',    'Needed from month end for volume testing.',                      null, null, 'arjun@northwind.example', 21, null, null),
+    ('NW-MOB', 'risk',       'UAT environment instability',              'Frequent redeploys break test sessions.',                        3, 3, 'rahul@northwind.example',  10, 'Dedicated UAT slot and a smoke test after each deploy.', null),
+    ('NW-MOB', 'issue',      'App store submission rejected',            'Privacy manifest was missing.',                                  null, 3, 'tom@northwind.example',  -4, null, null),
+    ('NW-DWH', 'risk',       'Source schemas are undocumented',          'Some tables have no owner or documentation.',                    4, 3, 'sofia@northwind.example',  10, 'Interview the data owners and document as we go.', null),
+    ('NW-DWH', 'risk',       'Peak-season freeze shrinks the cutover window', 'Retail freezes changes for six weeks.',                     3, 2, 'mei@northwind.example',    30, null, null)
+  ) as x(code, type, title, description, prob, impact, owner, due, mitigation, contingency)
+join private.seed_p p on p.code = x.code and p.organization_id = (select id from public.organizations where slug = 'northwind-demo');
+
+update public.raid_items set status = 'in_progress' where title = 'Vendor sandbox API is unstable';
+update public.raid_items set status = 'resolved', resolution_note = 'Resubmitted with the privacy manifest; approved by the store.' where title = 'App store submission rejected';
+update public.raid_items set status = 'accepted', resolution_note = 'Cutover is scheduled before the freeze; the residual risk is accepted by the sponsor.' where title = 'Peak-season freeze shrinks the cutover window';
+-- Recorded before NW-PAY turned red two days ago.
+update public.raid_items r set created_at = now() - interval '12 days'
+from private.seed_p p where p.id = r.project_id and p.code = 'NW-PAY';
+
+insert into public.decisions (organization_id, project_id, title, context, decision, rationale, consequences)
+select p.organization_id, p.id, x.title, x.context, x.decision, x.rationale, x.consequences
+from (values
+    ('NW-PAY', 'Cut over region by region',        'A single cutover carries too much risk for the bank.', 'Migrate one region per weekend.', 'Limits the blast radius of a bad cutover.', 'Longer overall programme; two ledgers run in parallel.'),
+    ('NW-PAY', 'Move the full cutover to Q1',      'The migration slipped and the client freeze starts in December.', 'Do a single cutover in the first January weekend.', 'Avoids running two ledgers through the freeze.', 'Adds three weeks to the plan; needs a change request.'),
+    ('NW-MOB', 'Ship biometric login in 3.1',      'Customers ask for it and the platform support is ready.', 'Include biometric login in release 3.1.', 'Highest-voted request; low effort.', 'Needs new test devices.'),
+    ('NW-DWH', 'Use dbt for transformations',      'Team needs tested, reviewable transformations.', null, null, null)
+  ) as x(code, title, context, decision, rationale, consequences)
+join private.seed_p p on p.code = x.code and p.organization_id = (select id from public.organizations where slug = 'northwind-demo');
+update public.decisions set status = 'accepted' where title in ('Cut over region by region', 'Move the full cutover to Q1', 'Ship biometric login in 3.1');
+update public.decisions d set status = 'superseded', superseded_by_id = n.id
+from public.decisions n where d.title = 'Cut over region by region' and n.title = 'Move the full cutover to Q1' and n.project_id = d.project_id;
+
+insert into public.project_actions (organization_id, project_id, title, description, owner_membership_id, due_date, raid_item_id)
+select p.organization_id, p.id, x.title, x.description, (select id from private.seed_m where email = x.owner and organization_id = p.organization_id),
+       current_date + x.due, (select r.id from public.raid_items r where r.project_id = p.id and r.title = x.raid)
+from (values
+    ('NW-PAY', 'Agree the vendor sandbox SLA',                'Get written uptime and rate-limit commitments.',             'arjun@northwind.example', -2, 'Vendor sandbox API is unstable'),
+    ('NW-PAY', 'Draft a retention plan for ledger engineers', 'Pairing, documentation and a knowledge-transfer schedule.',  'lena@northwind.example',  6,  'Key ledger engineer may leave'),
+    ('NW-MOB', 'Stabilise the UAT environment',               'Dedicated slot, smoke test after each deploy.',              'rahul@northwind.example', 3,  'UAT environment instability'),
+    ('NW-MOB', 'Resubmit 3.0.2 to the store',                 null,                                                         'tom@northwind.example',   -5, 'App store submission rejected'),
+    ('NW-DWH', 'Document the source schemas',                 'One page per source system.',                                'sofia@northwind.example', 9,  'Source schemas are undocumented')
+  ) as x(code, title, description, owner, due, raid)
+join private.seed_p p on p.code = x.code and p.organization_id = (select id from public.organizations where slug = 'northwind-demo');
+update public.project_actions set status = 'in_progress' where title = 'Stabilise the UAT environment';
+update public.project_actions set status = 'done' where title = 'Resubmit 3.0.2 to the store';
+
+-- Arjun (Project Manager) and Mei (Program Manager): escalations and change requests
+perform set_config('request.jwt.claims', '{"sub":"00000000-0000-4000-a000-000000000003","role":"authenticated"}', true);
+
+perform public.raise_escalation(
+  (select id from private.seed_p where code = 'NW-MOB'), 'UAT environment owner is unresponsive',
+  'Three requests for a stable UAT slot have gone unanswered; testing is stalled.', 'high',
+  (select id from private.seed_m where email = 'mei@northwind.example'), now() + interval '2 days', null,
+  '[{"kind":"note","title":"Request history","note":"Requests on the 3rd, 7th and 10th; no reply."},{"kind":"link","title":"UAT booking thread","url":"https://tracker.example/NW-MOB/uat"}]'::jsonb);
+perform public.raise_escalation(
+  (select id from private.seed_p where code = 'NW-PAY'), 'Vendor sandbox outage blocks ledger migration',
+  'The sandbox has been down for three days. Migration rehearsals cannot run.', 'critical',
+  (select id from private.seed_m where email = 'priya@northwind.example'), now() + interval '3 days',
+  (select r.id from public.raid_items r where r.title = 'Vendor sandbox API is unstable'),
+  '[{"kind":"note","title":"Impact","note":"Rehearsal 2 and 3 are blocked; cutover date at risk."},{"kind":"link","title":"Vendor status page","url":"https://status.vendor.example"}]'::jsonb);
+-- Mei manages NW-DWH.
+perform set_config('request.jwt.claims', '{"sub":"00000000-0000-4000-a000-000000000004","role":"authenticated"}', true);
+perform public.raise_escalation(
+  (select id from private.seed_p where code = 'NW-DWH'), 'Source system access still not granted',
+  'Access to the finance source system was promised for last sprint.', 'medium',
+  (select id from private.seed_m where email = 'priya@northwind.example'), now() + interval '5 days', null,
+  '[{"kind":"note","title":"Request","note":"Access request raised two weeks ago."}]'::jsonb);
+-- One overdue (deadline passed), one acknowledged, one resolved.
+update public.escalations set respond_by = now() - interval '1 day' where title = 'UAT environment owner is unresponsive';
+perform set_config('request.jwt.claims', '{"sub":"00000000-0000-4000-a000-000000000001","role":"authenticated"}', true);
+perform public.acknowledge_escalation((select id from public.escalations where title = 'Vendor sandbox outage blocks ledger migration'));
+perform public.acknowledge_escalation((select id from public.escalations where title = 'Source system access still not granted'));
+perform public.resolve_escalation((select id from public.escalations where title = 'Source system access still not granted'), 'Access granted by the client CIO on Tuesday.');
+
+perform set_config('request.jwt.claims', '{"sub":"00000000-0000-4000-a000-000000000003","role":"authenticated"}', true);
+insert into public.change_requests (organization_id, project_id, title, description, justification, impact_schedule_days, impact_effort_hours, impact_scope, impact_risk)
+select p.organization_id, p.id, x.title, x.description, x.justification, x.days, x.hours, x.scope, x.risk
+from (values
+    ('NW-PAY', 'Extend ledger scope to FX settlements', 'Include foreign-exchange settlement postings in the new ledger.', 'Contractual commitment in the SOW addendum.', 15, 320.0, 'Adds the FX posting module.', 'Introduces a dependency on the treasury system.'),
+    ('NW-MOB', 'Add biometric re-authentication',        'Re-authenticate with biometrics for payments above a limit.', 'Required by the bank''s new security policy.', 5, 80.0, 'One new screen and a policy service.', 'Needs new test devices.'),
+    ('NW-DWH', 'Add a quarterly archive tier',           'Move cold data to cheaper storage.', null, null::int, null::numeric, null, null)
+  ) as x(code, title, description, justification, days, hours, scope, risk)
+join private.seed_p p on p.code = x.code and p.organization_id = (select id from public.organizations where slug = 'northwind-demo');
+-- Backdated while still a draft: submitted requests are locked.
+update public.change_requests c set created_at = now() - interval '4 days' from private.seed_p p where p.id = c.project_id and p.code = 'NW-PAY';
+perform public.submit_change_request(id) from public.change_requests where title in ('Extend ledger scope to FX settlements', 'Add biometric re-authentication');
+perform set_config('request.jwt.claims', '{"sub":"00000000-0000-4000-a000-000000000001","role":"authenticated"}', true);
+perform public.decide_change_request((select id from public.change_requests where title = 'Extend ledger scope to FX settlements'), true, 'Approved; re-baseline once the cutover decision is confirmed.');
+
+-- Releases: one shipped, one in review, one planned
+perform set_config('request.jwt.claims', '{"sub":"00000000-0000-4000-a000-000000000003","role":"authenticated"}', true);
+insert into public.releases (organization_id, project_id, name, version, planned_date, notes, release_manager_membership_id)
+select p.organization_id, p.id, x.name, x.version, current_date + x.offset_days, x.notes, (select id from private.seed_m where email = x.manager and organization_id = p.organization_id)
+from (values
+    ('NW-MOB', 'Release 3.0.2',    '3.0.2', -6, 'Hotfix: crash on launch for older devices.', 'rahul@northwind.example'),
+    ('NW-MOB', 'Release 3.1',      '3.1.0', 12, 'Biometric login, payments polish.',          'rahul@northwind.example'),
+    ('NW-PAY', 'Ledger cutover 1', '1.0.0', 30, 'First production cutover.',                  'arjun@northwind.example')
+  ) as x(code, name, version, offset_days, notes, manager)
+join private.seed_p p on p.code = x.code and p.organization_id = (select id from public.organizations where slug = 'northwind-demo');
+
+perform public.transition_release((select id from public.releases where name = 'Release 3.0.2'), 'in_review');
+perform public.record_gate_result(g.id, 'passed') from public.release_gates g join public.releases r on r.id = g.release_id
+ where r.name = 'Release 3.0.2' and g.name <> 'Security review';
+perform set_config('request.jwt.claims', '{"sub":"00000000-0000-4000-a000-000000000001","role":"authenticated"}', true);
+perform public.record_gate_result(g.id, 'waived', 'Hotfix with no new dependencies; covered by the 3.0 review.') from public.release_gates g join public.releases r on r.id = g.release_id
+ where r.name = 'Release 3.0.2' and g.name = 'Security review';
+perform public.transition_release((select id from public.releases where name = 'Release 3.0.2'), 'approved');
+perform set_config('request.jwt.claims', '{"sub":"00000000-0000-4000-a000-000000000003","role":"authenticated"}', true);
+perform public.transition_release((select id from public.releases where name = 'Release 3.0.2'), 'released');
+perform public.transition_release((select id from public.releases where name = 'Release 3.1'), 'in_review');
+perform public.record_gate_result(g.id, 'passed') from public.release_gates g join public.releases r on r.id = g.release_id
+ where r.name = 'Release 3.1' and g.name in ('Automated tests passing', 'No open critical defects');
+
+-- Documents (Arjun for PAY and MOB, Mei for DWH)
+perform public.create_document((select id from private.seed_p where code = 'NW-PAY'), 'Project charter', 'charter', 'internal',
+  'Scope, goals and governance for the payments platform programme.',
+  E'# Payments Platform Modernization — charter\n\n## Goals\n- Replace the legacy payment switch\n- Zero data loss at cutover\n\n## Governance\nWeekly steering with the sponsor.', null, 'Initial version');
+perform public.add_document_version((select id from public.documents where title = 'Project charter'),
+  E'# Payments Platform Modernization — charter\n\n## Goals\n- Replace the legacy payment switch\n- Zero data loss at cutover\n- Add FX settlement postings (CR approved)\n\n## Governance\nWeekly steering with the sponsor.', null, 'Added FX scope after change approval');
+perform public.create_document((select id from private.seed_p where code = 'NW-MOB'), 'Release notes 3.0.2', 'report', 'client',
+  'What changed in the 3.0.2 hotfix, for the client product owner.',
+  E'# Release 3.0.2\n\n- Fixed a crash on launch for devices older than three years.\n- No new features.', null, 'Published with the release');
+perform set_config('request.jwt.claims', '{"sub":"00000000-0000-4000-a000-000000000004","role":"authenticated"}', true);
+perform public.create_document((select id from private.seed_p where code = 'NW-DWH'), 'Migration approach', 'plan', 'internal',
+  'How the warehouse moves, wave by wave.', null, 'https://docs.example/nw-dwh/migration-approach', 'Linked from the team wiki');
+
+-- Client contacts and contracts (Contoso is confidential; Priya is its account owner)
+perform set_config('request.jwt.claims', '{"sub":"00000000-0000-4000-a000-000000000001","role":"authenticated"}', true);
+insert into public.client_contacts (organization_id, client_id, name, job_title, email, phone, is_primary)
+select c.organization_id, c.id, x.name, x.title, x.email, x.phone, x.is_primary
+from (values
+    ('CONTOSO',  'Claire Dubois',   'Head of Digital',    'claire@contoso.example',   '+33 1 5555 0101', true),
+    ('CONTOSO',  'Marc Lefevre',    'Security Architect', 'marc@contoso.example',     null,              false),
+    ('FABRIKAM', 'Nina Alvarez',    'COO',                'nina@fabrikam.example',    '+1 555 0102',     true),
+    ('TAILSPIN', 'Oskar Lindqvist', 'VP Partnerships',    'oskar@tailspin.example',   null,              true)
+  ) as x(code, name, title, email, phone, is_primary)
+join public.clients c on c.code = x.code and c.organization_id = (select id from public.organizations where slug = 'northwind-demo');
+insert into public.client_contracts (organization_id, client_id, title, reference, contract_type, status, start_date, end_date, renewal_notice_days, notes)
+select c.organization_id, c.id, x.title, x.ref, x.type::public.contract_type, x.status::public.contract_status, current_date + x.start_offset, current_date + x.end_offset, x.notice, x.notes
+from (values
+    ('CONTOSO',  'Master services agreement',      'MSA-2024-017', 'msa',     'active', -400, 200, 90,         'Governs all Contoso work. Demo record.'),
+    ('CONTOSO',  'SOW 4 — Payments modernization', 'SOW-2025-004', 'sow',     'active', -120, 45,  60,         'Ends soon: renewal discussion due. Demo record.'),
+    ('FABRIKAM', 'Support agreement',              'SUP-2025-009', 'support', 'active', -60,  400, 30,         'Demo record.'),
+    ('TAILSPIN', 'Mutual NDA',                     null,           'nda',     'draft',  0,    365, null::int,  'Awaiting signature. Demo record.')
+  ) as x(code, title, ref, type, status, start_offset, end_offset, notice, notes)
+join public.clients c on c.code = x.code and c.organization_id = (select id from public.organizations where slug = 'northwind-demo');
+
+-- NW-PAY turned red two days ago. Everything recorded for it is dated before that, so none of it counts
+-- as a recovery action and the executive report lists the project as red with nothing recorded since.
+update public.escalations e set created_at = now() - interval '4 days' from private.seed_p p where p.id = e.project_id and p.code = 'NW-PAY';
+update public.project_actions a set created_at = now() - interval '4 days' from private.seed_p p where p.id = a.project_id and p.code = 'NW-PAY';
+
+perform set_config('request.jwt.claims', '', true);
+drop table private.seed_p;
+
 drop table private.seed_m;
 
 end;
 $seed$;
-

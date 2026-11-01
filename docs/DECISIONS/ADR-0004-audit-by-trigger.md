@@ -9,7 +9,7 @@ Audit records must not depend on every code path remembering to write them, and 
 - A generic `private.audit_row_change()` AFTER trigger on every Phase 1 business table records
   inserts, deletes and field-level diffs for updates, with `auth.uid()` as actor.
 - `project_status_history` is written by an AFTER trigger on status/health changes.
-- Reasons are passed through the transaction-local setting `dhos.change_reason` from RPCs.
+- Reasons are passed through the transaction-local setting `stride_ces.change_reason` from RPCs.
 - `audit_logs` has no update/delete grants and a trigger that raises on update/delete (except
   cascade during organization deletion).
 

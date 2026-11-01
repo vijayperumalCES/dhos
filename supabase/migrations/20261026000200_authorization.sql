@@ -1,4 +1,4 @@
--- DHOS Phase 1 — Authorization: permission catalogue, system role templates, helper
+-- Stride Phase 1 — Authorization: permission catalogue, system role templates, helper
 -- functions used by RLS, organization bootstrap and membership RPCs.
 -- The authoritative human-readable matrix lives in docs/AUTHORIZATION.md; keep them in sync
 -- (tests/unit/authorization-matrix.test.ts checks the TypeScript mirror).

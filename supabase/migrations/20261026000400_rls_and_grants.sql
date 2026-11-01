@@ -1,4 +1,4 @@
--- DHOS Phase 1 — Row Level Security policies and explicit API privileges.
+-- Stride Phase 1 — Row Level Security policies and explicit API privileges.
 -- Rule: every table has RLS enabled. anon has no access to anything. Columns that carry
 -- governance meaning (project status/health/archive, membership status, roles) are not
 -- writable through table privileges at all; they change only through the RPCs that check

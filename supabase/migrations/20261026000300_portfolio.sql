@@ -1,4 +1,4 @@
--- DHOS Phase 1 — Clients, teams, projects, project membership and status history.
+-- Stride Phase 1 — Clients, teams, projects, project membership and status history.
 
 create type public.project_status as enum ('proposed', 'approved', 'planning', 'active', 'on_hold', 'completed', 'cancelled');
 create type public.project_health as enum ('not_assessed', 'green', 'amber', 'red');

@@ -34,3 +34,29 @@ export function supportedTimeZones(): string[] {
   const zones = intl.supportedValuesOf?.("timeZone") ?? [];
   return zones.includes("UTC") ? zones : ["UTC", ...zones];
 }
+
+/** Minutes the zone is ahead of UTC at the given instant (e.g. 330 for Asia/Kolkata). */
+function zoneOffsetMinutes(at: Date, timeZone: string): number {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone,
+    hourCycle: "h23",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  }).formatToParts(at);
+  const get = (t: string) => Number(parts.find((p) => p.type === t)?.value);
+  const asUtc = Date.UTC(get("year"), get("month") - 1, get("day"), get("hour"), get("minute"), get("second"));
+  return Math.round((asUtc - at.getTime()) / 60000);
+}
+
+/** The instant 23:59:00 on a calendar date in the organization's zone, as an ISO timestamp (deadlines are end of day). */
+export function endOfDayInTimeZone(date: DateString, timeZone: string): string {
+  const tz = isValidTimeZone(timeZone) ? timeZone : "UTC";
+  const guess = new Date(`${date}T23:59:00Z`);
+  const first = new Date(guess.getTime() - zoneOffsetMinutes(guess, tz) * 60000);
+  // One more pass settles dates where the offset differs between the guess and the result (DST changes).
+  return new Date(guess.getTime() - zoneOffsetMinutes(first, tz) * 60000).toISOString();
+}

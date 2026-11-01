@@ -9,7 +9,9 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 import { requireUser, type CurrentUser } from "./session";
 
-export const ACTIVE_ORG_COOKIE = "dhos_org";
+export const ACTIVE_ORG_COOKIE = "stride_ces_org";
+/** Cookie name before the stride-ces rename; read as a fallback and cleared on sign-out. */
+export const LEGACY_ORG_COOKIE = "dhos_org";
 
 export type OrgSummary = { id: string; name: string; slug: string; isDemo: boolean };
 
@@ -49,7 +51,8 @@ export const getOrgContext = cache(async (): Promise<OrgContext | null> => {
     isDemo: m.organizations.is_demo,
   }));
 
-  const preferred = (await cookies()).get(ACTIVE_ORG_COOKIE)?.value;
+  const jar = await cookies();
+  const preferred = jar.get(ACTIVE_ORG_COOKIE)?.value ?? jar.get(LEGACY_ORG_COOKIE)?.value;
   const active = memberships.find((m) => m.organization_id === preferred) ?? memberships[0];
   const orgId = active.organization_id;
 

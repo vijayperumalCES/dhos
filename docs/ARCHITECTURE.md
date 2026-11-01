@@ -70,7 +70,7 @@ tests/
 
 **Read.** A Server Component calls `requireOrgContext()` (memoised per request with `React.cache`),
 which verifies the JWT (`auth.getClaims()`), loads active memberships, resolves the active
-organization from the `dhos_org` cookie *only if* the user is a member, and loads the caller's
+organization from the `stride_ces_org` cookie *only if* the user is a member, and loads the caller's
 permission keys via `my_permissions()`. Data functions in `lib/data` query with the same user-scoped
 client, so RLS filters every row.
 

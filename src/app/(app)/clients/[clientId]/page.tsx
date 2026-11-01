@@ -10,8 +10,14 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { requireOrgContext } from "@/lib/auth/org-context";
+import { ContactDialog, ContactRowActions, ContractDialog, ContractRowActions } from "@/components/clients/client-records";
+import { ContractStatusBadge } from "@/components/governance/badges";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { listClientContacts, listClientContracts } from "@/lib/data/client-records";
 import { getClient, getClientProjects } from "@/lib/data/clients";
-import { personName } from "@/lib/format";
+import { CONTRACT_TYPE_LABELS, contractTiming } from "@/lib/domain/governance";
+import { todayInTimeZone } from "@/lib/domain/time";
+import { formatDate, personName } from "@/lib/format";
 
 export const metadata: Metadata = { title: "Client" };
 
@@ -23,6 +29,10 @@ export default async function ClientPage({ params }: PageProps<"/clients/[client
   const projects = ctx.permissions.canReadProjects ? await getClientProjects(ctx, client.id) : [];
   const canManage = ctx.permissions.has("client.manage");
   const archived = client.archived_at !== null;
+  const [contacts, contracts] = await Promise.all([listClientContacts(client.id), listClientContracts(client.id)]);
+  const today = todayInTimeZone(new Date(), ctx.settings.timezone);
+  const activeContacts = contacts.filter((c) => !c.archived_at);
+  const activeContracts = contracts.filter((c) => !c.archived_at);
 
   return (
     <div className="mx-auto max-w-5xl">
@@ -108,6 +118,113 @@ export default async function ClientPage({ params }: PageProps<"/clients/[client
                   </li>
                 ))}
               </ul>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="mt-6 space-y-6">
+        <Card className="pb-0">
+          <CardHeader className="flex flex-row flex-wrap items-start justify-between gap-3">
+            <div className="space-y-1.5">
+              <CardTitle>Contacts</CardTitle>
+              <CardDescription>
+                People at the client. {client.confidentiality === "confidential" ? "Visible only to people who can see this confidential client." : "Visible to anyone who can see this client."}
+              </CardDescription>
+            </div>
+            {canManage && !archived && <ContactDialog clientId={client.id} />}
+          </CardHeader>
+          <CardContent className="px-0">
+            {activeContacts.length === 0 ? (
+              <p className="px-6 pb-6 text-sm text-muted-foreground">No contacts recorded.</p>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="pl-6">Name</TableHead>
+                    <TableHead>Email</TableHead>
+                    <TableHead className="hidden md:table-cell">Phone</TableHead>
+                    {canManage && (
+                      <TableHead className="w-12 pr-6">
+                        <span className="sr-only">Actions</span>
+                      </TableHead>
+                    )}
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {activeContacts.map((c) => (
+                    <TableRow key={c.id}>
+                      <TableCell className="pl-6">
+                        <div className="font-medium">
+                          {c.name} {c.is_primary && <Badge variant="outline">Primary</Badge>}
+                        </div>
+                        {c.job_title && <div className="text-xs text-muted-foreground">{c.job_title}</div>}
+                      </TableCell>
+                      <TableCell>{c.email ? <a href={`mailto:${c.email}`} className="text-primary hover:underline">{c.email}</a> : "—"}</TableCell>
+                      <TableCell className="hidden md:table-cell">{c.phone ?? "—"}</TableCell>
+                      {canManage && (
+                        <TableCell className="pr-6">
+                          <ContactRowActions clientId={client.id} contact={c} />
+                        </TableCell>
+                      )}
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card className="pb-0">
+          <CardHeader className="flex flex-row flex-wrap items-start justify-between gap-3">
+            <div className="space-y-1.5">
+              <CardTitle>Contracts</CardTitle>
+              <CardDescription>Terms and dates. Active contracts inside their notice period (60 days when none is set) are flagged.</CardDescription>
+            </div>
+            {canManage && !archived && <ContractDialog clientId={client.id} />}
+          </CardHeader>
+          <CardContent className="px-0">
+            {activeContracts.length === 0 ? (
+              <p className="px-6 pb-6 text-sm text-muted-foreground">No contracts recorded.</p>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="pl-6">Contract</TableHead>
+                    <TableHead>Term</TableHead>
+                    <TableHead>Status</TableHead>
+                    {canManage && (
+                      <TableHead className="w-12 pr-6">
+                        <span className="sr-only">Actions</span>
+                      </TableHead>
+                    )}
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {activeContracts.map((c) => (
+                    <TableRow key={c.id}>
+                      <TableCell className="pl-6">
+                        <div className="font-medium">{c.title}</div>
+                        <div className="text-xs text-muted-foreground">
+                          {CONTRACT_TYPE_LABELS[c.contract_type]}
+                          {c.reference ? ` · ${c.reference}` : ""}
+                        </div>
+                      </TableCell>
+                      <TableCell className="tabular-nums">
+                        {formatDate(c.start_date)} – {formatDate(c.end_date)}
+                      </TableCell>
+                      <TableCell>
+                        <ContractStatusBadge status={c.status} timing={contractTiming(c, today)} />
+                      </TableCell>
+                      {canManage && (
+                        <TableCell className="pr-6">
+                          <ContractRowActions clientId={client.id} contract={c} />
+                        </TableCell>
+                      )}
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
             )}
           </CardContent>
         </Card>

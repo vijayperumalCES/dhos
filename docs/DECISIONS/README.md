@@ -13,3 +13,4 @@ Add a new ADR (next number) for any decision that is costly to reverse.
 | [0006](ADR-0006-ui-stack.md) | shadcn/ui (Radix), React Hook Form + Zod, Recharts | Accepted |
 | [0007](ADR-0007-work-management-model.md) | Work management data model | Accepted |
 | [0008](ADR-0008-workforce-model.md) | Workforce data model and HR access policy | Accepted |
+| [0009](ADR-0009-governance-model.md) | Delivery governance data model and access | Accepted |
