@@ -1,7 +1,7 @@
 # Stride — Authorization
 
-_Last updated: 2026-10-26 (Phase 1). Authoritative source: `supabase/migrations/20261026000200_authorization.sql`
-and `…000400_rls_and_grants.sql`. `tests/unit/authorization-matrix.test.ts` fails if the TypeScript
+_Last updated: 2026-11-01 (Phase 3). Authoritative source: `supabase/migrations/20261026000200_authorization.sql`,
+`…000400_rls_and_grants.sql` and later migrations that update role templates (`20261029000100_workforce.sql`). `tests/unit/authorization-matrix.test.ts` fails if the TypeScript
 mirror (`src/lib/domain/permissions.ts`) drifts from the SQL._
 
 ## 1. Model
@@ -18,7 +18,7 @@ mirror (`src/lib/domain/permissions.ts`) drifts from the SQL._
 - **The UI is not the boundary.** Hiding a button is convenience; RLS, column grants and RPC checks
   are the enforcement. Server actions re-check permissions for friendly errors only.
 
-## 2. Permission catalogue (Phase 1)
+## 2. Permission catalogue
 
 Organizations can also define **custom roles** from this catalogue (Administration → Roles & permissions).
 System roles cannot be edited; custom-role permission changes are written to the audit log with what was
@@ -48,6 +48,16 @@ added and removed.
 | `work.read` / `work.create` / `work.update` / `work.archive` | Work items on visible projects (read; create; edit, move, comment; archive) |
 | `sprint.manage` | Plan, start and complete sprints on visible projects |
 | `workflow.manage` | Configure workflow states and transition rules |
+| `workforce.self` | Record own attendance, request leave and corrections, keep own timesheets |
+| `hr.read` | View attendance, leave requests and balances of everyone |
+| `hr.manage` | Calendars, holidays, leave types and balances; review leave and corrections for anyone but yourself |
+| `timesheet.read_all` | View everyone's timesheets and the compliance report |
+| `timesheet.approve` | Approve or return anyone's timesheet except your own |
+| `resource.read` | Capacity, utilisation and allocations for the organization |
+| `resource.manage` | Create, edit and remove allocations on visible projects |
+
+Direct managers (`manager_membership_id`) can see and review their reports' attendance, leave and
+timesheets without any of the HR permissions. See section 3a.
 
 ## 3. Role matrix
 
@@ -80,6 +90,12 @@ added and removed.
 | work.archive | | ✓ | ✓ | A | A | A | | | | | | | | |
 | sprint.manage | | ✓ | ✓ | A | A | | A | | | | | | | |
 | workflow.manage | ✓ | ✓ | | | | | | | | | | | | |
+| workforce.self | | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | | ✓ |
+| hr.read / hr.manage | |  | |  | |  | |  | |  | ✓ | |  | |
+| timesheet.read_all | | ✓ | |  | |  | |  | | ✓ | | ✓ | |  |
+| timesheet.approve | | ✓ | |  | |  | |  | |  | |  | |  |
+| resource.read | | ✓ | ✓ | ✓ | ✓ | |  | |  | ✓ | | ✓ | |  |
+| resource.manage | | ✓ | ✓ | |  | |  | |  | ✓ | |  | |  |
 
 ### Notable design choices
 
@@ -93,7 +109,23 @@ added and removed.
   itself will live in separate tables with their own policies.
 - **Client stakeholders** see milestones and status reports of shared projects, never work items,
   boards or sprints (no `work.read`). Status-report snapshots therefore store counts, not item titles.
-- **HR Admin** and **AI Agent Operator** have directory access only until their modules exist.
+- **AI Agent Operator** has directory access and self-service workforce only until Phase 6.
+
+### 3a. HR data (Phase 3)
+
+Attendance, leave and timesheets follow their own rule, not project visibility
+([ADR-0008](DECISIONS/ADR-0008-workforce-model.md)):
+
+| Who | Attendance, leave, balances | Timesheets | Reviews |
+|---|---|---|---|
+| The person | ✓ own | ✓ own | Never their own |
+| Direct manager | ✓ reports | ✓ reports | Reports' leave, corrections and timesheets |
+| `hr.read` / `hr.manage` | ✓ everyone | | `hr.manage`: leave and corrections for anyone else |
+| `timesheet.read_all` / `timesheet.approve` | | ✓ everyone | `timesheet.approve`: timesheets for anyone else |
+| Anyone with the directory | Only "On leave" and holidays (`team_availability`) | | |
+
+Leave, balances, attendance and corrections have no write grants; every change goes through an RPC
+that checks the rule above. Timesheet entries are written by their owner and lock on submission.
 
 ## 4. Enforcement map
 
@@ -103,6 +135,7 @@ added and removed.
 | Inserts/updates | RLS `with check` + column-level grants |
 | Lifecycle validity | BEFORE trigger (cannot be bypassed by any caller, including RPCs) |
 | Governed changes | `transition_project_status`, `set_project_health`, `set_project_archived`, `set_member_roles`, `set_membership_status` |
+| HR data | `private.can_view_hr_of` / `can_review_hr_of` (and the timesheet equivalents) in RLS and RPCs |
 | Tenant consistency of references | Composite foreign keys `(id, organization_id)` |
 | Audit immutability | No update/delete grants + trigger that raises on update/delete |
 | Rate limits | Org creation (5/user/day), invitations (50/org/hour) in RPCs; Supabase Auth rate limits for sign-in/up |
@@ -114,8 +147,9 @@ added and removed.
 `supabase/tests/database/01_tenant_isolation_and_rbac.test.sql` (45 assertions) covers anon denial,
 cross-tenant reads/writes, role-scoped visibility, admin-without-data, client isolation, direct
 status-update denial, lifecycle and reason rules, cross-tenant FK rejection, invitation flow,
-last-admin guard, suspension and audit immutability. Playwright covers the same boundaries through
-the UI.
+last-admin guard, suspension and audit immutability. `04_workforce.test.sql` (53 assertions) covers
+the HR visibility rule, self-approval denial, balances, timesheet locks, RPC-only writes and
+over-allocation. Playwright covers the same boundaries through the UI.
 
 ## 6. AI agents (Phase 6 constraint)
 

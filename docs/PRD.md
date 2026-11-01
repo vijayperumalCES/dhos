@@ -1,6 +1,6 @@
 # Stride — Product Requirements Document
 
-_Living document. Last updated: 2026-10-26 (Phase 1)._
+_Living document. Last updated: 2026-11-01 (Phase 3)._
 
 ## 1. Problem
 
@@ -127,10 +127,27 @@ validated preview (all-or-nothing); invitations can be created in bulk from CSV.
 - **US-2.7 Status reports.** Publish immutable reports combining narrative with evidence.
 - **US-2.8 Command Center.** Overdue, due-soon and slipped milestones; sprint completion; blocked work.
 
+### Phase 3 — Workforce (delivered 2026-11-01)
+
+- **US-3.1 Calendars.** HR defines work calendars (working days, hours per day) and holidays, and
+  assigns a calendar to anyone who doesn't follow the default.
+- **US-3.2 Leave.** Employees see their balances and request leave; days are counted from their
+  calendar. Their manager (or HR) approves or rejects with a reason and sees milestones due during the
+  leave. Colleagues see only that someone is away.
+- **US-3.3 Attendance.** Employees check in and out; missed days are fixed by a correction their manager
+  approves. Managers see exceptions for their reports.
+- **US-3.4 Timesheets.** Employees log weekly time against projects, work items or internal categories
+  and submit it; managers approve or return it and see who hasn't submitted.
+- **US-3.5 Resource planning.** Resource managers allocate people to projects by date and percentage,
+  and see capacity, over-allocation and utilisation for any range up to six months.
+- AC: Nobody can approve their own leave, correction or timesheet; HR data is visible only to the
+  person, their manager and HR (pgTAP `04_workforce`).
+
 ### 5.2 Out of scope for Phase 1
 
 Work items, sprints, milestones, attendance, leave, timesheets, financials, RAID, releases,
-documents, notifications, AI agents, workflows, integrations. See `docs/ROADMAP.md`.
+documents, notifications, AI agents, workflows, integrations. Work management shipped in Phase 2 and
+workforce in Phase 3; the rest is in `docs/ROADMAP.md`.
 
 ## 6. Non-functional requirements
 

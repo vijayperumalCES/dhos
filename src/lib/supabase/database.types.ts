@@ -34,37 +34,149 @@ export type Database = {
   }
   public: {
     Tables: {
+      attendance_corrections: {
+        Row: {
+          check_in_at: string
+          check_out_at: string
+          created_at: string
+          id: string
+          membership_id: string
+          organization_id: string
+          reason: string
+          review_note: string | null
+          reviewed_at: string | null
+          reviewer_id: string | null
+          status: Database["public"]["Enums"]["request_status"]
+          updated_at: string
+          work_date: string
+          work_mode: Database["public"]["Enums"]["work_mode"]
+        }
+        ComputedFields: never
+        Insert: {
+          check_in_at: string
+          check_out_at: string
+          created_at?: string
+          id?: string
+          membership_id: string
+          organization_id: string
+          reason: string
+          review_note?: string | null
+          reviewed_at?: string | null
+          reviewer_id?: string | null
+          status?: Database["public"]["Enums"]["request_status"]
+          updated_at?: string
+          work_date: string
+          work_mode?: Database["public"]["Enums"]["work_mode"]
+        }
+        Update: {
+          check_in_at?: string
+          check_out_at?: string
+          created_at?: string
+          id?: string
+          membership_id?: string
+          organization_id?: string
+          reason?: string
+          review_note?: string | null
+          reviewed_at?: string | null
+          reviewer_id?: string | null
+          status?: Database["public"]["Enums"]["request_status"]
+          updated_at?: string
+          work_date?: string
+          work_mode?: Database["public"]["Enums"]["work_mode"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "attendance_corrections_membership_id_organization_id_fkey"
+            columns: ["membership_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "organization_memberships"
+            referencedColumns: ["id", "organization_id"]
+          },
+        ]
+      }
+      attendance_records: {
+        Row: {
+          check_in_at: string
+          check_out_at: string | null
+          created_at: string
+          id: string
+          membership_id: string
+          note: string | null
+          organization_id: string
+          source: Database["public"]["Enums"]["attendance_source"]
+          updated_at: string
+          work_date: string
+          work_mode: Database["public"]["Enums"]["work_mode"]
+        }
+        ComputedFields: never
+        Insert: {
+          check_in_at: string
+          check_out_at?: string | null
+          created_at?: string
+          id?: string
+          membership_id: string
+          note?: string | null
+          organization_id: string
+          source?: Database["public"]["Enums"]["attendance_source"]
+          updated_at?: string
+          work_date: string
+          work_mode?: Database["public"]["Enums"]["work_mode"]
+        }
+        Update: {
+          check_in_at?: string
+          check_out_at?: string | null
+          created_at?: string
+          id?: string
+          membership_id?: string
+          note?: string | null
+          organization_id?: string
+          source?: Database["public"]["Enums"]["attendance_source"]
+          updated_at?: string
+          work_date?: string
+          work_mode?: Database["public"]["Enums"]["work_mode"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "attendance_records_membership_id_organization_id_fkey"
+            columns: ["membership_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "organization_memberships"
+            referencedColumns: ["id", "organization_id"]
+          },
+        ]
+      }
       audit_logs: {
         Row: {
           action: string
           actor_id: string | null
-          changes: Json
+          changes: NonNullable<Json>
           entity_id: string | null
           entity_type: string
           id: string
-          metadata: Json
+          metadata: NonNullable<Json>
           occurred_at: string
           organization_id: string
         }
+        ComputedFields: never
         Insert: {
           action: string
           actor_id?: string | null
-          changes?: Json
+          changes?: NonNullable<Json>
           entity_id?: string | null
           entity_type: string
           id?: string
-          metadata?: Json
+          metadata?: NonNullable<Json>
           occurred_at?: string
           organization_id: string
         }
         Update: {
           action?: string
           actor_id?: string | null
-          changes?: Json
+          changes?: NonNullable<Json>
           entity_id?: string | null
           entity_type?: string
           id?: string
-          metadata?: Json
+          metadata?: NonNullable<Json>
           occurred_at?: string
           organization_id?: string
         }
@@ -94,6 +206,7 @@ export type Database = {
           updated_at: string
           website: string | null
         }
+        ComputedFields: never
         Insert: {
           account_owner_membership_id?: string | null
           archived_at?: string | null
@@ -154,6 +267,7 @@ export type Database = {
           organization_id: string
           updated_at: string
         }
+        ComputedFields: never
         Insert: {
           archived_at?: string | null
           code?: string | null
@@ -195,6 +309,206 @@ export type Database = {
           },
         ]
       }
+      holidays: {
+        Row: {
+          calendar_id: string
+          created_at: string
+          holiday_date: string
+          id: string
+          name: string
+          organization_id: string
+        }
+        ComputedFields: never
+        Insert: {
+          calendar_id: string
+          created_at?: string
+          holiday_date: string
+          id?: string
+          name: string
+          organization_id: string
+        }
+        Update: {
+          calendar_id?: string
+          created_at?: string
+          holiday_date?: string
+          id?: string
+          name?: string
+          organization_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "holidays_calendar_id_organization_id_fkey"
+            columns: ["calendar_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "work_calendars"
+            referencedColumns: ["id", "organization_id"]
+          },
+        ]
+      }
+      leave_balances: {
+        Row: {
+          granted_days: number
+          leave_type_id: string
+          membership_id: string
+          organization_id: string
+          updated_at: string
+          year: number
+        }
+        ComputedFields: never
+        Insert: {
+          granted_days: number
+          leave_type_id: string
+          membership_id: string
+          organization_id: string
+          updated_at?: string
+          year: number
+        }
+        Update: {
+          granted_days?: number
+          leave_type_id?: string
+          membership_id?: string
+          organization_id?: string
+          updated_at?: string
+          year?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "leave_balances_leave_type_id_organization_id_fkey"
+            columns: ["leave_type_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "leave_types"
+            referencedColumns: ["id", "organization_id"]
+          },
+          {
+            foreignKeyName: "leave_balances_membership_id_organization_id_fkey"
+            columns: ["membership_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "organization_memberships"
+            referencedColumns: ["id", "organization_id"]
+          },
+        ]
+      }
+      leave_requests: {
+        Row: {
+          created_at: string
+          days: number
+          end_date: string
+          half_day: boolean
+          id: string
+          leave_type_id: string
+          membership_id: string
+          organization_id: string
+          reason: string | null
+          review_note: string | null
+          reviewed_at: string | null
+          reviewer_id: string | null
+          start_date: string
+          status: Database["public"]["Enums"]["request_status"]
+          updated_at: string
+        }
+        ComputedFields: never
+        Insert: {
+          created_at?: string
+          days?: number
+          end_date: string
+          half_day?: boolean
+          id?: string
+          leave_type_id: string
+          membership_id: string
+          organization_id: string
+          reason?: string | null
+          review_note?: string | null
+          reviewed_at?: string | null
+          reviewer_id?: string | null
+          start_date: string
+          status?: Database["public"]["Enums"]["request_status"]
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          days?: number
+          end_date?: string
+          half_day?: boolean
+          id?: string
+          leave_type_id?: string
+          membership_id?: string
+          organization_id?: string
+          reason?: string | null
+          review_note?: string | null
+          reviewed_at?: string | null
+          reviewer_id?: string | null
+          start_date?: string
+          status?: Database["public"]["Enums"]["request_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "leave_requests_leave_type_id_organization_id_fkey"
+            columns: ["leave_type_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "leave_types"
+            referencedColumns: ["id", "organization_id"]
+          },
+          {
+            foreignKeyName: "leave_requests_membership_id_organization_id_fkey"
+            columns: ["membership_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "organization_memberships"
+            referencedColumns: ["id", "organization_id"]
+          },
+        ]
+      }
+      leave_types: {
+        Row: {
+          annual_allowance_days: number | null
+          archived_at: string | null
+          code: string
+          created_at: string
+          id: string
+          is_paid: boolean
+          name: string
+          organization_id: string
+          position: number
+          requires_approval: boolean
+          updated_at: string
+        }
+        ComputedFields: never
+        Insert: {
+          annual_allowance_days?: number | null
+          archived_at?: string | null
+          code: string
+          created_at?: string
+          id?: string
+          is_paid?: boolean
+          name: string
+          organization_id: string
+          position?: number
+          requires_approval?: boolean
+          updated_at?: string
+        }
+        Update: {
+          annual_allowance_days?: number | null
+          archived_at?: string | null
+          code?: string
+          created_at?: string
+          id?: string
+          is_paid?: boolean
+          name?: string
+          organization_id?: string
+          position?: number
+          requires_approval?: boolean
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "leave_types_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       membership_roles: {
         Row: {
           granted_at: string
@@ -203,6 +517,7 @@ export type Database = {
           organization_id: string
           role_id: string
         }
+        ComputedFields: never
         Insert: {
           granted_at?: string
           granted_by?: string | null
@@ -248,6 +563,7 @@ export type Database = {
           role_keys: string[]
           status: Database["public"]["Enums"]["invitation_status"]
         }
+        ComputedFields: never
         Insert: {
           accepted_at?: string | null
           created_at?: string
@@ -295,7 +611,9 @@ export type Database = {
           status: Database["public"]["Enums"]["membership_status"]
           updated_at: string
           user_id: string
+          work_calendar_id: string | null
         }
+        ComputedFields: never
         Insert: {
           created_at?: string
           department_id?: string | null
@@ -306,6 +624,7 @@ export type Database = {
           status?: Database["public"]["Enums"]["membership_status"]
           updated_at?: string
           user_id: string
+          work_calendar_id?: string | null
         }
         Update: {
           created_at?: string
@@ -317,8 +636,16 @@ export type Database = {
           status?: Database["public"]["Enums"]["membership_status"]
           updated_at?: string
           user_id?: string
+          work_calendar_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "organization_memberships_calendar_fkey"
+            columns: ["work_calendar_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "work_calendars"
+            referencedColumns: ["id", "organization_id"]
+          },
           {
             foreignKeyName: "organization_memberships_department_fkey"
             columns: ["department_id", "organization_id"]
@@ -358,6 +685,7 @@ export type Database = {
           updated_at: string
           week_start: number
         }
+        ComputedFields: never
         Insert: {
           currency_code?: string
           health_stale_after_days?: number
@@ -395,6 +723,7 @@ export type Database = {
           slug: string
           updated_at: string
         }
+        ComputedFields: never
         Insert: {
           archived_at?: string | null
           created_at?: string
@@ -423,6 +752,7 @@ export type Database = {
           description: string
           key: string
         }
+        ComputedFields: never
         Insert: {
           category: string
           description: string
@@ -449,6 +779,7 @@ export type Database = {
           status: Database["public"]["Enums"]["program_status"]
           updated_at: string
         }
+        ComputedFields: never
         Insert: {
           archived_at?: string | null
           code: string
@@ -500,8 +831,9 @@ export type Database = {
           name: string
           organization_id: string
           project_id: string
-          snapshot: Json
+          snapshot: NonNullable<Json>
         }
+        ComputedFields: never
         Insert: {
           created_at?: string
           created_by?: string | null
@@ -509,7 +841,7 @@ export type Database = {
           name: string
           organization_id: string
           project_id: string
-          snapshot: Json
+          snapshot: NonNullable<Json>
         }
         Update: {
           created_at?: string
@@ -518,7 +850,7 @@ export type Database = {
           name?: string
           organization_id?: string
           project_id?: string
-          snapshot?: Json
+          snapshot?: NonNullable<Json>
         }
         Relationships: [
           {
@@ -541,6 +873,7 @@ export type Database = {
           project_role: string
           start_date: string | null
         }
+        ComputedFields: never
         Insert: {
           allocation_percent?: number | null
           created_at?: string
@@ -593,6 +926,7 @@ export type Database = {
           project_id: string
           updated_at: string
         }
+        ComputedFields: never
         Insert: {
           baseline_due_date?: string | null
           completed_on?: string | null
@@ -652,6 +986,7 @@ export type Database = {
           to_health: Database["public"]["Enums"]["project_health"] | null
           to_status: Database["public"]["Enums"]["project_status"] | null
         }
+        ComputedFields: never
         Insert: {
           change_type: string
           changed_at?: string
@@ -696,7 +1031,7 @@ export type Database = {
           health: Database["public"]["Enums"]["project_health"]
           highlights: string | null
           id: string
-          metrics: Json
+          metrics: NonNullable<Json>
           next_steps: string | null
           organization_id: string
           period_end: string
@@ -704,6 +1039,7 @@ export type Database = {
           project_id: string
           summary: string
         }
+        ComputedFields: never
         Insert: {
           author_id?: string | null
           created_at?: string
@@ -711,7 +1047,7 @@ export type Database = {
           health: Database["public"]["Enums"]["project_health"]
           highlights?: string | null
           id?: string
-          metrics?: Json
+          metrics?: NonNullable<Json>
           next_steps?: string | null
           organization_id: string
           period_end: string
@@ -726,7 +1062,7 @@ export type Database = {
           health?: Database["public"]["Enums"]["project_health"]
           highlights?: string | null
           id?: string
-          metrics?: Json
+          metrics?: NonNullable<Json>
           next_steps?: string | null
           organization_id?: string
           period_end?: string
@@ -775,6 +1111,7 @@ export type Database = {
           target_end_date: string | null
           updated_at: string
         }
+        ComputedFields: never
         Insert: {
           actual_end_date?: string | null
           archived_at?: string | null
@@ -880,6 +1217,67 @@ export type Database = {
           },
         ]
       }
+      resource_allocations: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          end_date: string
+          id: string
+          membership_id: string
+          notes: string | null
+          organization_id: string
+          percent: number
+          project_id: string
+          role: string | null
+          start_date: string
+          updated_at: string
+        }
+        ComputedFields: never
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          end_date: string
+          id?: string
+          membership_id: string
+          notes?: string | null
+          organization_id: string
+          percent: number
+          project_id: string
+          role?: string | null
+          start_date: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          end_date?: string
+          id?: string
+          membership_id?: string
+          notes?: string | null
+          organization_id?: string
+          percent?: number
+          project_id?: string
+          role?: string | null
+          start_date?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "resource_allocations_membership_id_organization_id_fkey"
+            columns: ["membership_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "organization_memberships"
+            referencedColumns: ["id", "organization_id"]
+          },
+          {
+            foreignKeyName: "resource_allocations_project_id_organization_id_fkey"
+            columns: ["project_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id", "organization_id"]
+          },
+        ]
+      }
       role_definitions: {
         Row: {
           created_at: string
@@ -891,6 +1289,7 @@ export type Database = {
           organization_id: string
           updated_at: string
         }
+        ComputedFields: never
         Insert: {
           created_at?: string
           description?: string
@@ -926,6 +1325,7 @@ export type Database = {
           permission_key: string
           role_id: string
         }
+        ComputedFields: never
         Insert: {
           permission_key: string
           role_id: string
@@ -961,6 +1361,7 @@ export type Database = {
           scope_points: number
           sprint_id: string
         }
+        ComputedFields: never
         Insert: {
           day: string
           done_count: number
@@ -1009,6 +1410,7 @@ export type Database = {
           state: Database["public"]["Enums"]["sprint_state"]
           updated_at: string
         }
+        ComputedFields: never
         Insert: {
           committed_count?: number | null
           committed_points?: number | null
@@ -1065,6 +1467,7 @@ export type Database = {
           team_id: string
           team_role: string | null
         }
+        ComputedFields: never
         Insert: {
           joined_at?: string
           membership_id: string
@@ -1108,6 +1511,7 @@ export type Database = {
           organization_id: string
           updated_at: string
         }
+        ComputedFields: never
         Insert: {
           archived_at?: string | null
           created_at?: string
@@ -1147,6 +1551,122 @@ export type Database = {
           },
         ]
       }
+      time_entries: {
+        Row: {
+          category: Database["public"]["Enums"]["time_category"]
+          created_at: string
+          entry_date: string
+          hours: number
+          id: string
+          note: string | null
+          organization_id: string
+          project_id: string | null
+          timesheet_id: string
+          updated_at: string
+          work_item_id: string | null
+        }
+        ComputedFields: never
+        Insert: {
+          category?: Database["public"]["Enums"]["time_category"]
+          created_at?: string
+          entry_date: string
+          hours: number
+          id?: string
+          note?: string | null
+          organization_id: string
+          project_id?: string | null
+          timesheet_id: string
+          updated_at?: string
+          work_item_id?: string | null
+        }
+        Update: {
+          category?: Database["public"]["Enums"]["time_category"]
+          created_at?: string
+          entry_date?: string
+          hours?: number
+          id?: string
+          note?: string | null
+          organization_id?: string
+          project_id?: string | null
+          timesheet_id?: string
+          updated_at?: string
+          work_item_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "time_entries_project_id_organization_id_fkey"
+            columns: ["project_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id", "organization_id"]
+          },
+          {
+            foreignKeyName: "time_entries_timesheet_id_organization_id_fkey"
+            columns: ["timesheet_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "timesheets"
+            referencedColumns: ["id", "organization_id"]
+          },
+          {
+            foreignKeyName: "time_entries_work_item_id_organization_id_fkey"
+            columns: ["work_item_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "work_items"
+            referencedColumns: ["id", "organization_id"]
+          },
+        ]
+      }
+      timesheets: {
+        Row: {
+          created_at: string
+          id: string
+          membership_id: string
+          organization_id: string
+          review_note: string | null
+          reviewed_at: string | null
+          reviewer_id: string | null
+          status: Database["public"]["Enums"]["timesheet_status"]
+          submitted_at: string | null
+          updated_at: string
+          week_start: string
+        }
+        ComputedFields: never
+        Insert: {
+          created_at?: string
+          id?: string
+          membership_id: string
+          organization_id: string
+          review_note?: string | null
+          reviewed_at?: string | null
+          reviewer_id?: string | null
+          status?: Database["public"]["Enums"]["timesheet_status"]
+          submitted_at?: string | null
+          updated_at?: string
+          week_start: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          membership_id?: string
+          organization_id?: string
+          review_note?: string | null
+          reviewed_at?: string | null
+          reviewer_id?: string | null
+          status?: Database["public"]["Enums"]["timesheet_status"]
+          submitted_at?: string | null
+          updated_at?: string
+          week_start?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "timesheets_membership_id_organization_id_fkey"
+            columns: ["membership_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "organization_memberships"
+            referencedColumns: ["id", "organization_id"]
+          },
+        ]
+      }
       user_profiles: {
         Row: {
           avatar_url: string | null
@@ -1156,6 +1676,7 @@ export type Database = {
           id: string
           updated_at: string
         }
+        ComputedFields: never
         Insert: {
           avatar_url?: string | null
           created_at?: string
@@ -1174,6 +1695,51 @@ export type Database = {
         }
         Relationships: []
       }
+      work_calendars: {
+        Row: {
+          archived_at: string | null
+          created_at: string
+          hours_per_day: number
+          id: string
+          is_default: boolean
+          name: string
+          organization_id: string
+          updated_at: string
+          working_days: number[]
+        }
+        ComputedFields: never
+        Insert: {
+          archived_at?: string | null
+          created_at?: string
+          hours_per_day?: number
+          id?: string
+          is_default?: boolean
+          name: string
+          organization_id: string
+          updated_at?: string
+          working_days?: number[]
+        }
+        Update: {
+          archived_at?: string | null
+          created_at?: string
+          hours_per_day?: number
+          id?: string
+          is_default?: boolean
+          name?: string
+          organization_id?: string
+          updated_at?: string
+          working_days?: number[]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "work_calendars_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       work_item_activity: {
         Row: {
           actor_id: string | null
@@ -1186,6 +1752,7 @@ export type Database = {
           to_value: string | null
           work_item_id: string
         }
+        ComputedFields: never
         Insert: {
           actor_id?: string | null
           created_at?: string
@@ -1229,6 +1796,7 @@ export type Database = {
           organization_id: string
           work_item_id: string
         }
+        ComputedFields: never
         Insert: {
           author_id?: string
           body: string
@@ -1264,6 +1832,7 @@ export type Database = {
           last_seq: number
           project_id: string
         }
+        ComputedFields: never
         Insert: {
           last_seq?: number
           project_id: string
@@ -1291,6 +1860,7 @@ export type Database = {
           predecessor_id: string
           successor_id: string
         }
+        ComputedFields: never
         Insert: {
           created_at?: string
           created_by?: string | null
@@ -1335,6 +1905,7 @@ export type Database = {
           url: string
           work_item_id: string
         }
+        ComputedFields: never
         Insert: {
           created_at?: string
           created_by?: string | null
@@ -1402,6 +1973,7 @@ export type Database = {
           type: Database["public"]["Enums"]["work_item_type"]
           updated_at: string
         }
+        ComputedFields: never
         Insert: {
           acceptance_criteria?: string | null
           actual_hours?: number | null
@@ -1546,6 +2118,7 @@ export type Database = {
           updated_at: string
           wip_limit: number | null
         }
+        ComputedFields: never
         Insert: {
           archived_at?: string | null
           category: Database["public"]["Enums"]["workflow_category"]
@@ -1586,6 +2159,7 @@ export type Database = {
           organization_id: string
           to_state_id: string
         }
+        ComputedFields: never
         Insert: {
           from_state_id: string
           organization_id: string
@@ -1618,10 +2192,21 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      accept_pending_invitations: { Args: never; Returns: number }
+      accept_pending_invitations: {
+        Args: Record<PropertyKey, never>
+        Returns: number
+      }
       allowed_parent_types: {
         Args: { p_type: Database["public"]["Enums"]["work_item_type"] }
         Returns: Database["public"]["Enums"]["work_item_type"][]
+      }
+      attendance_exceptions: {
+        Args: { p_from: string; p_org: string; p_to: string }
+        Returns: {
+          kind: string
+          membership_id: string
+          work_date: string
+        }[]
       }
       can_act_on_project: {
         Args: { p_permission: string; p_project: string }
@@ -1629,6 +2214,38 @@ export type Database = {
       }
       can_read_project: { Args: { p_project: string }; Returns: boolean }
       can_read_work: { Args: { p_project: string }; Returns: boolean }
+      cancel_attendance_correction: {
+        Args: { p_correction: string }
+        Returns: undefined
+      }
+      cancel_leave_request: {
+        Args: { p_note?: string; p_request: string }
+        Returns: undefined
+      }
+      capacity_overview: {
+        Args: { p_from: string; p_org: string; p_to: string }
+        Returns: {
+          allocated_hours: number
+          calendar_days: number
+          capacity_hours: number
+          holiday_days: number
+          hours_per_day: number
+          leave_days: number
+          logged_hours: number
+          membership_id: string
+          peak_allocation_percent: number
+          working_days: number
+        }[]
+      }
+      check_in: {
+        Args: {
+          p_mode?: Database["public"]["Enums"]["work_mode"]
+          p_note?: string
+          p_org: string
+        }
+        Returns: string
+      }
+      check_out: { Args: { p_org: string }; Returns: undefined }
       complete_sprint: {
         Args: { p_move_to?: string; p_sprint: string }
         Returns: undefined
@@ -1648,6 +2265,10 @@ export type Database = {
         Returns: string
       }
       delete_role: { Args: { p_role: string }; Returns: undefined }
+      grant_annual_leave_allowances: {
+        Args: { p_org: string; p_year: number }
+        Returns: number
+      }
       has_permission: {
         Args: { p_org: string; p_permission: string }
         Returns: boolean
@@ -1664,12 +2285,70 @@ export type Database = {
         }
         Returns: boolean
       }
+      leave_milestone_conflicts: {
+        Args: { p_request: string }
+        Returns: {
+          due_date: string
+          milestone_name: string
+          project_id: string
+          project_name: string
+        }[]
+      }
       my_permissions: { Args: { p_org: string }; Returns: string[] }
+      recall_timesheet: { Args: { p_timesheet: string }; Returns: undefined }
       record_invitation_email_sent: {
         Args: { p_invitation: string }
         Returns: undefined
       }
+      request_attendance_correction: {
+        Args: {
+          p_check_in: string
+          p_check_out: string
+          p_mode: Database["public"]["Enums"]["work_mode"]
+          p_org: string
+          p_reason: string
+          p_work_date: string
+        }
+        Returns: string
+      }
+      request_leave: {
+        Args: {
+          p_end: string
+          p_half_day?: boolean
+          p_leave_type: string
+          p_org: string
+          p_reason?: string
+          p_start: string
+        }
+        Returns: string
+      }
+      review_attendance_correction: {
+        Args: { p_approve: boolean; p_correction: string; p_note?: string }
+        Returns: undefined
+      }
+      review_leave_request: {
+        Args: { p_approve: boolean; p_note?: string; p_request: string }
+        Returns: undefined
+      }
+      review_timesheet: {
+        Args: { p_approve: boolean; p_note?: string; p_timesheet: string }
+        Returns: undefined
+      }
       revoke_invitation: { Args: { p_invitation: string }; Returns: undefined }
+      set_default_calendar: { Args: { p_calendar: string }; Returns: undefined }
+      set_leave_balance: {
+        Args: {
+          p_days: number
+          p_leave_type: string
+          p_membership: string
+          p_year: number
+        }
+        Returns: undefined
+      }
+      set_member_calendar: {
+        Args: { p_calendar: string; p_membership: string }
+        Returns: undefined
+      }
       set_member_roles: {
         Args: { p_membership: string; p_role_keys: string[] }
         Returns: undefined
@@ -1698,9 +2377,30 @@ export type Database = {
         Returns: undefined
       }
       start_sprint: { Args: { p_sprint: string }; Returns: undefined }
+      submit_timesheet: { Args: { p_timesheet: string }; Returns: undefined }
       take_project_baseline: {
         Args: { p_name: string; p_project: string }
         Returns: string
+      }
+      team_availability: {
+        Args: { p_from: string; p_org: string; p_to: string }
+        Returns: {
+          day: string
+          half_day: boolean
+          kind: string
+          label: string
+          membership_id: string
+        }[]
+      }
+      timesheet_compliance: {
+        Args: { p_org: string; p_week_start: string }
+        Returns: {
+          membership_id: string
+          status: string
+          submitted_at: string
+          timesheet_id: string
+          total_hours: number
+        }[]
       }
       transition_project_status: {
         Args: {
@@ -1721,6 +2421,7 @@ export type Database = {
       }
     }
     Enums: {
+      attendance_source: "self" | "correction"
       client_confidentiality: "standard" | "confidential"
       dependency_kind: "blocks" | "relates_to" | "duplicates"
       invitation_status: "pending" | "accepted" | "revoked"
@@ -1736,14 +2437,12 @@ export type Database = {
         | "on_hold"
         | "completed"
         | "cancelled"
+      request_status: "pending" | "approved" | "rejected" | "cancelled"
       sprint_state: "planned" | "active" | "completed"
+      time_category: "delivery" | "internal" | "training" | "presales"
+      timesheet_status: "draft" | "submitted" | "approved" | "rejected"
       work_item_link_kind:
-        | "pull_request"
-        | "build"
-        | "test_run"
-        | "release"
-        | "document"
-        | "other"
+        "pull_request" | "build" | "test_run" | "release" | "document" | "other"
       work_item_priority: "critical" | "high" | "medium" | "low"
       work_item_severity: "s1" | "s2" | "s3" | "s4"
       work_item_type:
@@ -1755,6 +2454,7 @@ export type Database = {
         | "bug"
         | "incident"
         | "change_request"
+      work_mode: "office" | "remote"
       workflow_category: "todo" | "in_progress" | "done"
     }
     CompositeTypes: {
@@ -1771,12 +2471,12 @@ export type Tables<
   DefaultSchemaTableNameOrOptions extends
     | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
         DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -1798,13 +2498,12 @@ export type Tables<
 
 export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
-    | keyof DefaultSchema["Tables"]
-    | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+    keyof DefaultSchema["Tables"] | { schema: keyof DatabaseWithoutInternals },
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -1823,13 +2522,12 @@ export type TablesInsert<
 
 export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
-    | keyof DefaultSchema["Tables"]
-    | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+    keyof DefaultSchema["Tables"] | { schema: keyof DatabaseWithoutInternals },
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -1848,13 +2546,12 @@ export type TablesUpdate<
 
 export type Enums<
   DefaultSchemaEnumNameOrOptions extends
-    | keyof DefaultSchema["Enums"]
-    | { schema: keyof DatabaseWithoutInternals },
-  EnumName extends DefaultSchemaEnumNameOrOptions extends {
+    keyof DefaultSchema["Enums"] | { schema: keyof DatabaseWithoutInternals },
+  EnumName extends (DefaultSchemaEnumNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaEnumNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -1867,11 +2564,11 @@ export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
     | keyof DefaultSchema["CompositeTypes"]
     | { schema: keyof DatabaseWithoutInternals },
-  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+  CompositeTypeName extends (PublicCompositeTypeNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
-    : never = never,
+    : never) = never,
 > = PublicCompositeTypeNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -1886,6 +2583,7 @@ export const Constants = {
   },
   public: {
     Enums: {
+      attendance_source: ["self", "correction"],
       client_confidentiality: ["standard", "confidential"],
       dependency_kind: ["blocks", "relates_to", "duplicates"],
       invitation_status: ["pending", "accepted", "revoked"],
@@ -1902,7 +2600,10 @@ export const Constants = {
         "completed",
         "cancelled",
       ],
+      request_status: ["pending", "approved", "rejected", "cancelled"],
       sprint_state: ["planned", "active", "completed"],
+      time_category: ["delivery", "internal", "training", "presales"],
+      timesheet_status: ["draft", "submitted", "approved", "rejected"],
       work_item_link_kind: [
         "pull_request",
         "build",
@@ -1923,8 +2624,8 @@ export const Constants = {
         "incident",
         "change_request",
       ],
+      work_mode: ["office", "remote"],
       workflow_category: ["todo", "in_progress", "done"],
     },
   },
 } as const
-

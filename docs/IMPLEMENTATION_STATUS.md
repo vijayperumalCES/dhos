@@ -1,6 +1,6 @@
 # Stride — Implementation Status
 
-_Last updated: 2026-10-26._ A feature is "Done" only when it meets the Definition of Done in the
+_Last updated: 2026-11-01._ A feature is "Done" only when it meets the Definition of Done in the
 master brief: UI end-to-end, persisted, authorized, tenant-tested, validated, audited, tested,
 empty/loading/error states, documented.
 
@@ -68,10 +68,37 @@ New migration `20261028000100_work_management.sql` — **must be pushed to the h
 
 ### Phase 2 limitations
 - Burndown history starts when a sprint starts and is recorded on change (no nightly snapshot until Phase 7 scheduling).
-- Sprint capacity uses average velocity only; people-based capacity arrives with Phase 3.
+- Sprint capacity uses average velocity only; people-based capacity exists in Resource Planning but isn't yet used in sprint planning.
 - Live board updates require the `work_items` table in the Supabase Realtime publication (done by the migration).
 - No cross-project critical-path view yet; dependencies are shown per item.
 - Work items can't be bulk-imported yet (projects can).
+
+## Phase 3 — Workforce (2026-11-01)
+
+| Feature | Status | Evidence |
+|---|---|---|
+| Work calendars (working days, hours per day, default, archive), holidays, per-member calendar | Done | e2e (holidays), pgTAP |
+| Leave types (paid, approval, yearly allowance or untracked) and yearly balances with grant and adjust | Done | pgTAP |
+| Leave requests: working-day count from calendar and holidays, half days, overlap and balance checks, auto-approval for types without approval | Done | pgTAP, e2e |
+| Leave review by direct manager or HR (never self), rejection reason, cancellation; milestone conflicts flagged to reviewers | Done | pgTAP, e2e |
+| Team availability calendar showing only "On leave" and holidays | Done | pgTAP |
+| Attendance check-in / check-out (server clock, org time zone), corrections with approval, team exceptions | Done | pgTAP, e2e |
+| Weekly timesheets by project, work item or category; submit, recall, approve, return; lock once submitted | Done | pgTAP, e2e |
+| Timesheet compliance report for managers and `timesheet.read_all` | Done | e2e |
+| Dated resource allocations (CRUD) replacing indicative allocation | Done | pgTAP, manual |
+| Capacity and utilisation: calendar minus holidays and approved leave; peak-day over-allocation; utilisation from submitted project time | Done | pgTAP, e2e, unit |
+| Separate HR access policy and 7 new permissions; workforce settings in Administration | Done | pgTAP, unit drift test, ADR-0008 |
+| Demo seed: HR user (Hana Sato), holidays, balances, leave, attendance with exceptions, timesheets in every state, an over-allocated engineer | Done | `supabase/seed.sql` |
+
+New migration `20261029000100_workforce.sql` — **must be pushed to the hosted project** (`supabase db push`).
+
+### Phase 3 limitations
+- Balances are granted yearly by HR; no monthly accrual, carry-over or expiry (needs the Phase 7 scheduler).
+- No reminders for missing timesheets or forgotten check-outs (Phase 7 notifications).
+- Changing a calendar or adding a holiday doesn't recount existing leave requests.
+- Capacity is computed on request for up to 184 days; skills and skill coverage are not modelled yet.
+- Sprint planning doesn't use people capacity yet; it still uses average velocity.
+- Timesheet entries are added one at a time; no inline grid editing or copy-last-week.
 
 ## Known gaps and limitations (Phase 1)
 
@@ -94,7 +121,7 @@ New migration `20261028000100_work_management.sql` — **must be pushed to the h
 
 | Suite | Command | Count | Last result |
 |---|---|---|---|
-| Unit (Vitest) | `pnpm test` | 64 | ✅ pass |
-| Database (pgTAP) | `pnpm test:db` | 104 (45 + 25 + 34) | ✅ pass |
-| End-to-end (Playwright) | `pnpm test:e2e` | 21 | ✅ pass |
+| Unit (Vitest) | `pnpm test` | 82 | ✅ pass |
+| Database (pgTAP) | `pnpm test:db` | 157 (45 + 25 + 34 + 53) | ✅ pass |
+| End-to-end (Playwright) | `pnpm test:e2e` | 26 | ✅ pass |
 | Typecheck / lint / build | `pnpm typecheck`, `pnpm lint`, `pnpm build` | — | ✅ pass |

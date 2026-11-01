@@ -1,6 +1,6 @@
 # Stride — Database
 
-_Last updated: 2026-10-26 (Phase 1). Source of truth: `supabase/migrations/`._
+_Last updated: 2026-11-01 (Phase 3). Source of truth: `supabase/migrations/`._
 
 ## 1. Conventions
 
@@ -84,6 +84,28 @@ Key functions: `allowed_parent_types`, `take_project_baseline`, `start_sprint`, 
 `set_work_item_archived`, `can_read_work`; triggers `work_items_before_write` (keys, parent / sprint /
 transition rules, completion stamp), `work_items_record_activity`, `work_items_refresh_sprints`,
 `prevent_blocking_cycle`, `workflow_states_guard`. `work_items` is in the `supabase_realtime` publication.
+
+### Phase 3 additions (workforce)
+
+| Table | Purpose |
+|---|---|
+| `work_calendars`, `holidays` | Working weekdays (ISO 1–7), hours per day, one default per org; holidays per calendar. `organization_memberships.work_calendar_id` overrides the default |
+| `leave_types`, `leave_balances` | Per-org types (paid, needs approval, yearly allowance or untracked); granted days per person, type and year |
+| `leave_requests` | Dated requests; `days` computed by trigger from the calendar; status pending / approved / rejected / cancelled |
+| `attendance_records`, `attendance_corrections` | One record per person per day (server clock); corrections reviewed by manager or HR |
+| `timesheets`, `time_entries` | Weekly sheets (Monday start) with draft → submitted → approved / returned; entries by category, project and optional work item |
+| `resource_allocations` | Dated person-to-project allocation percentages; supersede `project_memberships.allocation_percent` |
+
+Key functions: `request_leave`, `review_leave_request`, `cancel_leave_request`, `set_leave_balance`,
+`grant_annual_leave_allowances`, `check_in`, `check_out`, `request_attendance_correction`,
+`review_attendance_correction`, `cancel_attendance_correction`, `attendance_exceptions`,
+`submit_timesheet`, `recall_timesheet`, `review_timesheet`, `timesheet_compliance`,
+`capacity_overview`, `team_availability`, `leave_milestone_conflicts`, `set_member_calendar`,
+`set_default_calendar`; private helpers `can_view_hr_of`, `can_review_hr_of`,
+`can_view_timesheets_of`, `can_review_timesheets_of`, `member_working_days`, `leave_remaining`;
+triggers `leave_requests_before_write`, `timesheets_before_write`, `time_entries_before_write`.
+New organizations get a default calendar and Annual, Sick and Unpaid leave types
+(`private.seed_workforce_defaults`). See [ADR-0008](DECISIONS/ADR-0008-workforce-model.md).
 
 `organization_memberships` also carries `department_id` and `manager_membership_id` (reporting line;
 a trigger rejects cycles, a check rejects self-management, composite FKs keep both in-tenant).

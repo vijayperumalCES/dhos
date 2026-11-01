@@ -28,7 +28,8 @@ begin
       ('00000000-0000-4000-a000-000000000008'::uuid, 'sofia@northwind.example', 'Sofia Rossi'),
       ('00000000-0000-4000-a000-000000000009'::uuid, 'tom@northwind.example',   'Tom Becker'),
       ('00000000-0000-4000-a000-000000000010'::uuid, 'claire@contoso.example',  'Claire Dubois'),
-      ('00000000-0000-4000-a000-000000000011'::uuid, 'alex@globex.example',     'Alex Morgan')
+      ('00000000-0000-4000-a000-000000000011'::uuid, 'alex@globex.example',     'Alex Morgan'),
+      ('00000000-0000-4000-a000-000000000012'::uuid, 'hana@northwind.example',  'Hana Sato')
     ) as t(id, email, display_name)
   loop
     insert into auth.users (
@@ -76,7 +77,8 @@ begin
       ('00000000-0000-4000-a000-000000000007'::uuid, 'Mobile Tech Lead',        array['developer','scrum_master']),
       ('00000000-0000-4000-a000-000000000008'::uuid, 'Data Engineer',           array['developer']),
       ('00000000-0000-4000-a000-000000000009'::uuid, 'QA Lead',                 array['qa_engineer']),
-      ('00000000-0000-4000-a000-000000000010'::uuid, 'Client Product Owner (Contoso)', array['client_stakeholder'])
+      ('00000000-0000-4000-a000-000000000010'::uuid, 'Client Product Owner (Contoso)', array['client_stakeholder']),
+      ('00000000-0000-4000-a000-000000000012'::uuid, 'HR Manager',              array['hr_admin'])
     ) as t(user_id, job_title, roles)
   loop
     insert into public.organization_memberships (organization_id, user_id, job_title)
@@ -405,6 +407,145 @@ where s.state = 'active' and s.start_date + d.n < current_date;
 perform private.refresh_sprint_stats(id) from public.sprints where state = 'active';
 
 drop table private.seed_items;
+
+-- ---------------------------------------------------------------------------
+-- Workforce (Phase 3): holidays, balances, leave, attendance, timesheets, allocations.
+-- Dates are relative to today and land on working days of the member's calendar.
+-- ---------------------------------------------------------------------------
+update public.organization_memberships m
+   set manager_membership_id = (select id from private.seed_m where email = 'priya@northwind.example'),
+       department_id = (select id from public.departments d where d.organization_id = m.organization_id and d.code = 'DEL')
+ where m.id = (select id from private.seed_m where email = 'hana@northwind.example');
+
+insert into public.holidays (organization_id, calendar_id, holiday_date, name)
+select c.organization_id, c.id, h.d, h.name
+from public.work_calendars c
+join public.organizations o on o.id = c.organization_id and o.slug = 'northwind-demo'
+cross join lateral (values
+  (make_date(extract(year from current_date)::int, 1, 26),  'Republic Day'),
+  (make_date(extract(year from current_date)::int, 8, 15),  'Independence Day'),
+  (make_date(extract(year from current_date)::int, 10, 2),  'Gandhi Jayanti'),
+  (make_date(extract(year from current_date)::int, 12, 25), 'Christmas Day'),
+  ((current_date + 7) - extract(isodow from current_date + 7)::int + 3, 'Company offsite (demo)')
+) as h(d, name)
+where c.is_default
+on conflict do nothing;
+
+insert into public.leave_balances (organization_id, membership_id, leave_type_id, year, granted_days)
+select m.organization_id, m.id, t.id, y.year, t.annual_allowance_days
+from public.organization_memberships m
+join public.leave_types t on t.organization_id = m.organization_id and t.annual_allowance_days is not null
+cross join (values (extract(year from current_date)::int), (extract(year from current_date)::int + 1)) as y(year)
+where private.membership_has_permission(m.id, 'workforce.self');
+
+insert into public.leave_requests (organization_id, membership_id, leave_type_id, start_date, end_date, half_day, reason, status,
+                                   reviewer_id, reviewed_at, created_at)
+select sm.organization_id, sm.id, t.id, wd.days[1], wd.days[x.n], x.half, x.reason, x.status::public.request_status,
+       case when x.status <> 'pending' and t.requires_approval then mgr.user_id end,
+       case when x.status <> 'pending' then now() - interval '1 day' end,
+       now() - interval '3 days'
+from (values
+    ('sofia@northwind.example', 'ANNUAL', 7,   2, false, 'Family wedding',       'approved'),
+    ('dev@northwind.example',   'ANNUAL', 14,  3, false, 'Trip home',            'pending'),
+    ('rahul@northwind.example', 'ANNUAL', 3,   1, true,  'Personal appointment', 'pending'),
+    ('tom@northwind.example',   'SICK',   -6,  1, false, null,                   'approved'),
+    ('mei@northwind.example',   'ANNUAL', -12, 1, false, 'Personal day',         'approved')
+  ) as x(email, code, offset_days, n, half, reason, status)
+join private.seed_m sm on sm.email = x.email
+join public.leave_types t on t.organization_id = sm.organization_id and t.code = x.code
+join public.organization_memberships me on me.id = sm.id
+left join public.organization_memberships mgr on mgr.id = me.manager_membership_id
+cross join lateral (
+  select array_agg(d order by d) as days
+  from private.member_working_days(sm.id, current_date + x.offset_days, current_date + x.offset_days + 10) d
+) wd
+where extract(year from wd.days[1]) = extract(year from wd.days[x.n]);
+
+-- Two weeks of attendance for internal staff, with one missing day (Dev) and one day never
+-- checked out (Rahul) so that the exceptions view has something to show.
+insert into public.attendance_records (organization_id, membership_id, work_date, check_in_at, check_out_at, work_mode)
+select sm.organization_id, sm.id, d,
+       ((d + time '09:00') + make_interval(mins => abs(hashtext(sm.email || d::text)) % 50)) at time zone 'Asia/Kolkata',
+       case when sm.email = 'rahul@northwind.example'
+                 and d = (select max(x) from private.member_working_days(sm.id, current_date - 7, current_date - 1) x)
+            then null
+            else ((d + time '17:30') + make_interval(mins => abs(hashtext(d::text || sm.email)) % 90)) at time zone 'Asia/Kolkata' end,
+       case when abs(hashtext(sm.email || d::text)) % 3 = 0 then 'remote' else 'office' end::public.work_mode
+from private.seed_m sm
+join public.organizations o on o.id = sm.organization_id and o.slug = 'northwind-demo'
+cross join lateral private.member_working_days(sm.id, current_date - 14, current_date - 1) d
+where private.membership_has_permission(sm.id, 'workforce.self')
+  and not exists (select 1 from public.leave_requests r
+                  where r.membership_id = sm.id and r.status = 'approved' and d between r.start_date and r.end_date)
+  and not (sm.email = 'dev@northwind.example'
+           and d = (select max(x) from private.member_working_days(sm.id, current_date - 7, current_date - 2) x));
+
+insert into public.attendance_corrections (organization_id, membership_id, work_date, check_in_at, check_out_at, work_mode, reason, created_at)
+select sm.organization_id, sm.id, x.d,
+       (x.d + time '09:15') at time zone 'Asia/Kolkata', (x.d + time '18:00') at time zone 'Asia/Kolkata',
+       'office', 'Forgot to check in — was at the Contoso office all day.', now() - interval '1 day'
+from private.seed_m sm
+cross join lateral (select max(w) as d from private.member_working_days(sm.id, current_date - 7, current_date - 2) w) x
+where sm.email = 'dev@northwind.example';
+
+-- Timesheets for the two previous weeks, split by indicative project allocation.
+create table private.seed_ts (email text, week_offset int, status text);
+insert into private.seed_ts
+select sm.email, w.week_offset,
+       case when w.week_offset = -14 then 'approved'
+            else case sm.email when 'dev@northwind.example' then 'submitted'
+                               when 'sofia@northwind.example' then 'submitted'
+                               when 'tom@northwind.example' then 'draft'
+                               when 'lena@northwind.example' then 'approved' end end
+from private.seed_m sm
+cross join (values (-14), (-7)) as w(week_offset)
+where sm.email in ('dev@northwind.example', 'sofia@northwind.example', 'tom@northwind.example', 'lena@northwind.example', 'rahul@northwind.example');
+delete from private.seed_ts where status is null;
+
+insert into public.timesheets (organization_id, membership_id, week_start)
+select sm.organization_id, sm.id, date_trunc('week', current_date)::date + ts.week_offset
+from private.seed_ts ts join private.seed_m sm on sm.email = ts.email;
+
+insert into public.time_entries (organization_id, timesheet_id, entry_date, category, project_id, hours)
+select t.organization_id, t.id, d, 'delivery', pm.project_id, round(8 * pm.allocation_percent / 100.0 * 2) / 2
+from public.timesheets t
+join public.project_memberships pm on pm.membership_id = t.membership_id and pm.allocation_percent > 0
+cross join lateral private.member_working_days(t.membership_id, t.week_start, t.week_start + 4) d
+where round(8 * pm.allocation_percent / 100.0 * 2) / 2 > 0
+  and not exists (select 1 from public.leave_requests r
+                  where r.membership_id = t.membership_id and r.status = 'approved' and d between r.start_date and r.end_date);
+
+insert into public.time_entries (organization_id, timesheet_id, entry_date, category, hours, note)
+select t.organization_id, t.id, t.week_start + 4, 'internal', 1, 'Team retro and guild meeting'
+from public.timesheets t
+where t.week_start + 4 in (select private.member_working_days(t.membership_id, t.week_start + 4, t.week_start + 4));
+
+update public.timesheets t
+   set status = ts.status::public.timesheet_status,
+       submitted_at = case when ts.status <> 'draft' then (t.week_start + 5)::timestamptz end,
+       reviewer_id = case when ts.status = 'approved' then mgr.user_id end,
+       reviewed_at = case when ts.status = 'approved' then (t.week_start + 7)::timestamptz end
+  from private.seed_ts ts
+  join private.seed_m sm on sm.email = ts.email
+  join public.organization_memberships me on me.id = sm.id
+  left join public.organization_memberships mgr on mgr.id = me.manager_membership_id
+ where t.membership_id = sm.id and t.week_start = date_trunc('week', current_date)::date + ts.week_offset;
+drop table private.seed_ts;
+
+-- Dated allocations from the indicative project allocations, plus one deliberate over-allocation.
+insert into public.resource_allocations (organization_id, membership_id, project_id, start_date, end_date, percent, role, created_by)
+select pm.organization_id, pm.membership_id, pm.project_id,
+       coalesce(p.planned_start_date, current_date - 30), greatest(coalesce(p.target_end_date, current_date + 90), current_date + 30),
+       pm.allocation_percent, pm.project_role, '00000000-0000-4000-a000-000000000004'
+from public.project_memberships pm
+join public.projects p on p.id = pm.project_id
+where pm.allocation_percent > 0;
+
+insert into public.resource_allocations (organization_id, membership_id, project_id, start_date, end_date, percent, role, notes, created_by)
+select p.organization_id, sm.id, p.id, current_date + 7, current_date + 34, 30, 'Backend Engineer',
+       'Short-term help with warehouse ingestion. Over-allocates Dev — demo record.', '00000000-0000-4000-a000-000000000004'
+from public.projects p join private.seed_m sm on sm.email = 'dev@northwind.example' and sm.organization_id = p.organization_id
+where p.code = 'NW-DWH';
 
 drop table private.seed_m;
 

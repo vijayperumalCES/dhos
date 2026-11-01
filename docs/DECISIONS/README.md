@@ -12,3 +12,4 @@ Add a new ADR (next number) for any decision that is costly to reverse.
 | [0005](ADR-0005-tenancy-model.md) | Shared-schema multi-tenancy with composite foreign keys | Accepted |
 | [0006](ADR-0006-ui-stack.md) | shadcn/ui (Radix), React Hook Form + Zod, Recharts | Accepted |
 | [0007](ADR-0007-work-management-model.md) | Work management data model | Accepted |
+| [0008](ADR-0008-workforce-model.md) | Workforce data model and HR access policy | Accepted |

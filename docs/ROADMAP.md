@@ -1,12 +1,12 @@
 # Stride — Roadmap
 
-_Last updated: 2026-10-26._ Status: ✅ done · 🟡 partial · ⬜ not started
+_Last updated: 2026-11-01._ Status: ✅ done · 🟡 partial · ⬜ not started
 
 | Phase | Theme | Status |
 |---|---|---|
 | 1 | Foundation and Delivery Command Center | ✅ (see `IMPLEMENTATION_STATUS.md` for known gaps) |
 | 2 | Work management | ✅ (see `IMPLEMENTATION_STATUS.md`) |
-| 3 | Workforce management | ⬜ |
+| 3 | Workforce management | ✅ (see `IMPLEMENTATION_STATUS.md`) |
 | 4 | Delivery governance | ⬜ |
 | 5 | Financial and portfolio intelligence | ⬜ |
 | 6 | AI agents | ⬜ |
@@ -23,13 +23,14 @@ _Last updated: 2026-10-26._ Status: ✅ done · 🟡 partial · ⬜ not started
 5. Command Center: milestones due/overdue, sprint commitment vs completion, blocked work.
 6. Introduce TanStack Query + Supabase Realtime for the board (first genuinely client-heavy surface).
 
-## Phase 3 — Workforce (next)
+## Phase 3 — Workforce (done 2026-11-01)
 
 Work calendars and holidays, attendance with corrections + approvals, leave types/balances/requests,
 timesheets with approvals, dated allocations replacing indicative `allocation_percent`, capacity and
-utilisation (kept separate from attendance by definition). Separate HR access policy.
+utilisation (kept separate from attendance by definition). Separate HR access policy
+([ADR-0008](DECISIONS/ADR-0008-workforce-model.md)).
 
-## Phase 4 — Governance
+## Phase 4 — Governance (next)
 
 RAID register (ADR on unified vs separate tables), decisions, actions, escalations with evidence and
 deadlines, change requests, release governance with quality gates, client contacts/contracts and

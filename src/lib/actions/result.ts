@@ -68,10 +68,45 @@ const RPC_MESSAGES: Record<string, string> = {
   default_state: "Choose another default state first.",
   state_in_use: "Move its work items to another state first.",
   category_required: "Keep at least one active state in each category.",
+  no_working_days: "Those dates contain no working days.",
+  leave_overlap: "You already have leave requested for some of those days.",
+  insufficient_balance: "There isn't enough leave balance left.",
+  leave_type_archived: "That leave type is no longer available.",
+  request_state: "That request can't be changed in its current state.",
+  invalid_dates: "Check the dates.",
+  leave_year: "Split leave that crosses the year end into two requests.",
+  already_checked_in: "You have already checked in today.",
+  not_checked_in: "Check in before checking out.",
+  future_date: "That date is in the future.",
+  too_old: "That date is too far back to correct.",
+  correction_pending: "There is already a pending correction for that day.",
+  timesheet_locked: "Recall or reopen the timesheet before changing it.",
+  invalid_entry: "That time entry isn't valid.",
+  timesheet_state: "That timesheet can't be changed in its current state.",
+  timesheet_empty: "Log some time before submitting.",
+  future_week: "Timesheets can be started at most one week ahead.",
+  range_too_large: "Choose a shorter date range.",
+  calendar_archived: "Restore the calendar before making it the default.",
 };
 
 /** RPC keys whose detail text is written for users and is more specific than the generic message. */
-const DETAILED_KEYS = new Set(["invalid_parent", "invalid_sprint", "sprint_state"]);
+const DETAILED_KEYS = new Set([
+  "invalid_parent",
+  "invalid_sprint",
+  "sprint_state",
+  "no_working_days",
+  "leave_overlap",
+  "insufficient_balance",
+  "request_state",
+  "invalid_dates",
+  "already_checked_in",
+  "future_date",
+  "too_old",
+  "timesheet_locked",
+  "invalid_entry",
+  "timesheet_state",
+  "range_too_large",
+]);
 
 export function humanizeRpcMessage(message: string): string {
   const [rawKey, ...rest] = message.split(":");

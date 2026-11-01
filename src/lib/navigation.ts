@@ -55,10 +55,10 @@ export const NAVIGATION: NavGroup[] = [
     label: "People",
     items: [
       { title: "People & Teams", icon: "users", href: "/teams", anyOf: ["team.read"] },
-      { title: "Attendance", icon: "clock", plannedPhase: 3, slug: "attendance" },
-      { title: "Leave", icon: "calendar", plannedPhase: 3, slug: "leave" },
-      { title: "Timesheets", icon: "timer", plannedPhase: 3, slug: "timesheets" },
-      { title: "Resource Planning", icon: "chart", plannedPhase: 3, slug: "resources" },
+      { title: "Attendance", icon: "clock", href: "/attendance", anyOf: ["workforce.self", "hr.read"] },
+      { title: "Leave", icon: "calendar", href: "/leave", anyOf: ["workforce.self", "hr.read"] },
+      { title: "Timesheets", icon: "timer", href: "/timesheets", anyOf: ["workforce.self", "timesheet.read_all", "timesheet.approve"] },
+      { title: "Resource Planning", icon: "chart", href: "/resources", anyOf: ["resource.read"] },
     ],
   },
   {
@@ -88,7 +88,7 @@ export const NAVIGATION: NavGroup[] = [
         icon: "settings",
         href: "/admin",
         // The directory alone (org.members.read) is reached from People & Teams, not here.
-        anyOf: ["org.settings.manage", "org.members.manage", "audit.read", "workflow.manage"],
+        anyOf: ["org.settings.manage", "org.members.manage", "audit.read", "workflow.manage", "hr.manage"],
       },
     ],
   },
@@ -106,30 +106,6 @@ export const PLANNED_MODULES: Record<string, { title: string; phase: number; sum
     phase: 4,
     summary: "Release governance with configurable quality gates.",
     scope: ["Release calendar", "Quality gates and approvals", "Defect trends", "Deployment history"],
-  },
-  attendance: {
-    title: "Attendance",
-    phase: 3,
-    summary: "Check-in/out, work schedules, exceptions and approved corrections.",
-    scope: ["Attendance records", "Exceptions", "Corrections with approval", "Holiday calendars"],
-  },
-  leave: {
-    title: "Leave",
-    phase: 3,
-    summary: "Leave types, balances, approvals and team availability.",
-    scope: ["Leave requests", "Balances", "Team calendar", "Milestone conflict detection"],
-  },
-  timesheets: {
-    title: "Timesheets",
-    phase: 3,
-    summary: "Daily and weekly effort logs with approvals.",
-    scope: ["Time entries", "Submission and approval", "Missing-timesheet reports", "Estimate vs actual"],
-  },
-  resources: {
-    title: "Resource Planning",
-    phase: 3,
-    summary: "Capacity, allocations, utilisation and staffing conflicts.",
-    scope: ["Dated allocations", "Capacity forecasts", "Over/under-allocation", "Skill coverage"],
   },
   risks: {
     title: "Risks & Escalations",

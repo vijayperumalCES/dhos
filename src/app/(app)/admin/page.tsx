@@ -11,7 +11,8 @@ export const metadata: Metadata = { title: "Organization settings" };
 export default async function AdminSettingsPage() {
   const ctx = await requireOrgContext();
   if (!ctx.permissions.has("org.settings.manage")) {
-    redirect(ctx.permissions.has("org.members.read") ? "/admin/members" : "/admin/audit");
+    const p = ctx.permissions;
+    redirect(p.has("org.members.read") ? "/admin/members" : p.has("hr.manage") ? "/admin/workforce" : "/admin/audit");
   }
   // Always offer the stored zone, even when the runtime lists it under another canonical name.
   const zones = [...new Set([ctx.settings.timezone, ...supportedTimeZones()])].sort();

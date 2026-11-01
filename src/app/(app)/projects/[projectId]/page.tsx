@@ -126,7 +126,7 @@ export default async function ProjectPage({ params }: PageProps<"/projects/[proj
               <div className="space-y-1.5">
                 <CardTitle>Project members</CardTitle>
                 <CardDescription>
-                  Allocation is indicative only; dated capacity planning arrives with Resource Planning in Phase 3.
+                  Membership allocation is indicative. Dated allocations live in Resource Planning.
                 </CardDescription>
               </div>
               {canManageMembers && <AddMemberDialog target={{ kind: "project", projectId: project.id }} candidates={candidates} />}

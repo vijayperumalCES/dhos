@@ -8,6 +8,8 @@ export const USERS = {
   orgAdmin: "omar@northwind.example",
   projectManager: "arjun@northwind.example",
   developer: "dev@northwind.example",
+  engineeringManager: "lena@northwind.example",
+  hr: "hana@northwind.example",
   client: "claire@contoso.example",
   otherTenant: "alex@globex.example",
 } as const;

@@ -28,7 +28,7 @@ export default async function TeamsPage({ searchParams }: PageProps<"/teams">) {
     <div className="mx-auto max-w-6xl">
       <PageHeader
         title="People & Teams"
-        description="Organizational teams and their members. Employee profiles, skills and capacity arrive in Phase 3."
+        description="Organizational teams and their members. Capacity and allocations are in Resource Planning."
         actions={
           <>
             {ctx.permissions.has("org.members.read") && (

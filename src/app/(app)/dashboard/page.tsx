@@ -276,7 +276,7 @@ export default async function DashboardPage({ searchParams }: PageProps<"/dashbo
               <p className="text-2xl font-semibold tabular-nums">{data.memberCount ?? "—"}</p>
               <p className="text-muted-foreground">Active members</p>
             </div>
-            <p className="col-span-2 text-xs text-muted-foreground">Headcount only. Capacity and availability arrive in Phase 3.</p>
+            <p className="col-span-2 text-xs text-muted-foreground">Headcount only. See Resource Planning for capacity and Leave for availability.</p>
           </CardContent>
         </Card>
 

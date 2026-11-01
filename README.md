@@ -8,7 +8,7 @@ An organization-wide operating platform for a Delivery Head: one governed, evide
 projects, teams, clients and commitments, built to grow into workforce, governance, financial, AI
 agent and automation modules.
 
-**Current release: Phase 1 — Foundation and Delivery Command Center.**
+**Current release: Phase 3 — Workforce** (on top of Phase 1, foundation and Command Center, and Phase 2, work management).
 See [`docs/IMPLEMENTATION_STATUS.md`](docs/IMPLEMENTATION_STATUS.md) for exactly what works today.
 
 ## Stack
@@ -34,7 +34,9 @@ Demo accounts (local only, password `DemoPass123`):
 | `priya@northwind.example` | Delivery Head + Organization Admin |
 | `arjun@northwind.example` | Project Manager (assigned projects only) |
 | `mei@northwind.example` | Program Manager |
-| `dev@northwind.example` | Developer |
+| `dev@northwind.example` | Developer (reports to Lena) |
+| `lena@northwind.example` | Engineering Manager (approves their reports' leave and timesheets) |
+| `hana@northwind.example` | HR Admin (calendars, leave policy, all attendance and leave) |
 | `omar@northwind.example` | Organization Admin only (no project data) |
 | `claire@contoso.example` | Client stakeholder (one shared project) |
 | `alex@globex.example` | Owner of a second tenant (isolation demo) |
