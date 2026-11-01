@@ -107,6 +107,13 @@ const RPC_MESSAGES: Record<string, string> = {
   budget_state: "Only a draft budget can be approved.",
   already_reversed: "That entry has already been reversed, or is itself a reversal.",
   revenue_state: "That revenue is already recognised.",
+  agents_disabled: "AI agents are switched off for this organization.",
+  agent_disabled: "This agent is not enabled.",
+  unknown_agent: "That agent doesn't exist.",
+  budget_exceeded: "The organization's monthly AI token cap has been reached.",
+  eval_required: "Run the evaluation and pass every case first.",
+  approval_state: "That proposal has already been decided.",
+  invalid_status: "That status isn't valid here.",
 };
 
 /** RPC keys whose detail text is written for users and is more specific than the generic message. */
@@ -145,6 +152,8 @@ const DETAILED_KEYS = new Set([
   "budget_state",
   "already_reversed",
   "revenue_state",
+  "eval_required",
+  "approval_state",
 ]);
 
 export function humanizeRpcMessage(message: string): string {

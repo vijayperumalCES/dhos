@@ -3,6 +3,389 @@ export type Json = string | number | boolean | null | { [key: string]: Json | un
 export type Database = {
   public: {
     Tables: {
+      agent_approvals: {
+        Row: {
+          action_type: string
+          created_at: string
+          decided_at: string | null
+          decided_by_membership_id: string | null
+          decision_note: string | null
+          execution_id: string
+          id: string
+          organization_id: string
+          payload: NonNullable<Json>
+          project_id: string
+          requested_by_membership_id: string
+          result: Json | null
+          status: Database["public"]["Enums"]["agent_approval_status"]
+          summary: string
+          updated_at: string
+        }
+        ComputedFields: never
+        Insert: {
+          action_type: string
+          created_at?: string
+          decided_at?: string | null
+          decided_by_membership_id?: string | null
+          decision_note?: string | null
+          execution_id: string
+          id?: string
+          organization_id: string
+          payload: NonNullable<Json>
+          project_id: string
+          requested_by_membership_id: string
+          result?: Json | null
+          status?: Database["public"]["Enums"]["agent_approval_status"]
+          summary: string
+          updated_at?: string
+        }
+        Update: {
+          action_type?: string
+          created_at?: string
+          decided_at?: string | null
+          decided_by_membership_id?: string | null
+          decision_note?: string | null
+          execution_id?: string
+          id?: string
+          organization_id?: string
+          payload?: NonNullable<Json>
+          project_id?: string
+          requested_by_membership_id?: string
+          result?: Json | null
+          status?: Database["public"]["Enums"]["agent_approval_status"]
+          summary?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_approvals_decided_by_membership_id_organization_id_fkey"
+            columns: ["decided_by_membership_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "organization_memberships"
+            referencedColumns: ["id", "organization_id"]
+          },
+          {
+            foreignKeyName: "agent_approvals_execution_id_organization_id_fkey"
+            columns: ["execution_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "agent_executions"
+            referencedColumns: ["id", "organization_id"]
+          },
+          {
+            foreignKeyName: "agent_approvals_project_id_organization_id_fkey"
+            columns: ["project_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id", "organization_id"]
+          },
+          {
+            foreignKeyName: "agent_approvals_requested_by_membership_id_organization_id_fkey"
+            columns: ["requested_by_membership_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "organization_memberships"
+            referencedColumns: ["id", "organization_id"]
+          },
+        ]
+      }
+      agent_definitions: {
+        Row: {
+          active_version_id: string | null
+          created_at: string
+          enabled: boolean
+          id: string
+          key: string
+          organization_id: string
+          updated_at: string
+        }
+        ComputedFields: never
+        Insert: {
+          active_version_id?: string | null
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          key: string
+          organization_id: string
+          updated_at?: string
+        }
+        Update: {
+          active_version_id?: string | null
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          key?: string
+          organization_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_definitions_active_version_id_organization_id_fkey"
+            columns: ["active_version_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "agent_versions"
+            referencedColumns: ["id", "organization_id"]
+          },
+          {
+            foreignKeyName: "agent_definitions_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      agent_eval_runs: {
+        Row: {
+          agent_id: string
+          created_at: string
+          id: string
+          organization_id: string
+          passed: boolean
+          passed_cases: number
+          results: NonNullable<Json>
+          run_by: string | null
+          total_cases: number
+          version_id: string
+        }
+        ComputedFields: never
+        Insert: {
+          agent_id: string
+          created_at?: string
+          id?: string
+          organization_id: string
+          passed: boolean
+          passed_cases: number
+          results?: NonNullable<Json>
+          run_by?: string | null
+          total_cases: number
+          version_id: string
+        }
+        Update: {
+          agent_id?: string
+          created_at?: string
+          id?: string
+          organization_id?: string
+          passed?: boolean
+          passed_cases?: number
+          results?: NonNullable<Json>
+          run_by?: string | null
+          total_cases?: number
+          version_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_eval_runs_agent_id_organization_id_fkey"
+            columns: ["agent_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "agent_definitions"
+            referencedColumns: ["id", "organization_id"]
+          },
+          {
+            foreignKeyName: "agent_eval_runs_version_id_organization_id_fkey"
+            columns: ["version_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "agent_versions"
+            referencedColumns: ["id", "organization_id"]
+          },
+        ]
+      }
+      agent_executions: {
+        Row: {
+          agent_id: string
+          completed_at: string | null
+          created_at: string
+          error: string | null
+          estimated_cost: number | null
+          evidence: NonNullable<Json>
+          id: string
+          input: NonNullable<Json>
+          input_tokens: number
+          latency_ms: number | null
+          model: string | null
+          organization_id: string
+          output: Json | null
+          output_tokens: number
+          project_id: string | null
+          provider: string | null
+          requested_by: string
+          requested_by_membership_id: string
+          status: Database["public"]["Enums"]["agent_run_status"]
+          tool_calls: NonNullable<Json>
+          version_id: string
+        }
+        ComputedFields: never
+        Insert: {
+          agent_id: string
+          completed_at?: string | null
+          created_at?: string
+          error?: string | null
+          estimated_cost?: number | null
+          evidence?: NonNullable<Json>
+          id?: string
+          input?: NonNullable<Json>
+          input_tokens?: number
+          latency_ms?: number | null
+          model?: string | null
+          organization_id: string
+          output?: Json | null
+          output_tokens?: number
+          project_id?: string | null
+          provider?: string | null
+          requested_by?: string
+          requested_by_membership_id: string
+          status?: Database["public"]["Enums"]["agent_run_status"]
+          tool_calls?: NonNullable<Json>
+          version_id: string
+        }
+        Update: {
+          agent_id?: string
+          completed_at?: string | null
+          created_at?: string
+          error?: string | null
+          estimated_cost?: number | null
+          evidence?: NonNullable<Json>
+          id?: string
+          input?: NonNullable<Json>
+          input_tokens?: number
+          latency_ms?: number | null
+          model?: string | null
+          organization_id?: string
+          output?: Json | null
+          output_tokens?: number
+          project_id?: string | null
+          provider?: string | null
+          requested_by?: string
+          requested_by_membership_id?: string
+          status?: Database["public"]["Enums"]["agent_run_status"]
+          tool_calls?: NonNullable<Json>
+          version_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_executions_agent_id_organization_id_fkey"
+            columns: ["agent_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "agent_definitions"
+            referencedColumns: ["id", "organization_id"]
+          },
+          {
+            foreignKeyName: "agent_executions_project_id_organization_id_fkey"
+            columns: ["project_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id", "organization_id"]
+          },
+          {
+            foreignKeyName: "agent_executions_requested_by_membership_id_organization_i_fkey"
+            columns: ["requested_by_membership_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "organization_memberships"
+            referencedColumns: ["id", "organization_id"]
+          },
+          {
+            foreignKeyName: "agent_executions_version_id_organization_id_fkey"
+            columns: ["version_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "agent_versions"
+            referencedColumns: ["id", "organization_id"]
+          },
+        ]
+      }
+      agent_org_settings: {
+        Row: {
+          enabled: boolean
+          input_price_per_mtok: number | null
+          model: string | null
+          monthly_token_cap: number
+          organization_id: string
+          output_price_per_mtok: number | null
+          provider: string
+          updated_at: string
+          updated_by: string | null
+        }
+        ComputedFields: never
+        Insert: {
+          enabled?: boolean
+          input_price_per_mtok?: number | null
+          model?: string | null
+          monthly_token_cap?: number
+          organization_id: string
+          output_price_per_mtok?: number | null
+          provider?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          enabled?: boolean
+          input_price_per_mtok?: number | null
+          model?: string | null
+          monthly_token_cap?: number
+          organization_id?: string
+          output_price_per_mtok?: number | null
+          provider?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_org_settings_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: true
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      agent_versions: {
+        Row: {
+          agent_id: string
+          created_at: string
+          created_by: string | null
+          id: string
+          max_tokens: number
+          model: string | null
+          notes: string | null
+          organization_id: string
+          system_prompt: string
+          temperature: number
+          version: number
+        }
+        ComputedFields: never
+        Insert: {
+          agent_id: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          max_tokens?: number
+          model?: string | null
+          notes?: string | null
+          organization_id: string
+          system_prompt: string
+          temperature?: number
+          version?: number
+        }
+        Update: {
+          agent_id?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          max_tokens?: number
+          model?: string | null
+          notes?: string | null
+          organization_id?: string
+          system_prompt?: string
+          temperature?: number
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_versions_agent_id_organization_id_fkey"
+            columns: ["agent_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "agent_definitions"
+            referencedColumns: ["id", "organization_id"]
+          },
+        ]
+      }
       attendance_corrections: {
         Row: {
           check_in_at: string
@@ -3478,9 +3861,23 @@ export type Database = {
     Functions: {
       accept_pending_invitations: { Args: Record<PropertyKey, never>; Returns: number }
       acknowledge_escalation: { Args: { p_escalation: string }; Returns: undefined }
+      activate_agent_version: { Args: { p_version: string }; Returns: undefined }
       add_document_version: {
         Args: { p_content: string; p_document: string; p_note?: string; p_url: string }
         Returns: number
+      }
+      agent_usage: {
+        Args: { p_from: string; p_org: string }
+        Returns: {
+          agent_key: string
+          avg_latency_ms: number
+          estimated_cost: number
+          failed_runs: number
+          input_tokens: number
+          last_run_at: string
+          output_tokens: number
+          runs: number
+        }[]
       }
       allowed_parent_types: {
         Args: { p_type: Database["public"]["Enums"]["work_item_type"] }
@@ -3520,6 +3917,7 @@ export type Database = {
         Returns: string
       }
       check_out: { Args: { p_org: string }; Returns: undefined }
+      complete_agent_approval: { Args: { p_approval: string; p_ok: boolean; p_result: Json }; Returns: undefined }
       complete_sprint: { Args: { p_move_to?: string; p_sprint: string }; Returns: undefined }
       create_document: {
         Args: {
@@ -3539,8 +3937,27 @@ export type Database = {
         Args: { p_description: string; p_key: string; p_name: string; p_org: string; p_permissions: string[] }
         Returns: string
       }
+      decide_agent_approval: { Args: { p_approval: string; p_approve: boolean; p_note?: string }; Returns: undefined }
       decide_change_request: { Args: { p_approve: boolean; p_change: string; p_note?: string }; Returns: undefined }
       delete_role: { Args: { p_role: string }; Returns: undefined }
+      finish_agent_execution: {
+        Args: {
+          p_cost: number
+          p_error: string
+          p_evidence: Json
+          p_execution: string
+          p_input_tokens: number
+          p_latency_ms: number
+          p_model: string
+          p_output: Json
+          p_output_tokens: number
+          p_proposals?: Json
+          p_provider: string
+          p_status: Database["public"]["Enums"]["agent_run_status"]
+          p_tool_calls: Json
+        }
+        Returns: undefined
+      }
       grant_annual_leave_allowances: { Args: { p_org: string; p_year: number }; Returns: number }
       has_permission: { Args: { p_org: string; p_permission: string }; Returns: boolean }
       implement_change_request: { Args: { p_change: string }; Returns: undefined }
@@ -3607,6 +4024,10 @@ export type Database = {
       }
       recall_timesheet: { Args: { p_timesheet: string }; Returns: undefined }
       recognise_revenue: { Args: { p_line: string; p_on: string }; Returns: undefined }
+      record_agent_eval: {
+        Args: { p_passed: boolean; p_passed_cases: number; p_results: Json; p_total: number; p_version: string }
+        Returns: string
+      }
       record_gate_result: {
         Args: { p_gate: string; p_note?: string; p_status: Database["public"]["Enums"]["gate_status"] }
         Returns: undefined
@@ -3653,6 +4074,7 @@ export type Database = {
       review_leave_request: { Args: { p_approve: boolean; p_note?: string; p_request: string }; Returns: undefined }
       review_timesheet: { Args: { p_approve: boolean; p_note?: string; p_timesheet: string }; Returns: undefined }
       revoke_invitation: { Args: { p_invitation: string }; Returns: undefined }
+      set_agent_enabled: { Args: { p_agent: string; p_enabled: boolean }; Returns: undefined }
       set_default_calendar: { Args: { p_calendar: string }; Returns: undefined }
       set_leave_balance: {
         Args: { p_days: number; p_leave_type: string; p_membership: string; p_year: number }
@@ -3670,6 +4092,10 @@ export type Database = {
         Returns: undefined
       }
       set_work_item_archived: { Args: { p_archived: boolean; p_item: string }; Returns: undefined }
+      start_agent_execution: {
+        Args: { p_agent_key: string; p_input: Json; p_org: string; p_project: string }
+        Returns: Json
+      }
       start_budget: { Args: { p_name: string; p_project: string }; Returns: string }
       start_sprint: { Args: { p_sprint: string }; Returns: undefined }
       submit_change_request: { Args: { p_change: string }; Returns: undefined }
@@ -3711,6 +4137,8 @@ export type Database = {
     }
     Enums: {
       action_status: "open" | "in_progress" | "done" | "cancelled"
+      agent_approval_status: "pending" | "approved" | "rejected" | "executed" | "failed"
+      agent_run_status: "running" | "succeeded" | "failed"
       attendance_source: "self" | "correction"
       billing_model: "fixed_price" | "time_and_materials" | "retainer"
       budget_status: "draft" | "approved" | "superseded"
@@ -3854,6 +4282,8 @@ export const Constants = {
   public: {
     Enums: {
       action_status: ["open", "in_progress", "done", "cancelled"],
+      agent_approval_status: ["pending", "approved", "rejected", "executed", "failed"],
+      agent_run_status: ["running", "succeeded", "failed"],
       attendance_source: ["self", "correction"],
       billing_model: ["fixed_price", "time_and_materials", "retainer"],
       budget_status: ["draft", "approved", "superseded"],

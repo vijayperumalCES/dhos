@@ -1,7 +1,10 @@
 # Stride — AI Sub-Agent Architecture (design)
 
-> **Status: design only. No AI agent, model gateway or agent execution exists in the codebase.**
-> Implementation is Phase 6. The AI brief card on the Command Center is labelled "Not available".
+> **Status: Phase 6 implemented (2026-11-04) for four agents — Project Health, Delivery Intelligence,
+> Requirements and Reporting — on a provider-agnostic gateway with a built-in rule-based provider and
+> an Anthropic provider. See [ADR-0011](DECISIONS/ADR-0011-ai-agents.md) for the decisions and
+> "Implemented vs designed" below for what is not built.** Sections 1–7 remain the design; the
+> deviations are listed at the end.
 
 ## 1. Goals
 
@@ -85,3 +88,18 @@ datasets and regression runs, enable/disable, rollback, approval policies, audit
 `ai_providers`, `ai_models`, `agent_definitions`, `agent_versions`, `agent_tool_permissions`,
 `agent_executions`, `agent_approvals`, `prompt_templates`, `prompt_versions` — all tenant-scoped with
 RLS, following `docs/DATABASE.md` conventions.
+
+## 8. Implemented vs designed (Phase 6)
+
+| Design item | State |
+|---|---|
+| Orchestrator, caller-permission intersection, timeouts, retries, budgets | Built (`src/lib/ai/orchestrator.ts`, `tools.ts`, `pipeline.ts`; gates in `start_agent_execution`) |
+| Model gateway (`generateStructured`) over providers | Built: `builtin` and `anthropic`. `generate` and `embed` are not built |
+| `ai_providers` / `ai_models` tables | Not built: provider and model are organization settings; credentials are platform environment variables |
+| `agent_definitions`, `agent_versions`, `agent_executions`, `agent_approvals` | Built, with `agent_org_settings` and `agent_eval_runs` added |
+| `agent_tool_permissions`, `prompt_templates`, `prompt_versions` | Replaced: the tool allow-list and approval policy live in code (`registry.ts`), part of the reviewed safety boundary; the prompt and its history live in `agent_versions` |
+| Evaluation datasets and regression gate | Built as code-defined golden cases over synthetic data; activation requires a passing run |
+| Approvals with human decision | Built for `create_work_item`; other action types (attendance corrections, financial changes, external messages, reassignment) are not available to agents at all |
+| Per-agent and per-org kill switch, token cap, usage dashboard | Built. Cost is estimated only when prices are configured |
+| Agents: Sprint Planning, Resource Planning, Attendance & Timesheet, Risk & Escalation, Quality & Release, Financial Insights, Meeting Intelligence, Workflow Automation, Knowledge, Integration Monitoring | Not built |
+| Scheduled and event-triggered runs | Not built (Phase 7 scheduler); every run is started by a person |

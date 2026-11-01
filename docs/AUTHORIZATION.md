@@ -124,7 +124,7 @@ timesheets without any of the HR permissions. See section 3a.
   Head reads and approves budgets but cannot read rates.
 - **Client stakeholders** see milestones and status reports of shared projects, never work items,
   boards or sprints (no `work.read`). Status-report snapshots therefore store counts, not item titles.
-- **AI Agent Operator** has directory access and self-service workforce only until Phase 6.
+- **AI Agent Operator** configures agents (`agent.read`, `agent.manage`) with directory access and self-service workforce; it cannot run agents, approve their actions or read delivery data.
 
 ### 3a. HR data (Phase 3)
 
@@ -185,8 +185,22 @@ over-allocation. `05_governance.test.sql` (98 assertions) covers project-scoped 
 visibility, decision and change-request locks, escalation preconditions, release gates, client
 record confidentiality and document immutability. Playwright covers the same boundaries through the UI.
 
-## 6. AI agents (Phase 6 constraint)
+## 6. AI agents (Phase 6)
 
-Agents will run with the invoking user's (or a dedicated, least-privilege service principal's)
-JWT and pass through the same RLS. No agent receives the service-role key. See
-`docs/AGENT_ARCHITECTURE.md`.
+Agents run with the invoking user's own session and pass through the same RLS; no agent receives
+the service-role key and there is no agent service principal. Four permissions:
+
+| Permission | Allows |
+|---|---|
+| `agent.read` | See the agent catalogue, prompt versions, evaluation results and aggregate usage (counts only) |
+| `agent.run` | Run an enabled agent on data the caller can already read |
+| `agent.approve` | Approve or reject an agent's proposed action, never one the caller requested |
+| `agent.manage` | Organization switch, provider, model and token cap; prompt versions; evaluation; enable and disable agents |
+
+Defaults: Org Admin and AI Agent Operator get `read` + `manage` and nothing that reads delivery
+data; Delivery Head and Program Manager get `read` + `run` + `approve`; Project Manager, Engineering
+Manager and Product Owner get `read` + `run`; every other role gets none. Execution content (input,
+output, evidence) is readable only by the person who ran it. A proposal is visible to its requester
+and to approvers who can read the project. Approving an action also requires the permission for that
+action on the project (`work.create` for a draft work item), and the action runs as the approver.
+See `docs/DECISIONS/ADR-0011-ai-agents.md` and `docs/AGENT_ARCHITECTURE.md`.

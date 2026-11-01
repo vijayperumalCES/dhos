@@ -811,6 +811,42 @@ from (values
 join private.seed_p p on p.code = 'NW-PAY';
 perform public.recognise_revenue(r.id, r.planned_date) from public.revenue_lines r where r.description like 'Milestone 1%';
 
+-- ---------------------------------------------------------------------------
+-- AI agents (Phase 6): on for Northwind with evaluated version-1 prompts on the built-in
+-- provider (no cost, no external calls), plus one pending proposal for Priya to decide.
+-- Globex keeps the defaults: agents off. The evaluation rows below are demo stand-ins; in the
+-- app an operator runs the real golden cases before activating.
+-- ---------------------------------------------------------------------------
+perform set_config('request.jwt.claims', '', true);
+update public.agent_org_settings set enabled = true
+ where organization_id = (select id from public.organizations where slug = 'northwind-demo');
+insert into public.agent_eval_runs (organization_id, agent_id, version_id, passed, total_cases, passed_cases, results, run_by)
+select d.organization_id, d.id, v.id, true, 1, 1, '[{"name":"Seeded for the demo","passed":true,"detail":"ok"}]'::jsonb, '00000000-0000-4000-a000-000000000002'
+from public.agent_definitions d
+join public.agent_versions v on v.agent_id = d.id and v.version = 1
+where d.organization_id = (select id from public.organizations where slug = 'northwind-demo');
+update public.agent_definitions d set enabled = true,
+       active_version_id = (select v.id from public.agent_versions v where v.agent_id = d.id and v.version = 1)
+ where d.organization_id = (select id from public.organizations where slug = 'northwind-demo');
+
+insert into public.agent_executions (id, organization_id, agent_id, version_id, requested_by_membership_id, requested_by, project_id, status, input, output, provider, model, latency_ms, completed_at)
+select '00000000-0000-4000-b000-000000000001', p.organization_id, d.id, d.active_version_id,
+       (select id from private.seed_m where email = 'arjun@northwind.example' and organization_id = p.organization_id), '00000000-0000-4000-a000-000000000003', p.id, 'succeeded',
+       '{"text":"Demo notes"}'::jsonb,
+       '{"summary":"Drafted 2 items from the notes. Review each before approving; nothing is created until it is approved.","stories":[{"title":"Cardholders can see pending authorisations","description":"Users must be able to see pending authorisations in the ledger view.","acceptanceCriteria":["Verified: pending items appear within a minute of authorisation"],"type":"story"},{"title":"Export ledger entries to CSV","description":"Finance should be able to export ledger entries to CSV.","acceptanceCriteria":["Verified: the export includes entry date, amount and reference"],"type":"story"}],"openQuestions":[],"limitations":["Demo data produced by the seed, not by an agent run."]}'::jsonb,
+       'builtin', 'builtin-rules', 12, now()
+from private.seed_p p
+join public.agent_definitions d on d.organization_id = p.organization_id and d.key = 'requirements'
+where p.code = 'NW-PAY';
+insert into public.agent_approvals (organization_id, execution_id, project_id, action_type, summary, payload, requested_by_membership_id)
+select e.organization_id, e.id, e.project_id, 'create_work_item', x.summary, x.payload::jsonb, e.requested_by_membership_id
+from public.agent_executions e
+cross join (values
+  ('Create story: Cardholders can see pending authorisations', '{"title":"Cardholders can see pending authorisations","description":"Users must be able to see pending authorisations in the ledger view.","acceptanceCriteria":["Verified: pending items appear within a minute of authorisation"],"type":"story"}'),
+  ('Create story: Export ledger entries to CSV', '{"title":"Export ledger entries to CSV","description":"Finance should be able to export ledger entries to CSV.","acceptanceCriteria":["Verified: the export includes entry date, amount and reference"],"type":"story"}')
+) as x(summary, payload)
+where e.id = '00000000-0000-4000-b000-000000000001';
+
 perform set_config('request.jwt.claims', '', true);
 drop table private.seed_b;
 drop table private.seed_p;

@@ -15,3 +15,4 @@ Add a new ADR (next number) for any decision that is costly to reverse.
 | [0008](ADR-0008-workforce-model.md) | Workforce data model and HR access policy | Accepted |
 | [0009](ADR-0009-governance-model.md) | Delivery governance data model and access | Accepted |
 | [0010](ADR-0010-finance-model.md) | Financial data model and access | Accepted |
+| [0011](ADR-0011-ai-agents.md) | AI agents: gateway, registry, approvals and limits | Accepted |

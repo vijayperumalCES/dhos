@@ -51,6 +51,10 @@ export const PERMISSIONS = [
   "finance.read",
   "finance.manage",
   "finance.approve",
+  "agent.read",
+  "agent.run",
+  "agent.approve",
+  "agent.manage",
 ] as const;
 
 export type Permission = (typeof PERMISSIONS)[number];
@@ -87,6 +91,8 @@ export const ROLE_TEMPLATES: Record<RoleKey, readonly Permission[]> = {
     "team.read",
     "team.manage",
     "workflow.manage",
+    "agent.read",
+    "agent.manage",
   ],
   delivery_head: [
     "org.members.read",
@@ -126,6 +132,9 @@ export const ROLE_TEMPLATES: Record<RoleKey, readonly Permission[]> = {
     "document.manage",
     "finance.read",
     "finance.approve",
+    "agent.read",
+    "agent.run",
+    "agent.approve",
   ],
   program_manager: [
     "org.members.read",
@@ -154,6 +163,9 @@ export const ROLE_TEMPLATES: Record<RoleKey, readonly Permission[]> = {
     "release.manage",
     "document.read",
     "document.manage",
+    "agent.read",
+    "agent.run",
+    "agent.approve",
   ],
   project_manager: [
     "org.members.read",
@@ -179,6 +191,8 @@ export const ROLE_TEMPLATES: Record<RoleKey, readonly Permission[]> = {
     "release.manage",
     "document.read",
     "document.manage",
+    "agent.read",
+    "agent.run",
   ],
   engineering_manager: [
     "org.members.read",
@@ -199,6 +213,8 @@ export const ROLE_TEMPLATES: Record<RoleKey, readonly Permission[]> = {
     "release.read",
     "release.manage",
     "document.read",
+    "agent.read",
+    "agent.run",
   ],
   product_owner: [
     "org.members.read",
@@ -216,6 +232,8 @@ export const ROLE_TEMPLATES: Record<RoleKey, readonly Permission[]> = {
     "release.read",
     "document.read",
     "document.manage",
+    "agent.read",
+    "agent.run",
   ],
   scrum_master: [
     "org.members.read",
@@ -284,7 +302,7 @@ export const ROLE_TEMPLATES: Record<RoleKey, readonly Permission[]> = {
     "finance.approve",
   ],
   client_stakeholder: ["project.read_assigned"],
-  ai_agent_operator: ["org.members.read", "workforce.self"],
+  ai_agent_operator: ["org.members.read", "workforce.self", "agent.read", "agent.manage"],
 };
 
 export class PermissionSet {

@@ -126,6 +126,22 @@ Key functions: `start_budget`, `approve_budget`, `reverse_cost_entry`, `recognis
 `revenue_lines_before_write`, `audit_finance_change` (redacts amounts). See
 [ADR-0010](DECISIONS/ADR-0010-finance-model.md).
 
+### Phase 6 additions (AI agents)
+
+| Table | Purpose |
+|---|---|
+| `agent_org_settings` | One row per organization: master switch (off by default), provider, model, monthly token cap, optional prices. No credentials |
+| `agent_definitions` | One row per agent per organization: key, enabled, active version. Seeded for every organization by trigger |
+| `agent_versions` | Immutable prompt, model and parameters; a change is a new version |
+| `agent_eval_runs` | Verdict of each golden-case evaluation; the latest one for a version gates its activation |
+| `agent_executions` | The execution log with tokens, latency and estimated cost; written only by RPC, readable only by the requester |
+| `agent_approvals` | Proposed actions awaiting a person other than the requester; closed set of action types |
+
+RPCs: `start_agent_execution` (all gates), `finish_agent_execution`, `decide_agent_approval`,
+`complete_agent_approval`, `record_agent_eval`, `activate_agent_version`, `set_agent_enabled`,
+`agent_usage` (aggregate, no content). Four permissions (`agent.read|run|approve|manage`). See
+[ADR-0011](DECISIONS/ADR-0011-ai-agents.md).
+
 ### Phase 4 additions (governance)
 
 | Table | Purpose |

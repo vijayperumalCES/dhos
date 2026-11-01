@@ -156,6 +156,35 @@ The demo seed adds Fiona Gray (Finance Manager); sign in as Priya to approve a d
 - Shared costs are not allocated across projects.
 - The pages were checked by compiling and by the database tests; they were not exercised against a running Supabase stack, and there are no Playwright journeys for finance yet.
 
+## Phase 6 — AI agents (2026-11-04)
+
+| Feature | Status | Evidence |
+|---|---|---|
+| Model gateway with a built-in rule-based provider and an Anthropic provider (server-side key, deadline, retries, token counts) | Done | unit; Anthropic path not exercised against the live API |
+| Agent registry: four agents (Project Health, Delivery Intelligence, Requirements, Reporting), code-defined tool allow-list, schemas and approval policy | Done | unit |
+| Reads through the caller's own session; tool also needs the caller's permission; skipped tools reported as limitations | Done | unit, pgTAP |
+| Deterministic signals decide findings; citations checked against records read; uncited findings dropped | Done | unit |
+| Untrusted text fenced in prompts; models get no tools; secrets redacted from stored runs | Done | unit |
+| Immutable prompt versions; activation needs the latest evaluation to pass; rollback; per-agent kill switch; organization switch; everything off by default | Done | pgTAP |
+| Golden-case evaluation harness (known findings, citations resolve, injection ignored, healthy stays clean, fabricated citations discarded) | Done | unit |
+| Execution log private to the requester; token and cost ledger; monthly token cap; 30 runs/hour limit; aggregate usage page | Done | pgTAP |
+| Approvals: Requirements agent drafts become proposals; a different person with `agent.approve` and `work.create` decides; approved action runs as the approver; failed actions retry | Done | pgTAP |
+| 4 permissions and role templates; ADR-0011; audit of configuration, decisions and run starts (never input) | Done | pgTAP, unit drift test |
+| Command Center brief card shows the latest Reporting-agent brief with a link to its sources | Done | build |
+| Demo seed: agents on for Northwind (demo evaluation stand-ins), two pending proposals from Arjun; Globex left off | Done | `supabase/seed.sql` |
+
+New migration `20261104000100_ai_agents.sql` — **must be pushed to the hosted project** (`supabase db push`).
+Set `ANTHROPIC_API_KEY` on the web host only if an organization should use the Anthropic provider.
+
+### Phase 6 limitations
+- The Anthropic provider has not been run against the live API in this environment (no key); it is covered by construction and by the shared guards, not by a call.
+- The pages were checked by compiling, the unit suite and the database tests; they were not exercised against a running Supabase stack, and `tests/e2e/agents.spec.ts` has not been run.
+- Ten of the fourteen planned agents are not built; runs are started by a person (no scheduled or event-triggered runs until Phase 7).
+- Evaluation against a paid provider uses tokens that aren't counted against the monthly cap, and `agent.manage` can record an evaluation verdict (audited).
+- The built-in provider is rule-based: wording is templated and requirement drafts mirror the notes.
+- A run is synchronous inside one request (up to the agent's timeout); there is no queue or cancellation.
+- Cost is estimated only when the organization enters prices; Stride ships no price table.
+
 ## Known gaps and limitations (Phase 1)
 
 - **Email delivery limits:** hosted Supabase's built-in mailer sends only a few emails per hour. Configure
@@ -177,7 +206,7 @@ The demo seed adds Fiona Gray (Finance Manager); sign in as Priya to approve a d
 
 | Suite | Command | Count | Last result |
 |---|---|---|---|
-| Unit (Vitest) | `pnpm test` | 103 | ✅ pass |
-| Database (pgTAP) | `pnpm test:db` | 255 (45 + 25 + 34 + 53 + 98) | ✅ pass |
-| End-to-end (Playwright) | `pnpm test:e2e` | 26 | ✅ pass |
+| Unit (Vitest) | `pnpm test` | 158 | ✅ pass |
+| Database (pgTAP) | `pnpm test:db` | 428 (45 + 25 + 34 + 53 + 98 + 72 + 101) | ✅ pass (run on a throwaway Postgres 17, Phase 6 on top of all earlier suites) |
+| End-to-end (Playwright) | `pnpm test:e2e` | 26 + 5 for agents | 26 last run before Phase 5; the 5 agent journeys are written but not run (no local stack here) |
 | Typecheck / lint / build | `pnpm typecheck`, `pnpm lint`, `pnpm build` | — | ✅ pass |

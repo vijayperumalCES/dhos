@@ -1,6 +1,6 @@
 # Stride — Roadmap
 
-_Last updated: 2026-11-03._ Status: ✅ done · 🟡 partial · ⬜ not started
+_Last updated: 2026-11-04._ Status: ✅ done · 🟡 partial · ⬜ not started
 
 | Phase | Theme | Status |
 |---|---|---|
@@ -9,7 +9,7 @@ _Last updated: 2026-11-03._ Status: ✅ done · 🟡 partial · ⬜ not started
 | 3 | Workforce management | ✅ (see `IMPLEMENTATION_STATUS.md`) |
 | 4 | Delivery governance | ✅ (see `IMPLEMENTATION_STATUS.md`) |
 | 5 | Financial and portfolio intelligence | ✅ (see `IMPLEMENTATION_STATUS.md`) |
-| 6 | AI agents | ⬜ |
+| 6 | AI agents | ✅ (see `IMPLEMENTATION_STATUS.md`) |
 | 7 | Automation and integrations | ⬜ |
 | 8 | Production readiness | ⬜ (some groundwork in Phase 1) |
 
@@ -54,10 +54,18 @@ policies; rates never appear in a report; audit entries redact amounts
 Deliberately left out: multi-currency, invoicing and time-and-materials billing, shared-cost
 allocation, trend snapshots of the estimate over time (Phase 7 scheduler).
 
-## Phase 6 — AI agents
+## Phase 6 — AI agents (done 2026-11-04)
 
-Model gateway, registry, Delivery Intelligence, Project Health, Requirements and Reporting agents,
-approvals, evaluation and usage controls. See `AGENT_ARCHITECTURE.md`.
+Provider-agnostic model gateway (built-in rule-based and Anthropic providers), an agent registry with
+immutable prompt versions gated by evaluation, Project Health, Delivery Intelligence, Requirements and
+Reporting agents, human approval for the one action agents may propose (create a work item), an
+execution log private to the requester, per-agent and per-organization kill switches, a monthly token
+cap and a usage view. Agents read through the caller's own session and RLS; models never call tools;
+every finding cites records that were read ([ADR-0011](DECISIONS/ADR-0011-ai-agents.md)).
+
+Deliberately left out: the other ten planned agents, tool-calling models, embeddings and knowledge
+retrieval, scheduled or event-triggered runs (Phase 7), agent-initiated writes beyond drafts for
+approval, and a price table for cost (organizations enter their own prices).
 
 ## Phase 7 — Automation & integrations
 

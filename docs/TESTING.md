@@ -23,6 +23,13 @@ The pgTAP suite builds its own fixtures in a rolled-back transaction, so it does
 seed. Playwright relies on the seeded demo users and creates uniquely-named records, so it can be
 re-run without a reset.
 
+AI agents are tested at three levels: pgTAP `07_ai_agents` (gates, kill switches, evaluation gate,
+privacy, approvals, separation of duties, token and rate limits), unit `agents.test.ts` (signals,
+output guard, built-in provider, pipeline and the golden-case evaluation for every agent, including a
+provider that obeys an injected instruction and one that invents findings) and Playwright
+`agents.spec.ts`. Nothing in the suite calls an external model; the Anthropic provider is exercised
+only by pointing `ANTHROPIC_BASE_URL` at a test double.
+
 ## Rules for new features
 
 1. Every new tenant table gets pgTAP tests for: anon denial, cross-tenant read denial, cross-tenant

@@ -73,7 +73,7 @@ export const NAVIGATION: NavGroup[] = [
   {
     label: "Automation",
     items: [
-      { title: "AI Agents", icon: "bot", plannedPhase: 6, slug: "agents" },
+      { title: "AI Agents", icon: "bot", href: "/agents", anyOf: ["agent.read", "agent.run", "agent.approve"] },
       { title: "Workflow Automation", icon: "workflow", plannedPhase: 7, slug: "workflows" },
       { title: "Integrations", icon: "plug", plannedPhase: 7, slug: "integrations" },
       { title: "Notifications", icon: "bell", plannedPhase: 7, slug: "notifications" },
@@ -94,12 +94,6 @@ export const NAVIGATION: NavGroup[] = [
 ];
 
 export const PLANNED_MODULES: Record<string, { title: string; phase: number; summary: string; scope: string[] }> = {
-  agents: {
-    title: "AI Agents",
-    phase: 6,
-    summary: "Specialised, permission-bounded AI sub-agents with human approval.",
-    scope: ["Model gateway", "Agent registry", "Execution logs", "Approvals and evaluations"],
-  },
   workflows: {
     title: "Workflow Automation",
     phase: 7,

@@ -50,6 +50,8 @@ Environment variables:
 | `NEXT_PUBLIC_SUPABASE_URL` | `https://<ref>.supabase.co` | public |
 | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | project publishable (anon) key | public |
 | `NEXT_PUBLIC_SITE_URL` | `https://stride-ces.vercel.app` | public |
+| `ANTHROPIC_API_KEY` | Anthropic API key. Optional: only needed if an organization selects the Anthropic provider for AI agents (the built-in provider needs nothing) | **server-only secret** — never prefix with `NEXT_PUBLIC_` |
+| `ANTHROPIC_BASE_URL` | Optional override of `https://api.anthropic.com` (proxy or test double) | server-only |
 
 The service-role / secret key is **not** needed by the app and must not be configured on the web
 host. Build: `pnpm build`; start: `pnpm start` (port 3100, or set `PORT`/adjust the script).

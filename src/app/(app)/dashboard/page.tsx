@@ -13,6 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { requireOrgContext } from "@/lib/auth/org-context";
+import { getLatestBrief } from "@/lib/data/agents";
 import { getDashboardData } from "@/lib/data/dashboard";
 import { loadProjectFormOptions } from "@/lib/data/options";
 import { KPI_CATALOGUE, parseReportingPeriod, REPORTING_PERIODS } from "@/lib/domain/kpis";
@@ -37,6 +38,7 @@ export default async function DashboardPage({ searchParams }: PageProps<"/dashbo
   if (!ctx.permissions.has("dashboard.portfolio.view")) {
     redirect(ctx.permissions.canReadProjects ? "/projects" : "/account");
   }
+  const brief = ctx.permissions.has("agent.run") ? await getLatestBrief(ctx) : null;
 
   const sp = await searchParams;
   const one = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v);
@@ -304,13 +306,25 @@ export default async function DashboardPage({ searchParams }: PageProps<"/dashbo
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Bot className="size-4" /> AI daily delivery brief
+              <Bot className="size-4" /> AI delivery brief
             </CardTitle>
-            <CardDescription>Not available</CardDescription>
+            <CardDescription>{brief ? `From the Reporting agent · ${formatRelative(brief.createdAt)}${brief.projectCode ? ` · ${brief.projectCode}` : " · portfolio"}` : "Reporting agent"}</CardDescription>
           </CardHeader>
-          <CardContent className="text-sm text-muted-foreground">
-            AI agents are not implemented. The daily brief will be produced by the Reporting Agent in Phase 6, using only
-            data you are authorised to see, with sources cited and human approval for any action it recommends.
+          <CardContent className="space-y-2 text-sm text-muted-foreground">
+            {brief ? (
+              <>
+                <p className="whitespace-pre-wrap text-foreground">{brief.summary}</p>
+                <Link href={`/agents/runs/${brief.id}`} className="underline underline-offset-2">
+                  Sources and details
+                </Link>
+              </>
+            ) : ctx.permissions.has("agent.run") ? (
+              <p>
+                No brief yet. Run the Reporting agent from <Link href="/agents" className="underline underline-offset-2">AI Agents</Link>; it uses only data you can see and cites what it read.
+              </p>
+            ) : (
+              <p>Briefs come from the Reporting agent and are visible only to the person who ran it.</p>
+            )}
           </CardContent>
         </Card>
       </div>

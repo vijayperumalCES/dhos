@@ -184,11 +184,29 @@ validated preview (all-or-nothing); invitations can be created in bulk from CSV.
   managers and never returned by a report; approved budgets and recognised revenue can't be edited;
   nobody approves their own budget (pgTAP `06_finance`).
 
+### Phase 6 — AI agents (delivered 2026-11-04)
+
+- **US-6.1 Project health.** A project manager runs the Project Health agent on a project and gets
+  findings (overdue milestones, blocked work, high risks, overdue escalations, stale health) each
+  citing the records behind it, with recommended next steps.
+- **US-6.2 Portfolio attention.** A delivery head runs Delivery Intelligence and gets the in-flight
+  projects ranked by what needs attention, limited to projects they can see.
+- **US-6.3 Draft requirements.** A product owner pastes notes; the Requirements agent drafts stories with
+  acceptance criteria and open questions. Nothing is created until a different person approves each draft.
+- **US-6.4 Delivery brief.** The Reporting agent writes a short brief for a project or the portfolio; the
+  Command Center shows the latest one with a link to its sources.
+- **US-6.5 Control.** An operator switches agents on per organization and per agent, picks a provider and
+  model, sets a monthly token cap, edits prompts as new versions and activates a version only after it
+  passes the evaluation; rollback is activating an earlier passing version.
+- AC: an agent never reads more than its caller; text in data can't make it call a tool or act; a run's
+  content is visible only to the person who ran it; nobody approves their own request; runs stop at the
+  token cap and when either switch is off (pgTAP `07_ai_agents`, unit `agents.test.ts`).
+
 ### 5.2 Out of scope for Phase 1
 
 Work items, sprints, milestones, attendance, leave, timesheets, financials, RAID, releases,
 documents, notifications, AI agents, workflows, integrations. Work management shipped in Phase 2,
-workforce in Phase 3, governance in Phase 4 and finance in Phase 5; the rest is in `docs/ROADMAP.md`.
+workforce in Phase 3, governance in Phase 4, finance in Phase 5 and AI agents in Phase 6; the rest is in `docs/ROADMAP.md`.
 
 ## 6. Non-functional requirements
 
