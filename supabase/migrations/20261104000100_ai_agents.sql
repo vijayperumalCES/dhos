@@ -186,7 +186,6 @@ $$;
 create trigger organizations_seed_agents after insert on public.organizations
   for each row execute function private.organizations_seed_agents();
 
-select private.seed_agent_defaults(o.id) from public.organizations o;
 
 -- ---------------------------------------------------------------------------
 -- Executions: one row per run. Written only by start/finish RPCs; frozen once finished.
@@ -638,3 +637,7 @@ grant execute on function
   public.set_agent_enabled(uuid, boolean),
   public.agent_usage(uuid, date)
 to authenticated;
+
+-- Backfill existing organizations last: seeding queues deferred foreign-key checks, which would block
+-- the ALTER TABLE statements above if it ran earlier in this single transaction.
+select private.seed_agent_defaults(o.id) from public.organizations o;
