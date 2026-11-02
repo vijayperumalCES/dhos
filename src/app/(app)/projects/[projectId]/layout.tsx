@@ -36,6 +36,7 @@ export default async function ProjectLayout({ children, params }: LayoutProps<"/
     ...(ctx.permissions.has("governance.read") ? [{ segment: "governance", label: "Governance" }] : []),
     ...(ctx.permissions.has("finance.read") ? [{ segment: "finance", label: "Finance" }] : []),
     { segment: "reports", label: "Status reports" },
+    { segment: "metrics", label: "Delivery metrics" },
   ];
 
   return (

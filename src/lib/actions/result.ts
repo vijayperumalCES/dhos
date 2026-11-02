@@ -167,6 +167,13 @@ const DETAILED_KEYS = new Set([
   "need_second_approver",
   "mfa_required_to_enable",
   "invalid_retention",
+  "invalid_week",
+  "invalid_entries",
+  "unknown_metric",
+  "out_of_range",
+  "too_many_recipients",
+  "invalid_recipients",
+  "no_recipients",
 ]);
 
 export function humanizeRpcMessage(message: string): string {

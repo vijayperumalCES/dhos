@@ -229,6 +229,14 @@ organization until it is lifted. The audit log is never purged. Security setting
 through `set_security_controls` and `set_legal_hold`; privileged-role requests are
 `role_grant_requests`. See ADR-0014.
 
+**Delivery metrics (ADR-0015).** `project_metric_entries` (one value per project, metric and Monday),
+`project_report_settings` (recipients, weekly and monthly switches; readable only by people who can
+publish for the project) and `metric_report_runs` (one generated report per project, kind and period:
+the email queue and history). Written only by `save_metric_entries`, `save_report_settings`, the
+`metrics_reports` job and the `service_role` functions `claim_pending_reports` and
+`complete_report_run`; read through `project_metrics`. `private.metric_catalogue()` lists the 30
+metrics, their ranges and how weeks combine.
+
 ## 5. Logical model for later phases
 
 The full logical model in the master brief (workforce, delivery, governance, finance, AI and

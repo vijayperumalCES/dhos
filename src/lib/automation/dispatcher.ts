@@ -3,6 +3,8 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/lib/supabase/database.types";
 
 import { resolveAdapter } from "./adapters";
+import { composeReportEmail, parseMetricValues } from "@/lib/domain/delivery-metrics";
+
 import { composeEmail, type EmailProvider } from "./email";
 import { evaluateConditions, parseConditions } from "./rules";
 import { sendWebhook, type Delivery, type SendDeps } from "./webhook";
@@ -20,17 +22,19 @@ export type TickSummary = {
   events: { claimed: number; processed: number; failed: number; rulesApplied: number; notifications: number; deliveriesQueued: number };
   webhooks: { attempted: number; succeeded: number; failed: number };
   emails: { attempted: number; sent: number; simulated: number; failed: number };
+  reports: { attempted: number; sent: number; simulated: number; failed: number };
   jobs: { run: number; failed: number };
   errors: string[];
 };
 
-const LIMITS = { events: 100, webhooks: 50, emails: 50, jobs: 25 };
+const LIMITS = { events: 100, webhooks: 50, emails: 50, reports: 20, jobs: 25 };
 
 function emptySummary(): TickSummary {
   return {
     events: { claimed: 0, processed: 0, failed: 0, rulesApplied: 0, notifications: 0, deliveriesQueued: 0 },
     webhooks: { attempted: 0, succeeded: 0, failed: 0 },
     emails: { attempted: 0, sent: 0, simulated: 0, failed: 0 },
+    reports: { attempted: 0, sent: 0, simulated: 0, failed: 0 },
     jobs: { run: 0, failed: 0 },
     errors: [],
   };
@@ -47,6 +51,7 @@ export async function runTick(db: Db, deps: Deps): Promise<TickSummary> {
     ["events", () => processEvents(db, summary)],
     ["webhooks", () => deliverWebhooks(db, deps, summary)],
     ["emails", () => deliverEmails(db, deps, summary)],
+    ["reports", () => deliverReports(db, deps, summary)],
     ["jobs", () => runDueJobs(db, deps, summary)],
   ];
   for (const [name, stage] of stages) {
@@ -116,6 +121,47 @@ async function deliverEmails(db: Db, deps: Deps, s: TickSummary) {
     if (outcome === "error") s.emails.failed++;
     else s.emails[outcome]++;
     await db.rpc("complete_notification_email", { p_id: row.id, p_status: outcome });
+  }
+}
+
+/**
+ * Emails each pending delivery-metrics report to its recipients. A recipient who already has it is
+ * skipped, so a retry after a partial failure never sends twice.
+ */
+async function deliverReports(db: Db, deps: Deps, s: TickSummary) {
+  const { data, error } = await db.rpc("claim_pending_reports", { p_limit: LIMITS.reports });
+  if (error) throw new Error(error.message);
+  for (const row of data ?? []) {
+    s.reports.attempted++;
+    const metrics = parseMetricValues((row.payload as { metrics?: unknown } | null)?.metrics);
+    const delivered: string[] = [];
+    let outcome: "sent" | "simulated" = "simulated";
+    let failure: string | null = null;
+    for (const to of row.recipients.filter((r) => !row.delivered_to.includes(r))) {
+      try {
+        const message = composeReportEmail(
+          {
+            organizationName: row.organization_name,
+            projectId: row.project_id,
+            projectCode: row.project_code,
+            projectName: row.project_name,
+            kind: row.kind === "monthly" ? "monthly" : "weekly",
+            periodStart: row.period_start,
+            periodEnd: row.period_end,
+            metrics,
+            siteUrl: deps.siteUrl,
+          },
+          to,
+        );
+        if ((await deps.email.send(message)) === "sent") outcome = "sent";
+        delivered.push(to);
+      } catch (e) {
+        failure = (e instanceof Error ? e.message : "send failed").slice(0, 300);
+      }
+    }
+    if (failure === null) s.reports[outcome]++;
+    else s.reports.failed++;
+    await db.rpc("complete_report_run", { p_id: row.id, p_delivered: delivered, p_outcome: outcome, p_error: failure as never });
   }
 }
 

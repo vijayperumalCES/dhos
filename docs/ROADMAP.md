@@ -95,6 +95,10 @@ check; a reviewer-gated production migration workflow; runbooks with a backup/re
 enforcement option enforced in the database, a legal hold, and editable retention windows
 (ADR-0014).
 
+**Delivery metrics and emailed reports — done 2026-11-07.** Thirty weekly delivery metrics per
+project (six filled from existing records), week and month views, and a scheduled weekly and monthly
+report emailed to a per-project recipient list (ADR-0015).
+
 **Still open:** tenant-isolation fuzzing and performance tests; the actual restore drill, pen test
 and UAT, which people must run; preview databases (needs Supabase Branching); alert rules in the
 monitoring tool.

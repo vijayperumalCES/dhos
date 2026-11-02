@@ -1894,6 +1894,69 @@ export type Database = {
           },
         ]
       }
+      metric_report_runs: {
+        Row: {
+          attempts: number
+          claimed_at: string | null
+          created_at: string
+          delivered_to: string[]
+          id: string
+          kind: string
+          last_error: string | null
+          organization_id: string
+          payload: NonNullable<Json>
+          period_end: string
+          period_start: string
+          project_id: string
+          recipients: string[]
+          sent_at: string | null
+          status: string
+        }
+        ComputedFields: never
+        Insert: {
+          attempts?: number
+          claimed_at?: string | null
+          created_at?: string
+          delivered_to?: string[]
+          id?: string
+          kind: string
+          last_error?: string | null
+          organization_id: string
+          payload: NonNullable<Json>
+          period_end: string
+          period_start: string
+          project_id: string
+          recipients: string[]
+          sent_at?: string | null
+          status?: string
+        }
+        Update: {
+          attempts?: number
+          claimed_at?: string | null
+          created_at?: string
+          delivered_to?: string[]
+          id?: string
+          kind?: string
+          last_error?: string | null
+          organization_id?: string
+          payload?: NonNullable<Json>
+          period_end?: string
+          period_start?: string
+          project_id?: string
+          recipients?: string[]
+          sent_at?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "metric_report_runs_project_id_organization_id_fkey"
+            columns: ["project_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id", "organization_id"]
+          },
+        ]
+      }
       notification_preferences: {
         Row: {
           category: string
@@ -2596,6 +2659,51 @@ export type Database = {
           },
         ]
       }
+      project_metric_entries: {
+        Row: {
+          created_at: string
+          entered_by: string | null
+          id: string
+          metric_key: string
+          organization_id: string
+          period_start: string
+          project_id: string
+          updated_at: string
+          value: number
+        }
+        ComputedFields: never
+        Insert: {
+          created_at?: string
+          entered_by?: string | null
+          id?: string
+          metric_key: string
+          organization_id: string
+          period_start: string
+          project_id: string
+          updated_at?: string
+          value: number
+        }
+        Update: {
+          created_at?: string
+          entered_by?: string | null
+          id?: string
+          metric_key?: string
+          organization_id?: string
+          period_start?: string
+          project_id?: string
+          updated_at?: string
+          value?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_metric_entries_project_id_organization_id_fkey"
+            columns: ["project_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id", "organization_id"]
+          },
+        ]
+      }
       project_milestones: {
         Row: {
           baseline_due_date: string | null
@@ -2650,6 +2758,45 @@ export type Database = {
           },
           {
             foreignKeyName: "project_milestones_project_id_organization_id_fkey"
+            columns: ["project_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id", "organization_id"]
+          },
+        ]
+      }
+      project_report_settings: {
+        Row: {
+          monthly_enabled: boolean
+          organization_id: string
+          project_id: string
+          recipients: string[]
+          updated_at: string
+          updated_by: string | null
+          weekly_enabled: boolean
+        }
+        ComputedFields: never
+        Insert: {
+          monthly_enabled?: boolean
+          organization_id: string
+          project_id: string
+          recipients?: string[]
+          updated_at?: string
+          updated_by?: string | null
+          weekly_enabled?: boolean
+        }
+        Update: {
+          monthly_enabled?: boolean
+          organization_id?: string
+          project_id?: string
+          recipients?: string[]
+          updated_at?: string
+          updated_by?: string | null
+          weekly_enabled?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_report_settings_project_id_organization_id_fkey"
             columns: ["project_id", "organization_id"]
             isOneToOne: false
             referencedRelation: "projects"
@@ -4697,6 +4844,7 @@ export type Database = {
         }[]
       }
       can_act_on_project: { Args: { p_permission: string; p_project: string }; Returns: boolean }
+      can_enter_metrics: { Args: { p_project: string }; Returns: boolean }
       can_read_project: { Args: { p_project: string }; Returns: boolean }
       can_read_work: { Args: { p_project: string }; Returns: boolean }
       cancel_attendance_correction: { Args: { p_correction: string }; Returns: undefined }
@@ -4779,6 +4927,22 @@ export type Database = {
           to_email: string
         }[]
       }
+      claim_pending_reports: {
+        Args: { p_limit: number }
+        Returns: {
+          delivered_to: string[]
+          id: string
+          kind: string
+          organization_name: string
+          payload: Json
+          period_end: string
+          period_start: string
+          project_code: string
+          project_id: string
+          project_name: string
+          recipients: string[]
+        }[]
+      }
       claim_webhook_deliveries: {
         Args: { p_limit: number }
         Returns: {
@@ -4795,6 +4959,10 @@ export type Database = {
       }
       complete_agent_approval: { Args: { p_approval: string; p_ok: boolean; p_result: Json }; Returns: undefined }
       complete_notification_email: { Args: { p_id: string; p_status: string }; Returns: undefined }
+      complete_report_run: {
+        Args: { p_delivered: string[]; p_error: string; p_id: string; p_outcome: string }
+        Returns: undefined
+      }
       complete_sprint: { Args: { p_move_to?: string; p_sprint: string }; Returns: undefined }
       complete_webhook_delivery: { Args: { p_delivery: string; p_error: string; p_status: number }; Returns: undefined }
       create_document: {
@@ -4914,6 +5082,7 @@ export type Database = {
           unrated_hours: number
         }[]
       }
+      project_metrics: { Args: { p_from: string; p_project: string; p_to: string }; Returns: Json }
       project_monthly_actuals: {
         Args: { p_project: string }
         Returns: {
@@ -5009,6 +5178,11 @@ export type Database = {
       }
       run_job_now: { Args: { p_job: string }; Returns: Json }
       run_scheduled_job: { Args: { p_job: string }; Returns: Json }
+      save_metric_entries: { Args: { p_entries: Json; p_project: string; p_week: string }; Returns: number }
+      save_report_settings: {
+        Args: { p_monthly: boolean; p_project: string; p_recipients: string[]; p_weekly: boolean }
+        Returns: undefined
+      }
       set_agent_enabled: { Args: { p_agent: string; p_enabled: boolean }; Returns: undefined }
       set_default_calendar: { Args: { p_calendar: string }; Returns: undefined }
       set_leave_balance: {

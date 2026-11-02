@@ -253,6 +253,25 @@ notifications) stay readable at `aal1`; there is no end-to-end test of the MFA f
 Still open in Phase 8: tenant-isolation fuzzing, performance tests, penetration test, UAT, preview
 databases and alert rules. See ROADMAP.md.
 
+## Delivery metrics and emailed reports (2026-11-07)
+
+| Feature | Status | Evidence |
+|---|---|---|
+| 30 weekly delivery metrics per project (requirement to AI adoption), one value per metric and Monday, ranges enforced in the database | Done | pgTAP `10_delivery_metrics`, unit |
+| Six metrics filled from existing records (scope creeps, pull requests, releases, three escalation figures); a manual value wins; unreported is empty, not zero | Done | pgTAP |
+| Week and month views; counts add, percentages average, scores take the latest week; "agreed metrics reported" derived | Done | pgTAP, unit |
+| Anyone assigned to the project (or with `project.change_status`) can enter values; each entry records who typed it; the form saves only changed fields | Done | pgTAP |
+| Per-project recipient list (external addresses allowed), weekly and monthly switches, off by default; list and history visible only to publishers | Done | pgTAP |
+| `metrics_reports` job builds the last complete week and month once per period; tick `reports` stage emails each recipient, tracks who has it, three attempts | Done | pgTAP, unit (fake database and mail) |
+| Project → Delivery metrics page (entry form, tables, settings, sent-report history); ADR-0015; runbook 11 | Done | Compiles, lints and builds; **not exercised in a browser or against a running stack** |
+
+New migration `20261107000100_delivery_metrics.sql` — **must be pushed to the hosted project**. Email
+needs `RESEND_API_KEY` and `EMAIL_FROM`; without them reports are marked "simulated".
+
+Limitations: fixed schedule (Monday and the 1st); no CSV import of metric values; plain-text email only;
+no send-now button (use Scheduler → run now); metrics are entered per week, so a monthly figure for a
+metric with some weeks missing covers only the weeks entered.
+
 ## Known gaps and limitations (Phase 1)
 
 - **Email delivery limits:** hosted Supabase's built-in mailer sends only a few emails per hour. Configure
@@ -274,7 +293,7 @@ databases and alert rules. See ROADMAP.md.
 
 | Suite | Command | Count | Last result |
 |---|---|---|---|
-| Unit (Vitest) | `pnpm test` | 228 | ✅ pass |
-| Database (pgTAP) | `pnpm test:db` | 612 (45 + 25 + 34 + 53 + 98 + 72 + 101 + 107 + 77) | ✅ pass (run on a throwaway Postgres 17, Phase 8 on top of all earlier suites) |
+| Unit (Vitest) | `pnpm test` | 243 | ✅ pass |
+| Database (pgTAP) | `pnpm test:db` | 705 (45 + 25 + 34 + 53 + 98 + 72 + 101 + 107 + 77 + 93) | ✅ pass (run on a throwaway Postgres 17, Phase 8 on top of all earlier suites) |
 | End-to-end (Playwright) | `pnpm test:e2e` | 26 + 5 for agents + 8 for automation | 26 last run before Phase 5; the agent and automation journeys are written but not run (no local stack here) |
 | Typecheck / lint / build | `pnpm typecheck`, `pnpm lint`, `pnpm build` | — | ✅ pass |

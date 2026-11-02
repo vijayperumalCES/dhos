@@ -71,8 +71,8 @@ select ok(not exists (select 1 from public.role_permissions rp join public.role_
           'only administrators manage automation');
 
 -- Scheduler seeding -------------------------------------------------------------------------
-select is((select count(*)::int from public.scheduled_jobs where organization_id = (select id from fx where k = 'org')), 5, 'every organization gets the five default jobs');
-select is((select count(*)::int from public.scheduled_jobs where organization_id = (select id from fx where k = 'org_x')), 5, 'organizations created later are seeded by trigger');
+select is((select count(*)::int from public.scheduled_jobs where organization_id = (select id from fx where k = 'org')), 6, 'every organization gets the six default jobs');
+select is((select count(*)::int from public.scheduled_jobs where organization_id = (select id from fx where k = 'org_x')), 6, 'organizations created later are seeded by trigger');
 
 -- Outbox triggers -------------------------------------------------------------------------
 select pg_temp.as_postgres();

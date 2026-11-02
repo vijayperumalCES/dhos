@@ -162,3 +162,14 @@ than 30 days, and read notifications and job logs older than 90 days. The audit 
 To check it ran: **Automation → Scheduler → retention → last run**. Windows (7 to 3650 days) and the
 legal hold are set under **Administration → Security**. While a hold is in force the job runs but
 deletes nothing; lift the hold to resume deletion.
+
+## 11. A project report did not arrive
+
+Open the project → **Delivery metrics** → *Sent reports* (needs permission to publish for the project).
+`Waiting to send` means the tick has not run or failed: check **Automation → Scheduler** for the
+heartbeat and the `reports` errors. `Not sent (no mail provider)` means `RESEND_API_KEY` or `EMAIL_FROM`
+is not set. `Failed` shows the provider's last error after three attempts; fix it, then set the run's
+`status` back to `pending` and `attempts` to 0 as an operator, or wait for the next period. No row at
+all: the project is not planning, active or on hold, has no recipients, or that report is switched off;
+the `metrics_reports` job (hourly) must have run since the period ended. Recipients already delivered to
+are never emailed twice for the same report.
