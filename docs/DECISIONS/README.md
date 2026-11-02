@@ -17,3 +17,4 @@ Add a new ADR (next number) for any decision that is costly to reverse.
 | [0010](ADR-0010-finance-model.md) | Financial data model and access | Accepted |
 | [0011](ADR-0011-ai-agents.md) | AI agents: gateway, registry, approvals and limits | Accepted |
 | [0012](ADR-0012-automation.md) | Automation: outbox, notifications, webhooks, rules, scheduler, integrations | Accepted |
+| [0013](ADR-0013-observability-and-delivery.md) | Observability and delivery pipeline | Accepted |

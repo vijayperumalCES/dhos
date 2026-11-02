@@ -115,5 +115,13 @@ See `docs/DEPLOYMENT.md`.
 
 ## 8. Observability
 
-Phase 1: unexpected database errors are logged server-side with code and message (never shown to
-users). Phase 8 adds OpenTelemetry via `instrumentation.ts`, error tracking and alerting.
+Logs are structured: `src/lib/observability/logger.ts` writes one JSON object per line (`LOG_LEVEL`
+sets the threshold) and redacts any field named like a secret, token, password, cookie or signature.
+Unexpected database errors, unhandled request errors (`onRequestError` in `src/instrumentation.ts`)
+and every scheduler tick are logged this way; users never see the detail.
+
+Tracing is opt-in. With `OTEL_EXPORTER_OTLP_ENDPOINT` set, `src/instrumentation.ts` registers
+OpenTelemetry (`@vercel/otel`) and exports Next.js's own spans plus ours (`withSpan`, currently
+`automation.tick`) over OTLP. Without it the SDK is never loaded and `withSpan` is a no-op.
+`GET /api/health` reports process and Supabase Auth reachability for uptime monitors. Alert rules
+live in the monitoring tool, not the repo; the signals to alert on are in `docs/RUNBOOKS.md`.

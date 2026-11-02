@@ -1,6 +1,8 @@
 import type { PostgrestError } from "@supabase/supabase-js";
 import type { z } from "zod";
 
+import { log } from "@/lib/observability/logger";
+
 export type ActionResult<T = undefined> =
   | { ok: true; data: T; message?: string }
   | { ok: false; error: string; fieldErrors?: Record<string, string[]> };
@@ -44,7 +46,7 @@ export function fromPostgrestError(error: PostgrestError, context?: { duplicate?
     case "P0001":
       return fail(humanizeRpcMessage(error.message));
     default:
-      console.error("[stride-ces] unexpected database error", { code: error.code, message: error.message });
+      log.error("unexpected database error", { code: error.code, message: error.message });
       return fail("Something went wrong while saving. Please try again.");
   }
 }

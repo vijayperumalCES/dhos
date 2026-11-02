@@ -1,6 +1,6 @@
 # Stride — Implementation Status
 
-_Last updated: 2026-11-05._ A feature is "Done" only when it meets the Definition of Done in the
+_Last updated: 2026-11-06._ A feature is "Done" only when it meets the Definition of Done in the
 master brief: UI end-to-end, persisted, authorized, tenant-tested, validated, audited, tested,
 empty/loading/error states, documented.
 
@@ -219,6 +219,23 @@ without them the app works but nothing is delivered, reminded or synced.
 - DNS rebinding between the address check and the connection is not closed in application code; restrict egress at the network layer (see DEPLOYMENT.md).
 - Sprint burndown now gets a daily snapshot only for sprints that are `active`; days before this migration are not backfilled.
 
+## Phase 8 — Production readiness: platform hardening (2026-11-06)
+
+| Feature | Status | Evidence |
+|---|---|---|
+| Structured JSON logging with secret redaction and `LOG_LEVEL` | Done | Unit `observability.test.ts` |
+| `onRequestError` hook logs every unhandled server error with route and digest | Done | Compiles; not exercised against a failing route |
+| Opt-in OpenTelemetry (`OTEL_EXPORTER_OTLP_ENDPOINT`), `withSpan`, scheduler tick span | Done | Compiles and builds; no collector was available to receive spans |
+| `GET /api/health` (liveness + Supabase Auth reachability), public | Done | Builds; not called against a running stack |
+| CI: dependency audit, generated-types drift check, run cancellation, least-privilege token | Done | Workflow YAML parses; **not run on GitHub yet** |
+| `deploy-db.yml`: reviewer-gated `supabase db push` after CI on `main` | Written | Not run; needs the `production` environment and three secrets |
+| Runbooks: outage, scheduler, webhooks, secret rotation, restore drill, migrations, exposure, retention | Done | `docs/RUNBOOKS.md` |
+| Restore drill actually performed | **Not done** | The drill log in `RUNBOOKS.md` is empty |
+
+Still open in Phase 8: dual approval for privileged role grants, MFA enforcement, configurable
+retention and legal hold, tenant-isolation fuzzing, performance tests, penetration test, UAT,
+preview databases and alert rules. See ROADMAP.md.
+
 ## Known gaps and limitations (Phase 1)
 
 - **Email delivery limits:** hosted Supabase's built-in mailer sends only a few emails per hour. Configure
@@ -240,7 +257,7 @@ without them the app works but nothing is delivered, reminded or synced.
 
 | Suite | Command | Count | Last result |
 |---|---|---|---|
-| Unit (Vitest) | `pnpm test` | 210 | ✅ pass |
+| Unit (Vitest) | `pnpm test` | 214 | ✅ pass |
 | Database (pgTAP) | `pnpm test:db` | 535 (45 + 25 + 34 + 53 + 98 + 72 + 101 + 107) | ✅ pass (run on a throwaway Postgres 17, Phase 7 on top of all earlier suites) |
 | End-to-end (Playwright) | `pnpm test:e2e` | 26 + 5 for agents + 8 for automation | 26 last run before Phase 5; the agent and automation journeys are written but not run (no local stack here) |
 | Typecheck / lint / build | `pnpm typecheck`, `pnpm lint`, `pnpm build` | — | ✅ pass |

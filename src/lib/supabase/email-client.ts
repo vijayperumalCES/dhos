@@ -3,6 +3,7 @@ import "server-only";
 import { createClient } from "@supabase/supabase-js";
 
 import { env } from "@/lib/env";
+import { log } from "@/lib/observability/logger";
 
 /**
  * Stateless Supabase client for asking Auth to email *someone else* a sign-in link (invitations).
@@ -28,6 +29,6 @@ export async function sendInvitationEmail(email: string, origin: string): Promis
   if (error.status === 429 || error.code === "over_email_send_rate_limit") {
     return { ok: false, reason: "the email service's rate limit was reached; try resending later" };
   }
-  console.error("[stride-ces] invitation email failed", { code: error.code, status: error.status });
+  log.error("invitation email failed", { code: error.code, status: error.status });
   return { ok: false, reason: "the email service rejected the request" };
 }

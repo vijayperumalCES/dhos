@@ -54,6 +54,8 @@ Environment variables:
 | `ANTHROPIC_BASE_URL` | Optional override of `https://api.anthropic.com` (proxy or test double) | server-only |
 | `SUPABASE_SECRET_KEY` | The project's secret (service-role) key. **Required for automation (Phase 7)**: only the background worker and the "Process now" / "Sync now" buttons use it, and only to call a fixed set of `service_role` RPCs | **server-only secret** |
 | `CRON_SECRET` | At least 16 random characters. The scheduler endpoint refuses every request without `Authorization: Bearer <this>`, and answers 503 while it is unset | **server-only secret** |
+| `LOG_LEVEL` | `debug`, `info` (default), `warn` or `error` | server-only |
+| `OTEL_EXPORTER_OTLP_ENDPOINT` | Optional. OTLP/HTTP collector URL; setting it turns tracing on (`OTEL_EXPORTER_OTLP_HEADERS` for auth, `OTEL_SERVICE_NAME` to rename, default `stride-ces`) | server-only |
 | `RESEND_API_KEY`, `EMAIL_FROM` | Optional. Set both to send notification email through Resend; without them email is recorded as *simulated* | server-only |
 
 The secret key is used for one purpose: the automation worker (`/api/cron/tick` and the two admin
@@ -81,14 +83,24 @@ demo organizations (`delete from organizations where is_demo;`) and demo auth us
 
 ## 5. CI
 
-`.github/workflows/ci.yml` runs typecheck, lint, unit tests, starts Supabase, runs pgTAP, builds,
-and runs Playwright. Database migrations to production should be applied from CI on merge to `main`
-with `supabase db push` using a `SUPABASE_ACCESS_TOKEN` secret (not yet wired — Phase 8).
+`.github/workflows/ci.yml` runs a production dependency audit (high and above), typecheck, lint,
+unit tests, starts Supabase, runs pgTAP, checks that `database.types.ts` matches the migrations,
+builds, and runs Playwright. Runs for the same ref cancel each other.
+
+`.github/workflows/deploy-db.yml` applies migrations to production after CI passes on `main`. Create a
+GitHub environment named `production`, add required reviewers, and give it the secrets
+`SUPABASE_ACCESS_TOKEN`, `SUPABASE_DB_PASSWORD` and `SUPABASE_PROJECT_REF`. The job links the project,
+prints the pending migrations, then applies them. It can also be started by hand
+(`workflow_dispatch`). Preview databases per pull request need Supabase Branching (a paid feature);
+until it is enabled, pull requests are tested against the local stack CI starts.
+
+Monitoring: point an uptime check at `/api/health` (200 = up; 503 = Supabase Auth unreachable) and
+alert on a stale scheduler heartbeat. See `docs/RUNBOOKS.md`.
 
 ## 6. Backups
 
-Supabase Pro includes daily backups and optional point-in-time recovery. Restore drills and runbooks
-are Phase 8 deliverables.
+Supabase Pro includes daily backups and optional point-in-time recovery (turn it on for production).
+The restore drill, with a log table for recorded recovery times, is in `docs/RUNBOOKS.md`.
 
 ## 7. Auth emails
 
