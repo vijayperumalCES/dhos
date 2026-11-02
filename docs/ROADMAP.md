@@ -11,7 +11,7 @@ _Last updated: 2026-11-05._ Status: ✅ done · 🟡 partial · ⬜ not started
 | 5 | Financial and portfolio intelligence | ✅ (see `IMPLEMENTATION_STATUS.md`) |
 | 6 | AI agents | ✅ (see `IMPLEMENTATION_STATUS.md`) |
 | 7 | Automation and integrations | ✅ (see `IMPLEMENTATION_STATUS.md`) |
-| 8 | Production readiness | 🟨 platform hardening done; security controls and external reviews open |
+| 8 | Production readiness | 🟨 platform hardening and security controls done; testing and external reviews open |
 
 ## Phase 2 — Work management (done 2026-10-28)
 
@@ -91,7 +91,10 @@ tracing and a request-error hook; `/api/health`; CI with dependency audit and ge
 check; a reviewer-gated production migration workflow; runbooks with a backup/restore drill
 (ADR-0013).
 
-**Still open:** dual approval for privileged role grants, MFA enforcement option, configurable
-retention and legal hold (all need schema work); tenant-isolation fuzzing and performance tests;
-the actual restore drill, pen test and UAT, which people must run; preview databases (needs Supabase
-Branching); alert rules in the monitoring tool.
+**Security controls — done 2026-11-06.** Dual approval for privileged role grants, an MFA
+enforcement option enforced in the database, a legal hold, and editable retention windows
+(ADR-0014).
+
+**Still open:** tenant-isolation fuzzing and performance tests; the actual restore drill, pen test
+and UAT, which people must run; preview databases (needs Supabase Branching); alert rules in the
+monitoring tool.

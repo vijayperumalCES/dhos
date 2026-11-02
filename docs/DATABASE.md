@@ -221,7 +221,13 @@ Reasons for governed changes are passed to triggers through the transaction-loca
 | User accounts | Deleting an auth user cascades profile and memberships; audit `actor_id` is set null |
 | Organizations | Hard delete cascades all tenant data (offboarding; operator-only, no UI) |
 
-Configurable retention windows and legal-hold arrive in Phase 8.
+Operational data (events, deliveries, read notifications, job and sync logs) follows windows an
+administrator sets between 7 and 3650 days (`set_retention_windows`; defaults 30, 90 and 90). A
+**legal hold** (`set_legal_hold`, reason required) makes the retention job delete nothing for that
+organization until it is lifted. The audit log is never purged. Security settings live in
+`organization_settings` (`require_dual_approval`, `require_mfa`, `legal_hold*`) and are changed only
+through `set_security_controls` and `set_legal_hold`; privileged-role requests are
+`role_grant_requests`. See ADR-0014.
 
 ## 5. Logical model for later phases
 

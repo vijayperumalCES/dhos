@@ -102,6 +102,14 @@ alert on a stale scheduler heartbeat. See `docs/RUNBOOKS.md`.
 Supabase Pro includes daily backups and optional point-in-time recovery (turn it on for production).
 The restore drill, with a log table for recorded recovery times, is in `docs/RUNBOOKS.md`.
 
+### MFA
+
+The "require multi-factor authentication" option (Administration → Security) uses Supabase Auth TOTP.
+Enable it on the hosted project under Authentication → Multi-Factor (the local stack has it on in
+`supabase/config.toml`). Without it people cannot enrol, and an organization that requires MFA would
+be unreachable, so enable it before anyone switches the option on. The option can only be switched
+on by someone whose own session has verified a code.
+
 ## 7. Auth emails
 
 | Email | Sent when | Link lands on |

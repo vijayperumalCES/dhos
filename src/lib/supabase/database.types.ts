@@ -2127,7 +2127,13 @@ export type Database = {
         Row: {
           currency_code: string
           health_stale_after_days: number
+          legal_hold: boolean
+          legal_hold_reason: string | null
+          legal_hold_set_at: string | null
+          legal_hold_set_by: string | null
           organization_id: string
+          require_dual_approval: boolean
+          require_mfa: boolean
           timezone: string
           updated_at: string
           week_start: number
@@ -2136,7 +2142,13 @@ export type Database = {
         Insert: {
           currency_code?: string
           health_stale_after_days?: number
+          legal_hold?: boolean
+          legal_hold_reason?: string | null
+          legal_hold_set_at?: string | null
+          legal_hold_set_by?: string | null
           organization_id: string
+          require_dual_approval?: boolean
+          require_mfa?: boolean
           timezone?: string
           updated_at?: string
           week_start?: number
@@ -2144,7 +2156,13 @@ export type Database = {
         Update: {
           currency_code?: string
           health_stale_after_days?: number
+          legal_hold?: boolean
+          legal_hold_reason?: string | null
+          legal_hold_set_at?: string | null
+          legal_hold_set_by?: string | null
           organization_id?: string
+          require_dual_approval?: boolean
+          require_mfa?: boolean
           timezone?: string
           updated_at?: string
           week_start?: number
@@ -3343,6 +3361,74 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "organizations"
             referencedColumns: ["id"]
+          },
+        ]
+      }
+      role_grant_requests: {
+        Row: {
+          created_at: string
+          decided_at: string | null
+          decided_by: string | null
+          decision_note: string | null
+          expires_at: string
+          id: string
+          membership_id: string
+          organization_id: string
+          reason: string
+          requested_by: string
+          role_id: string
+          status: string
+        }
+        ComputedFields: never
+        Insert: {
+          created_at?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          decision_note?: string | null
+          expires_at?: string
+          id?: string
+          membership_id: string
+          organization_id: string
+          reason: string
+          requested_by: string
+          role_id: string
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          decision_note?: string | null
+          expires_at?: string
+          id?: string
+          membership_id?: string
+          organization_id?: string
+          reason?: string
+          requested_by?: string
+          role_id?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "role_grant_requests_membership_id_organization_id_fkey"
+            columns: ["membership_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "organization_memberships"
+            referencedColumns: ["id", "organization_id"]
+          },
+          {
+            foreignKeyName: "role_grant_requests_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "role_grant_requests_role_id_organization_id_fkey"
+            columns: ["role_id", "organization_id"]
+            isOneToOne: false
+            referencedRelation: "role_definitions"
+            referencedColumns: ["id", "organization_id"]
           },
         ]
       }
@@ -4615,6 +4701,7 @@ export type Database = {
       can_read_work: { Args: { p_project: string }; Returns: boolean }
       cancel_attendance_correction: { Args: { p_correction: string }; Returns: undefined }
       cancel_leave_request: { Args: { p_note?: string; p_request: string }; Returns: undefined }
+      cancel_role_grant: { Args: { p_request: string }; Returns: undefined }
       capacity_overview: {
         Args: { p_from: string; p_org: string; p_to: string }
         Returns: {
@@ -4734,6 +4821,7 @@ export type Database = {
       }
       decide_agent_approval: { Args: { p_approval: string; p_approve: boolean; p_note?: string }; Returns: undefined }
       decide_change_request: { Args: { p_approve: boolean; p_change: string; p_note?: string }; Returns: undefined }
+      decide_role_grant: { Args: { p_approve: boolean; p_note: string; p_request: string }; Returns: undefined }
       delete_role: { Args: { p_role: string }; Returns: undefined }
       due_integration_connections: {
         Args: Record<PropertyKey, never>
@@ -4796,6 +4884,13 @@ export type Database = {
           milestone_name: string
           project_id: string
           project_name: string
+        }[]
+      }
+      mfa_required_organizations: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          name: string
+          organization_id: string
         }[]
       }
       my_permissions: { Args: { p_org: string }; Returns: string[] }
@@ -4894,6 +4989,7 @@ export type Database = {
         }
         Returns: string
       }
+      request_role_grant: { Args: { p_membership: string; p_reason: string; p_role_key: string }; Returns: string }
       resolve_escalation: { Args: { p_escalation: string; p_note: string }; Returns: undefined }
       reverse_cost_entry: { Args: { p_entry: string; p_reason: string }; Returns: string }
       review_attendance_correction: {
@@ -4919,6 +5015,7 @@ export type Database = {
         Args: { p_days: number; p_leave_type: string; p_membership: string; p_year: number }
         Returns: undefined
       }
+      set_legal_hold: { Args: { p_on: boolean; p_org: string; p_reason: string }; Returns: undefined }
       set_member_calendar: { Args: { p_calendar: string; p_membership: string }; Returns: undefined }
       set_member_roles: { Args: { p_membership: string; p_role_keys: string[] }; Returns: undefined }
       set_membership_status: {
@@ -4928,6 +5025,14 @@ export type Database = {
       set_project_archived: { Args: { p_archived: boolean; p_project: string }; Returns: undefined }
       set_project_health: {
         Args: { p_health: Database["public"]["Enums"]["project_health"]; p_project: string; p_reason: string }
+        Returns: undefined
+      }
+      set_retention_windows: {
+        Args: { p_log_days: number; p_notification_days: number; p_org: string; p_outbox_days: number }
+        Returns: undefined
+      }
+      set_security_controls: {
+        Args: { p_dual_approval: boolean; p_org: string; p_require_mfa: boolean }
         Returns: undefined
       }
       set_work_item_archived: { Args: { p_archived: boolean; p_item: string }; Returns: undefined }

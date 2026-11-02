@@ -113,8 +113,12 @@ timesheets without any of the HR permissions. See section 3a.
 
 - **Organization Administrator ≠ data access.** Admins configure members, roles, teams and settings,
   and read the audit log, but cannot see projects or clients unless also given a delivery role.
-  Because admins can assign roles (including to themselves), every role change is audited; dual
-  approval for privileged role grants is a Phase 8 item.
+  Because admins can assign roles (including to themselves), every role change is audited. An
+  organization can also turn on **dual approval**: a role carrying `org.settings.manage`,
+  `org.members.manage`, `org.roles.manage`, `finance.manage` or `finance.approve` is then granted only
+  after a *different* administrator approves a request (Administration → Security). It can require
+  **MFA**: a session that has not verified a second factor sees nothing in that organization. See
+  [ADR-0014](DECISIONS/ADR-0014-security-controls.md).
 - **Client stakeholders** see only projects they are explicitly a member of, only their own project
   membership row, no internal directory and no teams.
 - **Finance** reads all projects and holds the finance permissions. Financial data lives in separate

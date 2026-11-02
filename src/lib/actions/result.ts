@@ -158,6 +158,15 @@ const DETAILED_KEYS = new Set([
   "revenue_state",
   "eval_required",
   "approval_state",
+  "approval_required",
+  "approval_not_required",
+  "self_approval",
+  "expired",
+  "not_pending",
+  "member_inactive",
+  "need_second_approver",
+  "mfa_required_to_enable",
+  "invalid_retention",
 ]);
 
 export function humanizeRpcMessage(message: string): string {

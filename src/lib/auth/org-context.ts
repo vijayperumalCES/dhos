@@ -42,6 +42,14 @@ export const getOrgContext = cache(async (): Promise<OrgContext | null> => {
     .is("organizations.archived_at", null)
     .order("created_at");
   if (error) throw new Error(`Failed to load memberships: ${error.message}`);
+
+  // An organization that requires MFA is invisible to a session that has not verified a second
+  // factor, so it would otherwise look like the person belongs to nothing (and be sent to
+  // onboarding). Ask the one function that is allowed to say so, and send them to verify.
+  const { data: gated } = await supabase.rpc("mfa_required_organizations");
+  const visible = new Set((memberships ?? []).map((m) => m.organization_id));
+  if ((gated ?? []).some((o) => !visible.has(o.organization_id))) redirect("/mfa");
+
   if (!memberships?.length) return null;
 
   const organizations: OrgSummary[] = memberships.map((m) => ({

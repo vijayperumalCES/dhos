@@ -131,8 +131,34 @@ Treat as an incident immediately.
 4. Fix with a migration, deploy, rotate `SUPABASE_SECRET_KEY` if privileged access is in doubt.
 5. Notify affected customers according to the contract and law that apply to them.
 
-## 8. Retention
+## 8. Someone is locked out by required MFA
+
+**Signs:** a person can sign in but is sent to `/mfa` and cannot produce a code (lost phone), or the
+`/mfa` page says it could not load authenticator settings.
+
+1. Could not load settings: TOTP MFA is not enabled on the Supabase project. Enable it under
+   Authentication → Multi-Factor.
+2. Lost authenticator: confirm who the person is out of band. In Supabase → Authentication → Users, open
+   the user and remove their MFA factor. At the next sign-in they enrol a new one at `/mfa`.
+3. Nobody in the organization can get in (every administrator lost their factor): an operator with
+   database access can switch the requirement off, then restore it once an administrator has re-enrolled:
+   ```sql
+   update organization_settings set require_mfa = false where organization_id = '<org id>';
+   ```
+   The settings audit trigger records the change with no actor, so write down who ran it and why in the
+   incident notes.
+
+## 9. Privileged role requests are stuck
+
+With dual approval on, a request needs a *different* administrator. If only one administrator is
+active (the other left or was suspended), requests cannot be approved. Reactivate or appoint a second
+administrator directly in the database as an operator, or switch the control off (audited) and
+re-enable it afterwards. Requests expire after 7 days and can be cancelled by their requester.
+
+## 10. Retention and legal hold
 
 The `retention` scheduler job deletes processed outbox events and finished webhook deliveries older
 than 30 days, and read notifications and job logs older than 90 days. The audit log is never purged.
-To check it ran: **Automation → Scheduler → retention → last run**.
+To check it ran: **Automation → Scheduler → retention → last run**. Windows (7 to 3650 days) and the
+legal hold are set under **Administration → Security**. While a hold is in force the job runs but
+deletes nothing; lift the hold to resume deletion.

@@ -232,9 +232,26 @@ without them the app works but nothing is delivered, reminded or synced.
 | Runbooks: outage, scheduler, webhooks, secret rotation, restore drill, migrations, exposure, retention | Done | `docs/RUNBOOKS.md` |
 | Restore drill actually performed | **Not done** | The drill log in `RUNBOOKS.md` is empty |
 
-Still open in Phase 8: dual approval for privileged role grants, MFA enforcement, configurable
-retention and legal hold, tenant-isolation fuzzing, performance tests, penetration test, UAT,
-preview databases and alert rules. See ROADMAP.md.
+### Phase 8 — security controls (2026-11-06)
+
+| Feature | Status | Evidence |
+|---|---|---|
+| Dual approval for privileged role grants: request, decide by a different administrator, expiry, cancel; direct assignment, invitations, stale invitations and role edits gated | Done | pgTAP `09_security_controls` |
+| MFA enforcement option: `aal2` required in the database membership and permission helpers; app redirects to `/mfa` (TOTP enrolment and verification) | Done in the database; the `/mfa` page is untested against a real Supabase Auth | pgTAP; page compiles and builds |
+| Legal hold that suspends retention; editable retention windows (7 to 3650 days) | Done | pgTAP |
+| Administration → Security page: controls, requests, decided requests, retention and hold | Done | Compiles, lints and builds; not exercised against a running stack |
+| Audit entries for every request, decision, control change, hold and retention change | Done | pgTAP |
+
+New migration `20261106000100_security_controls.sql` — **must be pushed to the hosted project**, and
+TOTP MFA must be enabled in Supabase (Authentication → Multi-Factor).
+
+Limitations: an administrator can still switch dual approval off (audited) and then grant directly;
+losing an authenticator locks that person out until an operator removes the factor in Supabase Auth;
+a member's own rows in policies that bypass the shared helpers (their own membership row, their own
+notifications) stay readable at `aal1`; there is no end-to-end test of the MFA flow.
+
+Still open in Phase 8: tenant-isolation fuzzing, performance tests, penetration test, UAT, preview
+databases and alert rules. See ROADMAP.md.
 
 ## Known gaps and limitations (Phase 1)
 
@@ -247,8 +264,8 @@ preview databases and alert rules. See ROADMAP.md.
 - **Notification center** shipped in Phase 7 (below).
 - KPIs are computed in the app from RLS-filtered rows; move to SQL views/RPCs when portfolios exceed
   a few thousand projects.
-- Org admins can grant themselves delivery roles or build a powerful custom role (audited); dual
-  approval planned for Phase 8.
+- Org admins can grant themselves delivery roles or build a powerful custom role (audited); an
+  organization can turn on dual approval and MFA (Phase 8, ADR-0014).
 - Saved views (beyond shareable URL filters) not started.
 - Dev-server note: after adding new dynamic route folders, restart `pnpm dev` if a route 404s
   (observed once with Next 16.4 dev; production build unaffected).
@@ -257,7 +274,7 @@ preview databases and alert rules. See ROADMAP.md.
 
 | Suite | Command | Count | Last result |
 |---|---|---|---|
-| Unit (Vitest) | `pnpm test` | 214 | ✅ pass |
-| Database (pgTAP) | `pnpm test:db` | 535 (45 + 25 + 34 + 53 + 98 + 72 + 101 + 107) | ✅ pass (run on a throwaway Postgres 17, Phase 7 on top of all earlier suites) |
+| Unit (Vitest) | `pnpm test` | 228 | ✅ pass |
+| Database (pgTAP) | `pnpm test:db` | 612 (45 + 25 + 34 + 53 + 98 + 72 + 101 + 107 + 77) | ✅ pass (run on a throwaway Postgres 17, Phase 8 on top of all earlier suites) |
 | End-to-end (Playwright) | `pnpm test:e2e` | 26 + 5 for agents + 8 for automation | 26 last run before Phase 5; the agent and automation journeys are written but not run (no local stack here) |
 | Typecheck / lint / build | `pnpm typecheck`, `pnpm lint`, `pnpm build` | — | ✅ pass |

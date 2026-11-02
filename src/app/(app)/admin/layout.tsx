@@ -15,6 +15,7 @@ export default async function AdminLayout({ children }: LayoutProps<"/admin">) {
     p.has("org.members.read") && { href: "/admin/roles", label: "Roles & permissions" },
     p.has("workflow.manage") && { href: "/admin/workflow", label: "Workflow" },
     p.has("hr.manage") && { href: "/admin/workforce", label: "Workforce" },
+    (p.has("org.settings.manage") || p.has("org.members.manage")) && { href: "/admin/security", label: "Security" },
     p.has("audit.read") && { href: "/admin/audit", label: "Audit log" },
   ].filter((x): x is { href: string; label: string } => Boolean(x));
 
